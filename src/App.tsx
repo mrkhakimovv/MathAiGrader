@@ -3,7 +3,7 @@ import { Uploader } from "./components/Uploader";
 import { ResultCard } from "./components/ResultCard";
 import { SummarySection } from "./components/SummarySection";
 import { GradingResult } from "./types";
-import { Calculator, Loader2, Moon, Sun } from "lucide-react";
+import { Calculator, Loader2, Moon, Sun, User } from "lucide-react";
 
 export default function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -97,13 +97,21 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 font-sans text-slate-900 dark:text-slate-100 md:p-8 transition-colors">
       <div className="mx-auto max-w-3xl relative">
-        <button
-          onClick={toggleDarkMode}
-          className="absolute right-0 top-0 p-2 rounded-full text-slate-500 hover:bg-slate-200 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors"
-          aria-label="Toggle dark mode"
-        >
-          {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-        </button>
+        <div className="absolute right-0 top-0 flex items-center gap-2">
+          <button
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
+            aria-label="Profile"
+          >
+            <User className="h-4 w-4" />
+          </button>
+          <button
+            onClick={toggleDarkMode}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
+            aria-label="Toggle dark mode"
+          >
+            {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
+        </div>
 
         {/* Header */}
         <header className="mb-10 text-center pt-8 md:pt-0">
