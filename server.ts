@@ -34,7 +34,7 @@ async function startServer() {
 
   app.post("/api/grade", limiter, async (req, res) => {
     try {
-      const { imageBase64, mimeType, problemContext } = req.body;
+      const { imageBase64, mimeType } = req.body;
 
       if (!imageBase64 || !mimeType) {
         return res.status(400).json({ error: "Image data is required" });
@@ -48,7 +48,7 @@ async function startServer() {
 
       const promptString = `You are an expert mathematics teacher evaluating a student's homework submission. Your native language is Uzbek, and you MUST provide all feedback, explanations, and evaluations exclusively in the Uzbek language.
 
-${problemContext ? `The student was asked to solve the following problem: "${problemContext}"` : "The student submitted a math problem."}
+The student submitted a math problem.
 
 Please analyze the provided image of the student's work. Follow these steps:
 1. Carefully transcribe the student's entire solution, line by line. Use LaTeX enclosed in $ for inline math and $$ for block math (e.g. $x^2 + y^2 = z^2$).

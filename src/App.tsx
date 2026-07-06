@@ -7,7 +7,6 @@ import { Calculator, Loader2, Moon, Sun } from "lucide-react";
 
 export default function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [problemContext, setProblemContext] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<GradingResult | null>(null);
   const [history, setHistory] = useState<GradingResult[]>([]);
@@ -46,7 +45,6 @@ export default function App() {
 
   const handleReset = () => {
     setSelectedFile(null);
-    setProblemContext("");
     setResult(null);
     setError(null);
   };
@@ -75,7 +73,6 @@ export default function App() {
         body: JSON.stringify({
           imageBase64: base64String,
           mimeType: selectedFile.type,
-          problemContext,
         }),
       });
 
@@ -134,26 +131,6 @@ export default function App() {
                     onFileSelect={handleFileSelect}
                     onClear={handleClear}
                   />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="problemContext"
-                    className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300"
-                  >
-                    Original Problem / Context (Optional)
-                  </label>
-                  <textarea
-                    id="problemContext"
-                    rows={3}
-                    className="w-full resize-none rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 p-4 text-sm text-slate-900 dark:text-slate-100 transition-colors focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:border-indigo-400 dark:focus:ring-indigo-400"
-                    placeholder="E.g., Solve for x: 2x^2 + 5x - 3 = 0"
-                    value={problemContext}
-                    onChange={(e) => setProblemContext(e.target.value)}
-                  />
-                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                    Providing the original question helps the AI grade more accurately.
-                  </p>
                 </div>
 
                 {error && (
