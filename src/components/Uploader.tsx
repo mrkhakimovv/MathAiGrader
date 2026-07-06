@@ -10,7 +10,21 @@ interface UploaderProps {
 
 export function Uploader({ onFileSelect, selectedFile, onClear }: UploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const validateAndSelect = useCallback((file: File) => {
+    setErrorMsg(null);
+    if (!file.type.startsWith("image/")) {
+      setErrorMsg("Faqat rasm fayllari qabul qilinadi");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setErrorMsg("Fayl hajmi juda katta. Iltimos, 10MB dan kichik rasm yuklang.");
+      return;
+    }
+    onFileSelect(file);
+  }, [onFileSelect]);
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -32,51 +46,53 @@ export function Uploader({ onFileSelect, selectedFile, onClear }: UploaderProps)
 
       if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
         const file = e.dataTransfer.files[0];
-        if (file.type.startsWith("image/")) {
-          onFileSelect(file);
-        }
+        validateAndSelect(file);
       }
     },
-    [onFileSelect]
+    [validateAndSelect]
   );
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files.length > 0) {
         const file = e.target.files[0];
-        if (file.type.startsWith("image/")) {
-          onFileSelect(file);
-        }
+        validateAndSelect(file);
       }
     },
-    [onFileSelect]
+    [validateAndSelect]
   );
 
   if (selectedFile) {
     return (
-      <div className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 p-4 transition-all">
-        <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
-            <FileImage className="h-6 w-6" />
+      <div className="flex flex-col gap-2">
+        <div className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 p-4 transition-all">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
+              <FileImage className="h-6 w-6" />
+            </div>
+            <div className="flex-1 truncate">
+              <p className="truncate font-medium text-slate-900 dark:text-slate-100">{selectedFile.name}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setErrorMsg(null);
+                onClear();
+              }}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
-          <div className="flex-1 truncate">
-            <p className="truncate font-medium text-slate-900 dark:text-slate-100">{selectedFile.name}</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
-          </div>
-          <button
-            type="button"
-            onClick={onClear}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div
+    <div className="flex flex-col gap-2">
+      <div
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -104,10 +120,16 @@ export function Uploader({ onFileSelect, selectedFile, onClear }: UploaderProps)
             Click to upload or drag and drop
           </p>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            SVG, PNG, JPG or GIF (max. 50MB)
+            SVG, PNG, JPG or GIF (max. 10MB)
           </p>
         </div>
       </div>
     </div>
+    {errorMsg && (
+      <div className="text-sm font-medium text-rose-600 dark:text-rose-400">
+        {errorMsg}
+      </div>
+    )}
+  </div>
   );
 }

@@ -3,6 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import * as dotenv from "dotenv";
+import rateLimit from "express-rate-limit";
 
 dotenv.config();
 
@@ -17,16 +18,32 @@ const ai = new GoogleGenAI({
 
 async function startServer() {
   const app = express();
-  const PORT = 3000;
+  const PORT = process.env.PORT || 3000;
+
+  // Trust the first proxy to correctly resolve client IP for rate limiting
+  app.set("trust proxy", 1);
 
   app.use(express.json({ limit: "50mb" }));
 
-  app.post("/api/grade", async (req, res) => {
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { error: "Siz juda ko'p so'rov yubordingiz. Iltimos, 15 daqiqadan so'ng qayta urining." },
+    validate: { xForwardedForHeader: false }
+  });
+
+  app.post("/api/grade", limiter, async (req, res) => {
     try {
       const { imageBase64, mimeType, problemContext } = req.body;
 
       if (!imageBase64 || !mimeType) {
         return res.status(400).json({ error: "Image data is required" });
+      }
+
+      const base64Data = imageBase64.split(",")[1] || imageBase64;
+      const sizeInBytes = Buffer.byteLength(base64Data, "base64");
+      if (sizeInBytes > 15 * 1024 * 1024) {
+        return res.status(413).json({ error: "Fayl hajmi juda katta. Iltimos, 15MB dan kichik rasm yuklang." });
       }
 
       const promptString = `You are an expert mathematics teacher evaluating a student's homework submission. Your native language is Uzbek, and you MUST provide all feedback, explanations, and evaluations exclusively in the Uzbek language.
@@ -108,10 +125,21 @@ Output the result in JSON format matching the schema.`;
           });
           break; // Success, exit retry loop
         } catch (err: any) {
+          const errorMsg = err.message || "";
+          
+          if (errorMsg.includes("API_KEY_INVALID") || errorMsg.includes("API key not valid")) {
+            throw new Error("API kaliti noto'g'ri. Iltimos, yaroqli Gemini API kalitini kiriting.");
+          }
+
+          const isTransient = errorMsg.includes("503") || errorMsg.includes("UNAVAILABLE") || errorMsg.includes("429") || errorMsg.includes("RESOURCE_EXHAUSTED");
+          
+          if (!isTransient) {
+            throw err;
+          }
+
           retries--;
           
           if (retries === 0) {
-            const errorMsg = err.message || "";
             if (errorMsg.includes("503") || errorMsg.includes("UNAVAILABLE")) {
               throw new Error("Sun'iy intellekt tizimi hozirda juda band (503). Iltimos, bir ozdan so'ng qayta urining.");
             }
@@ -128,12 +156,18 @@ Output the result in JSON format matching the schema.`;
       }
 
       const jsonStr = response?.text?.trim() || "{}";
-      const result = JSON.parse(jsonStr);
+      let result;
+      try {
+        result = JSON.parse(jsonStr);
+      } catch (e) {
+        throw new Error("AI javobini o'qib bo'lmadi, iltimos qayta urining.");
+      }
 
       res.json(result);
     } catch (error: any) {
       console.error("Error evaluating homework:", error);
-      res.status(500).json({ error: error.message || "Failed to evaluate homework." });
+      const statusCode = error.message && error.message.includes("API kaliti noto'g'ri") ? 401 : 500;
+      res.status(statusCode).json({ error: error.message || "Xatolik yuz berdi" });
     }
   });
 

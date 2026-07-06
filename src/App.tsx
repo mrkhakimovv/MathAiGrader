@@ -86,7 +86,10 @@ export default function App() {
 
       const data: GradingResult = await response.json();
       setResult(data);
-      setHistory(prev => [...prev, data]);
+      setHistory(prev => {
+        const newHistory = [...prev, data];
+        return newHistory.length > 50 ? newHistory.slice(newHistory.length - 50) : newHistory;
+      });
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.");
     } finally {
