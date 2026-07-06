@@ -1,0 +1,6 @@
+{
+  "name": "Math AI Grader",
+  "description": "An AI-powered math homework grading platform for students and teachers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

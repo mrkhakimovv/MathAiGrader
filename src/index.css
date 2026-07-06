@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer components {
+  .markdown-body {
+    @apply text-slate-700 leading-relaxed space-y-4;
+  }
+  .markdown-body p {
+    @apply mb-4;
+  }
+  .markdown-body ul {
+    @apply list-disc list-outside ml-5 mb-4;
+  }
+  .markdown-body ol {
+    @apply list-decimal list-outside ml-5 mb-4;
+  }
+  .markdown-body li {
+    @apply mb-1;
+  }
+  .markdown-body strong {
+    @apply font-semibold text-slate-900;
+  }
+  .markdown-body em {
+    @apply italic;
+  }
+  .markdown-body code {
+    @apply font-mono text-sm px-1.5 py-0.5 rounded bg-slate-100 text-slate-800;
+  }
+  .markdown-body pre {
+    @apply p-4 rounded-lg bg-slate-900 overflow-x-auto text-slate-50 mb-4;
+  }
+  .markdown-body pre code {
+    @apply bg-transparent text-inherit p-0 font-mono text-sm;
+  }
+  .markdown-body h1 {
+    @apply text-2xl font-semibold text-slate-900 mt-8 mb-4;
+  }
+  .markdown-body h2 {
+    @apply text-xl font-semibold text-slate-900 mt-6 mb-4;
+  }
+  .markdown-body h3 {
+    @apply text-lg font-semibold text-slate-900 mt-4 mb-3;
+  }
+  .markdown-body blockquote {
+    @apply border-l-4 border-slate-200 pl-4 py-1 italic text-slate-600 bg-slate-50 my-4;
+  }
+}
