@@ -18,7 +18,7 @@ const ai = new GoogleGenAI({
 
 async function startServer() {
   const app = express();
-  const PORT = process.env.PORT || 3000;
+  const PORT = Number(process.env.PORT || 3000);
 
   // Trust the first proxy to correctly resolve client IP for rate limiting
   app.set("trust proxy", 1);
@@ -186,7 +186,7 @@ Output the result in JSON format matching the schema.`;
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:\${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
   });
 }
 
