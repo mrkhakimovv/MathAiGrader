@@ -45,7 +45,7 @@ export function SummarySection({ history }: SummarySectionProps) {
           <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Problems Graded</div>
         </div>
         <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-center">
-          <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{avgScore}<span className="text-lg text-slate-400 dark:text-slate-500">/10</span></div>
+          <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">{avgScore}<span className="text-lg text-slate-400 dark:text-slate-500"> / 100</span></div>
           <div className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Average Score</div>
         </div>
         <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex justify-center items-center gap-4">

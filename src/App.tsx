@@ -9,13 +9,15 @@ import { LoginScreen } from "./components/LoginScreen";
 import { AdminPanel } from "./components/AdminPanel";
 import { Sidebar, ViewType } from "./components/Sidebar";
 import { AllStudentsView, CreateGroupView, CreateTaskView, AllGroupsView } from "./components/TeacherViews";
+import { StudentTasksView, StudentStatsView } from "./components/StudentViews";
 import { AddStudentModal } from "./components/AddStudentModal";
 import { AddGroupModal } from "./components/AddGroupModal";
 import { GradingResult } from "./types";
-import { Calculator, Loader2, Moon, Sun, UserPlus, Users } from "lucide-react";
+import { Calculator, Loader2, Moon, Sun, UserPlus, Users, FilePlus } from "lucide-react";
 import { saveResult, subscribeToHistory, subscribeToCollection, saveToCollection } from "./lib/db";
 import { doc, deleteDoc, getDocs, query, where, collection } from "firebase/firestore";
-import { db } from "./lib/firebase";
+import { db, storage } from "./lib/firebase";
+import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 function MainApp() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
@@ -30,12 +32,16 @@ function MainApp() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
   const [isAddGroupModalOpen, setIsAddGroupModalOpen] = useState(false);
+  const [isTaskSubmitting, setIsTaskSubmitting] = useState(false);
+  const [taskUploadProgress, setTaskUploadProgress] = useState(0);
   const [groups, setGroups] = useState<string[]>(['Mathematics A1', 'Physics B2']);
   const [groupDetails, setGroupDetails] = useState<any[]>([
     { name: 'Mathematics A1', days: 'Du, Ch, Ju', time: '14:00 - 16:00' },
     { name: 'Physics B2', days: 'Se, Pa, Sh', time: '10:00 - 12:00' }
   ]);
   const [students, setStudents] = useState<any[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [selectedTaskForGrading, setSelectedTaskForGrading] = useState<any>(null);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("theme");
@@ -78,14 +84,20 @@ function MainApp() {
       setGroupDetails(newGroups);
       setGroups(newGroups.map(g => g.name));
     });
+    const unsubscribeTasks = subscribeToCollection("tasks", (newTasks) => {
+      setTasks(newTasks);
+    });
     return () => {
       unsubscribeHistory();
       unsubscribeStudents();
       unsubscribeGroups();
+      unsubscribeTasks();
     };
   }, []);
 
   const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
+
+  const userHistory = role === 'student' ? history.filter(h => h.studentUsername === currentUser) : history;
 
     const handleLogin = async (username: string, pass: string) => {
     if (username === 'admin') {
@@ -195,7 +207,7 @@ function MainApp() {
         totalSize += file.size;
       }
       if (totalSize > 15 * 1024 * 1024) {
-         throw new Error("Fayllar umumiy hajmi juda katta. Iltimos, jami 15MB dan kichik rasmlar yuklang.");
+         throw new Error("Fayllar umumiy hajmi juda katta. Iltimos, jami 15MB dan kichik fayllar yuklang.");
       }
 
       const response = await fetch("/api/grade", {
@@ -203,7 +215,7 @@ function MainApp() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ images }),
+        body: JSON.stringify({ images, taskReference: selectedTaskForGrading }),
       });
 
       if (!response.ok) {
@@ -276,6 +288,24 @@ function MainApp() {
                 <span className="hidden sm:inline">Guruh yaratish</span>
               </button>
             )}
+            {role === 'teacher' && activeView === 'create-task' && (
+              <button
+                type="submit"
+                form="create-task-form"
+                disabled={isTaskSubmitting}
+                className={`flex h-9 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-white transition-colors shadow-sm ${isTaskSubmitting ? 'bg-indigo-400 dark:bg-indigo-600 cursor-not-allowed' : 'bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600'}`}
+                aria-label="Create Task"
+              >
+                {isTaskSubmitting ? (
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                ) : (
+                  <FilePlus className="h-4 w-4" />
+                )}
+                <span className="hidden sm:inline">
+                  {isTaskSubmitting ? 'Yaratilmoqda...' : 'Vazifa yaratish'}
+                </span>
+              </button>
+            )}
             <button
               onClick={toggleDarkMode}
               className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
@@ -293,10 +323,10 @@ function MainApp() {
                 <Calculator className="h-8 w-8" />
               </div>
               <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white md:text-4xl">
-                Math AI Grader
+                {selectedTaskForGrading ? "Vazifani topshirish" : "Math AI Grader"}
               </h1>
               <p className="mt-3 text-lg text-slate-600 dark:text-slate-400">
-                Upload student math homework for automated step-by-step verification and grading.
+                {selectedTaskForGrading ? `Siz hozir ushbu vazifani bajaryapsiz: ${selectedTaskForGrading.title}` : "Upload student math homework for automated step-by-step verification and grading."}
               </p>
             </header>
 
@@ -306,7 +336,7 @@ function MainApp() {
                   <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                     <div>
                       <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        Student Homework Image
+                        {selectedTaskForGrading ? "Yechim faylini yuklang" : "Student Homework Image"}
                       </label>
                       <Uploader
                         selectedFiles={selectedFiles}
@@ -329,12 +359,24 @@ function MainApp() {
                       {isLoading ? (
                         <>
                           <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                          Evaluating...
+                          Tekshirilmoqda...
                         </>
                       ) : (
-                        "Grade Homework"
+                        selectedTaskForGrading ? "Vazifani yuborish" : "Grade Homework"
                       )}
                     </button>
+                    {selectedTaskForGrading && (
+                       <button
+                         type="button"
+                         onClick={() => {
+                           setSelectedTaskForGrading(null);
+                           setActiveView('student-tasks');
+                         }}
+                         className="mt-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                       >
+                         Boshqa vazifa tanlash
+                       </button>
+                    )}
                   </form>
                 </div>
               ) : (
@@ -344,7 +386,7 @@ function MainApp() {
               )}
               
               {/* Summary Section */}
-              <SummarySection history={history} />
+              <SummarySection history={userHistory} />
             </main>
           </>
         )}
@@ -352,7 +394,7 @@ function MainApp() {
         {activeView === 'all-students' && (
           <AllStudentsView 
             students={students}
-            history={history} 
+            history={userHistory} 
             onDeleteStudent={async (student) => {
               try {
                 if (student.id) {
@@ -367,7 +409,82 @@ function MainApp() {
           />
         )}
         {activeView === 'create-group' && <CreateGroupView />}
-        {activeView === 'create-task' && <CreateTaskView />}
+        {activeView === 'create-task' && <CreateTaskView groups={groups} isSubmitting={isTaskSubmitting} uploadProgress={taskUploadProgress} onCreateTask={async (task) => {
+          try {
+            setIsTaskSubmitting(true);
+            setTaskUploadProgress(0);
+            
+            const taskToSave = { ...task };
+            const uploadedFiles = [];
+            
+            const totalFiles = (task.files?.length || 0) + (task.examples?.length || 0);
+            let uploadedCount = 0;
+            let currentFileProgress = 0;
+            
+            const calculateOverallProgress = (fileProgress: number) => {
+              if (totalFiles === 0) return 0;
+              const baseProgress = (uploadedCount / totalFiles) * 100;
+              const currentProgress = (fileProgress / totalFiles);
+              return Math.round(baseProgress + currentProgress);
+            };
+
+            const uploadFileWithProgress = (file: File, path: string): Promise<string> => {
+              return new Promise((resolve, reject) => {
+                if (file.size > 800 * 1024) {
+                  reject(new Error(`Fayl hajmi 800KB dan oshmasligi kerak: ${file.name}`));
+                  return;
+                }
+                const reader = new FileReader();
+                reader.onprogress = (e) => {
+                  if (e.lengthComputable) {
+                    const progress = (e.loaded / e.total) * 100;
+                    currentFileProgress = progress;
+                    setTaskUploadProgress(calculateOverallProgress(progress));
+                  }
+                };
+                reader.onload = () => {
+                  uploadedCount++;
+                  currentFileProgress = 0;
+                  setTaskUploadProgress(calculateOverallProgress(0));
+                  resolve(reader.result as string);
+                };
+                reader.onerror = () => reject(new Error("Faylni o'qishda xatolik yuz berdi"));
+                reader.readAsDataURL(file);
+              });
+            };
+            
+            // Upload source files if any
+            if (task.files && task.files.length > 0) {
+              for (const file of task.files) {
+                const url = await uploadFileWithProgress(file, `tasks/${Date.now()}_${file.name}`);
+                uploadedFiles.push({ name: file.name, url, type: file.type });
+              }
+            }
+            
+            const uploadedExamples = [];
+            if (task.examples && task.examples.length > 0) {
+              for (const file of task.examples) {
+                const url = await uploadFileWithProgress(file, `examples/${Date.now()}_${file.name}`);
+                uploadedExamples.push({ name: file.name, url, type: file.type });
+              }
+            }
+            
+            taskToSave.fileUrls = uploadedFiles;
+            taskToSave.exampleUrls = uploadedExamples;
+            delete taskToSave.files;
+            delete taskToSave.examples;
+            
+            await saveToCollection('tasks', taskToSave);
+            setIsTaskSubmitting(false);
+            setTaskUploadProgress(100);
+            alert("Vazifa muvaffaqiyatli yaratildi!");
+            setActiveView('home');
+          } catch (err: any) {
+            console.error("Error creating task:", err);
+            setIsTaskSubmitting(false);
+            alert(`Vazifa yaratishda xatolik yuz berdi: ${err.message || ""}`);
+          }
+        }} />}
         {activeView === 'all-groups' && (
           <AllGroupsView 
             groups={groupDetails} 
@@ -380,17 +497,31 @@ function MainApp() {
             }}
           />
         )}
+        {activeView === 'student-tasks' && (
+          <StudentTasksView 
+            tasks={tasks} 
+            studentInfo={students.find(s => s.username === currentUser)} 
+            onSolveTask={(task) => {
+              setSelectedTaskForGrading(task);
+              setActiveView('home');
+            }}
+          />
+        )}
+        {activeView === 'student-stats' && <StudentStatsView tasks={tasks} history={userHistory} studentInfo={students.find(s => s.username === currentUser)} />}
       </div>
       </div>
 
       <ProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
-        history={history}
+        history={userHistory}
         isDarkMode={isDarkMode}
         toggleDarkMode={toggleDarkMode}
-        username={currentUser}
+        username={currentUser || ''}
         onLogout={handleLogout}
+        userRole={role}
+        studentInfo={students.find(s => s.username === currentUser)}
+        tasks={tasks}
       />
 
       <AddStudentModal

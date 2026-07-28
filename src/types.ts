@@ -5,4 +5,6 @@ export interface GradingResult {
   score: number;
   feedback: string;
   errorSteps: string[];
+  createdAt?: any;
+  studentUsername?: string;
 }

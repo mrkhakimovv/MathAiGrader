@@ -3,17 +3,13 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import * as dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
-import { evaluateHomework } from "./src/server/evaluator";
-import { setupTelegramBot } from "./src/server/bot";
+import { evaluateHomework, analyzeTeacherExamples } from "./src/server/evaluator.ts";
 
 dotenv.config();
 
 async function startServer() {
-  // Start the Telegram bot
-  setupTelegramBot();
-
   const app = express();
-  const PORT = parseInt(process.env.PORT || "3000", 10);
+  const PORT = 3000;
 
   // Trust the first proxy to correctly resolve client IP for rate limiting
   app.set("trust proxy", 1);
@@ -27,6 +23,38 @@ async function startServer() {
   });
 
   app.post("/api/grade", limiter, async (req, res) => {
+    try {
+      const { images, taskReference } = req.body;
+      
+      if (!images || !Array.isArray(images) || images.length === 0) {
+        return res.status(400).json({ error: "Image data is required" });
+      }
+
+      let totalSize = 0;
+      const formattedImages = images.map((img: any) => {
+        const base64Data = img.imageBase64.split(",")[1] || img.imageBase64;
+        totalSize += Buffer.byteLength(base64Data, "base64");
+        return {
+          imageBase64: base64Data,
+          mimeType: img.mimeType
+        };
+      });
+      
+      if (totalSize > 15 * 1024 * 1024) {
+        return res.status(413).json({ error: "Fayllar hajmi juda katta. Iltimos, jami 15MB dan kichik rasmlar yuklang." });
+      }
+
+      const result = await evaluateHomework(formattedImages, taskReference);
+      res.json(result);
+
+    } catch (error: any) {
+      console.error("Error evaluating homework:", error);
+      const statusCode = error.message && error.message.includes("API kaliti noto'g'ri") ? 401 : 500;
+      res.status(statusCode).json({ error: error.message || "Xatolik yuz berdi" });
+    }
+  });
+
+  app.post("/api/analyze-teacher-examples", limiter, async (req, res) => {
     try {
       const { images } = req.body;
       
@@ -48,11 +76,11 @@ async function startServer() {
         return res.status(413).json({ error: "Fayllar hajmi juda katta. Iltimos, jami 15MB dan kichik rasmlar yuklang." });
       }
 
-      const result = await evaluateHomework(formattedImages);
+      const result = await analyzeTeacherExamples(formattedImages);
       res.json(result);
 
     } catch (error: any) {
-      console.error("Error evaluating homework:", error);
+      console.error("Error analyzing examples:", error);
       const statusCode = error.message && error.message.includes("API kaliti noto'g'ri") ? 401 : 500;
       res.status(statusCode).json({ error: error.message || "Xatolik yuz berdi" });
     }

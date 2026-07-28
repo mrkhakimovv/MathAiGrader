@@ -19,12 +19,12 @@ export function Uploader({ onFilesSelect, selectedFiles, onClear }: UploaderProp
     
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      if (!file.type.startsWith("image/")) {
-        setErrorMsg("Faqat rasm fayllari qabul qilinadi");
+      if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
+        setErrorMsg("Faqat rasm yoki PDF fayllari qabul qilinadi");
         continue;
       }
       if (file.size > 10 * 1024 * 1024) {
-        setErrorMsg("Fayl hajmi juda katta. Iltimos, 10MB dan kichik rasm yuklang.");
+        setErrorMsg("Fayl hajmi juda katta. Iltimos, 10MB dan kichik fayl yuklang.");
         continue;
       }
       validFiles.push(file);
@@ -106,7 +106,7 @@ export function Uploader({ onFilesSelect, selectedFiles, onClear }: UploaderProp
       >
         <input
           type="file"
-          accept="image/*"
+          accept="image/*,application/pdf"
           multiple
           className="hidden"
           ref={fileInputRef}
@@ -121,7 +121,7 @@ export function Uploader({ onFilesSelect, selectedFiles, onClear }: UploaderProp
               Click to upload, drag and drop, or paste (Ctrl+V)
             </p>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              SVG, PNG, JPG or GIF (max. 10MB)
+              SVG, PNG, JPG, GIF or PDF (max. 10MB)
             </p>
           </div>
         </div>

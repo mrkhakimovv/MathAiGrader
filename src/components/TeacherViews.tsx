@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, ExternalLink, Search, Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { Users, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, ExternalLink, Search, Calendar, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { GradingResult } from '../types';
 
 interface AllStudentsViewProps {
@@ -132,7 +132,7 @@ export function AllStudentsView({ students, onDeleteStudent, history = [] }: All
                     </div>
                     <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4">
                       <div className="text-sm font-semibold text-slate-500 dark:text-slate-400 mb-1">O'rtacha o'zlashtirish</div>
-                      <div className="text-3xl font-bold text-slate-900 dark:text-white">{stats.avgScore}%</div>
+                      <div className="text-3xl font-bold text-slate-900 dark:text-white">{stats.avgScore} / 100</div>
                     </div>
                   </div>
 
@@ -159,7 +159,7 @@ export function AllStudentsView({ students, onDeleteStudent, history = [] }: All
                             </div>
                           </div>
                           <div className="font-bold text-slate-900 dark:text-white">
-                            {task.score}%
+                            {task.score} / 100
                           </div>
                         </div>
                       ))}
@@ -195,17 +195,355 @@ export function CreateGroupView() {
   );
 }
 
-export function CreateTaskView() {
+interface CreateTaskViewProps {
+  onCreateTask: (task: any) => void;
+  groups: string[];
+  isSubmitting?: boolean;
+  uploadProgress?: number;
+}
+
+export function CreateTaskView({ onCreateTask, groups, isSubmitting = false, uploadProgress = 0 }: CreateTaskViewProps) {
+  const [title, setTitle] = useState('');
+  const [group, setGroup] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [files, setFiles] = useState<File[]>([]);
+  const [examples, setExamples] = useState<File[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+
+  const handleAnalyzeExamples = async () => {
+    if (examples.length === 0) return;
+    setIsAnalyzing(true);
+    try {
+      const imagesData = await Promise.all(examples.map(async (file) => {
+        return new Promise<{ imageBase64: string, mimeType: string }>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => {
+            const result = reader.result as string;
+            resolve({
+              imageBase64: result,
+              mimeType: file.type
+            });
+          };
+          reader.onerror = error => reject(error);
+        });
+      }));
+
+      const res = await fetch("/api/analyze-teacher-examples", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ images: imagesData }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Tahlil qilishda xatolik yuz berdi");
+      }
+
+      const data = await res.json();
+      setAnalysisResult(data);
+    } catch (error: any) {
+      alert(error.message);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title) {
+      alert("Iltimos, vazifa sarlavhasini kiriting.");
+      return;
+    }
+    
+    if (endDate) {
+      const end = new Date(endDate);
+      const start = startDate ? new Date(startDate) : new Date();
+      if (end.getTime() <= start.getTime()) {
+        alert("Tugash muddati boshlanish muddatidan yoki joriy vaqtdan keyin bo'lishi kerak.");
+        return;
+      }
+    }
+
+    onCreateTask({
+      title,
+      group,
+      startDate,
+      endDate,
+      files,
+      examples,
+      teacherAnalysis: analysisResult,
+    });
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFilesState: React.Dispatch<React.SetStateAction<File[]>>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setFilesState(prev => [...prev, ...newFiles]);
+    }
+  };
+
+  const nowString = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-8 flex items-center gap-4">
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 dark:bg-indigo-500 text-white shadow-lg">
           <FilePlus className="h-6 w-6" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Create Task</h2>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Vazifa yaratish</h2>
       </div>
+
+      {isSubmitting && (
+        <div className="mb-6 p-4 rounded-xl border border-indigo-100 bg-indigo-50 dark:border-indigo-900/50 dark:bg-indigo-900/20">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-indigo-700 dark:text-indigo-300">Yuklanmoqda...</span>
+            <span className="text-sm font-bold text-indigo-700 dark:text-indigo-300">{uploadProgress}%</span>
+          </div>
+          <div className="h-2 w-full bg-indigo-200 dark:bg-indigo-950 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-indigo-600 dark:bg-indigo-500 transition-all duration-300 ease-out" 
+              style={{ width: `${uploadProgress}%` }}
+            />
+          </div>
+        </div>
+      )}
+
       <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
-        <p className="text-slate-500 dark:text-slate-400">Task creation form will go here.</p>
+        <form id="create-task-form" className="space-y-6" onSubmit={handleSubmit}>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Vazifa sarlavhasi <span className="text-red-500">*</span></label>
+            <input 
+              type="text" 
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2.5 text-slate-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500" 
+              placeholder="Masalan: 1-chorak yakuniy nazorat" 
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Guruhni tanlang (Ixtiyoriy)</label>
+            <select 
+              value={group}
+              onChange={(e) => setGroup(e.target.value)}
+              className="w-full rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2.5 text-slate-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            >
+              <option value="">Barcha guruhlar</option>
+              {groups.map((g) => (
+                <option key={g} value={g}>{g}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Uyga vazifa shartlari / misollar (Ixtiyoriy)</label>
+            <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">AI o'qituvchi ushbu misollarni o'zi ishlab tayyor holatga keltiradi va o'quvchilar javobini shunga asosan tekshiradi. Rasmlarni bu yerga Ctrl+V bilan ham qo'shishingiz mumkin.</p>
+            <div 
+              className="mt-1 flex justify-center rounded-lg border border-dashed border-slate-300 dark:border-slate-700 px-6 py-6 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              tabIndex={0}
+              onPaste={(e) => {
+                const items = e.clipboardData.items;
+                const pastedFiles: File[] = [];
+                for (let i = 0; i < items.length; i++) {
+                  if (items[i].type.indexOf('image') !== -1) {
+                    const file = items[i].getAsFile();
+                    if (file) {
+                      pastedFiles.push(file);
+                    }
+                  }
+                }
+                if (pastedFiles.length > 0) {
+                  setExamples(prev => [...prev, ...pastedFiles]);
+                }
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                  const droppedFiles = Array.from(e.dataTransfer.files);
+                  setExamples(prev => [...prev, ...droppedFiles]);
+                }
+              }}
+            >
+              <div className="text-center">
+                <FilePlus className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-600" aria-hidden="true" />
+                <div className="mt-4 flex text-sm leading-6 text-slate-600 dark:text-slate-400 justify-center">
+                  <label htmlFor="examples-upload" className="relative cursor-pointer rounded-md font-semibold text-indigo-600 dark:text-indigo-400 focus-within:outline-none hover:text-indigo-500">
+                    <span>Fayl yuklash</span>
+                    <input id="examples-upload" name="examples-upload" type="file" multiple accept="image/*,.pdf" className="sr-only" onChange={(e) => handleFileChange(e, setExamples)} />
+                  </label>
+                  <p className="pl-1">yoki shu yerga tashlang</p>
+                </div>
+                <p className="text-xs leading-5 text-slate-500 dark:text-slate-500">PNG, JPG, PDF</p>
+                {examples.length > 0 && (
+                  <div className="mt-4 w-full">
+                    <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-2">{examples.length} ta fayl tanlandi</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-2 justify-items-center">
+                      {examples.map((file, i) => (
+                        <div key={i} className="relative group w-full aspect-square border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-900">
+                          {file.type.startsWith('image/') ? (
+                            <img src={URL.createObjectURL(file)} alt={file.name || 'Pasted image'} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center p-2 text-slate-500">
+                              <FilePlus className="h-8 w-8 mb-2" />
+                              <span className="text-xs truncate w-full text-center">{file.name || 'Fayl'}</span>
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setExamples(prev => prev.filter((_, index) => index !== i));
+                            }}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button type="button" className="text-rose-500 hover:text-rose-600 underline mt-4 text-xs" onClick={(e) => { e.stopPropagation(); setExamples([]); }}>Barchasini o'chirish</button>
+                  </div>
+                )}
+              </div>
+            </div>
+            {examples.length > 0 && (
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={handleAnalyzeExamples}
+                  disabled={isAnalyzing}
+                  className="w-full flex items-center justify-center rounded-lg bg-emerald-600 dark:bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                      Tahlil qilinmoqda...
+                    </>
+                  ) : (
+                    "Saqlash"
+                  )}
+                </button>
+              </div>
+            )}
+            
+            {analysisResult && (
+              <div className="mt-4 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20">
+                <h4 className="font-bold text-emerald-800 dark:text-emerald-300 mb-2">Tahlil natijasi:</h4>
+                <p className="text-sm text-emerald-700 dark:text-emerald-400 mb-4">
+                  Jami savollar soni: <span className="font-bold">{analysisResult.questionCount}</span> ta
+                </p>
+                <div className="space-y-4">
+                  {analysisResult.solutions.map((sol: any, idx: number) => (
+                    <div key={idx} className="bg-white dark:bg-slate-800 p-4 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700">
+                      <div className="font-semibold text-slate-900 dark:text-white mb-2">
+                        {sol.problemNumber}-savol
+                      </div>
+                      <div className="text-sm text-slate-700 dark:text-slate-300 mb-2 whitespace-pre-wrap">
+                        {sol.problemText}
+                      </div>
+                      <div className="text-sm font-medium text-emerald-600 dark:text-emerald-400 mb-1">Yechim:</div>
+                      <div className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap mb-2">
+                        {sol.solutionSteps}
+                      </div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white">
+                        Javob: {sol.finalAnswer}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Qo'shimcha materiallar (Ixtiyoriy)</label>
+            <div 
+              className="mt-1 flex justify-center rounded-lg border border-dashed border-slate-300 dark:border-slate-700 px-6 py-6 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              tabIndex={0}
+              onPaste={(e) => {
+                const items = e.clipboardData.items;
+                const pastedFiles: File[] = [];
+                for (let i = 0; i < items.length; i++) {
+                  if (items[i].type.indexOf('image') !== -1) {
+                    const file = items[i].getAsFile();
+                    if (file) {
+                      pastedFiles.push(file);
+                    }
+                  }
+                }
+                if (pastedFiles.length > 0) {
+                  setFiles(prev => [...prev, ...pastedFiles]);
+                }
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                  const droppedFiles = Array.from(e.dataTransfer.files);
+                  setFiles(prev => [...prev, ...droppedFiles]);
+                }
+              }}
+            >
+              <div className="text-center">
+                <FilePlus className="mx-auto h-8 w-8 text-slate-300 dark:text-slate-600" aria-hidden="true" />
+                <div className="mt-4 flex text-sm leading-6 text-slate-600 dark:text-slate-400 justify-center">
+                  <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-semibold text-indigo-600 dark:text-indigo-400 focus-within:outline-none hover:text-indigo-500">
+                    <span>Fayl yuklash</span>
+                    <input id="file-upload" name="file-upload" type="file" multiple accept="image/*,.pdf" className="sr-only" onChange={(e) => handleFileChange(e, setFiles)} />
+                  </label>
+                  <p className="pl-1">yoki shu yerga tashlang</p>
+                </div>
+                <p className="text-xs leading-5 text-slate-500 dark:text-slate-500">PNG, JPG, PDF</p>
+                {files.length > 0 && (
+                  <div className="mt-4 w-full">
+                    <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-2">{files.length} ta fayl tanlandi</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-2 justify-items-center">
+                      {files.map((file, i) => (
+                        <div key={i} className="relative group w-full aspect-square border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden bg-slate-50 dark:bg-slate-900">
+                          {file.type.startsWith('image/') ? (
+                            <img src={URL.createObjectURL(file)} alt={file.name || 'Pasted image'} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center p-2 text-slate-500">
+                              <FilePlus className="h-8 w-8 mb-2" />
+                              <span className="text-xs truncate w-full text-center">{file.name || 'Fayl'}</span>
+                            </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setFiles(prev => prev.filter((_, index) => index !== i));
+                            }}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <button type="button" className="text-rose-500 hover:text-rose-600 underline mt-4 text-xs" onClick={(e) => { e.stopPropagation(); setFiles([]); }}>Barchasini o'chirish</button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+        </form>
       </div>
     </div>
   );

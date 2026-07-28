@@ -1,7 +1,7 @@
 import React from 'react';
-import { Home, Users, UserPlus, FilePlus, Library, User, CheckSquare } from 'lucide-react';
+import { Home, Users, UserPlus, FilePlus, Library, User, CheckSquare, BookOpen, BarChart2 } from 'lucide-react';
 
-export type ViewType = 'home' | 'all-students' | 'create-group' | 'create-task' | 'all-groups' | 'grade-task';
+export type ViewType = 'home' | 'all-students' | 'create-group' | 'create-task' | 'all-groups' | 'grade-task' | 'student-tasks' | 'student-stats';
 
 interface SidebarProps {
   onProfileClick: () => void;
@@ -53,6 +53,26 @@ export function Sidebar({ onProfileClick, activeView, onChangeView, role }: Side
             title="Tekshirish (Grade Task)"
           >
             <CheckSquare className="h-6 w-6 md:h-7 md:w-7" />
+          </button>
+        </>
+      )}
+
+      {role === 'student' && (
+        <>
+          <button 
+            onClick={() => onChangeView('student-tasks')}
+            className={`${activeView === 'student-tasks' ? 'text-white scale-110' : 'text-indigo-200'} hover:text-white hover:scale-110 transition-all`} 
+            title="Uyga vazifalar (Tasks)"
+          >
+            <BookOpen className="h-6 w-6 md:h-7 md:w-7" />
+          </button>
+          
+          <button 
+            onClick={() => onChangeView('student-stats')}
+            className={`${activeView === 'student-stats' ? 'text-white scale-110' : 'text-indigo-200'} hover:text-white hover:scale-110 transition-all`} 
+            title="Statistika (Statistics)"
+          >
+            <BarChart2 className="h-6 w-6 md:h-7 md:w-7" />
           </button>
         </>
       )}

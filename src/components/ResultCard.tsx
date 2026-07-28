@@ -45,7 +45,7 @@ export function ResultCard({ result, onReset }: ResultCardProps) {
               : "Incorrect. Let's review the steps."}
           </h2>
           <p className="text-sm opacity-80">
-            Score: <span className="font-bold">{result.score}/10</span>
+            Score: <span className="font-bold">{result.score} / 100</span>
           </p>
         </div>
         <button
@@ -184,7 +184,7 @@ export function ResultCard({ result, onReset }: ResultCardProps) {
                     backgroundColor: '#ffffff',
                     logging: false,
                     window: iframe.contentWindow || undefined
-                  });
+                  } as any);
 
                   const imgData = canvas.toDataURL('image/jpeg', 0.95);
                   

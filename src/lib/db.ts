@@ -2,14 +2,7 @@ import { collection, addDoc, getDocs, query, orderBy, onSnapshot, serverTimestam
 import { db, auth } from './firebase';
 import { GradingResult } from '../types';
 
-enum OperationType {
-  CREATE = 'create',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  LIST = 'list',
-  GET = 'get',
-  WRITE = 'write',
-}
+type OperationType = 'create' | 'update' | 'delete' | 'list' | 'get' | 'write';
 
 interface FirestoreErrorInfo {
   error: string;
@@ -41,7 +34,7 @@ export const saveResult = async (result: GradingResult & { studentUsername?: str
       createdAt: serverTimestamp(),
     });
   } catch (error) {
-    handleFirestoreError(error, OperationType.WRITE, 'history');
+    handleFirestoreError(error, "write", 'history');
   }
 };
 
@@ -51,7 +44,7 @@ export const subscribeToHistory = (callback: (history: GradingResult[]) => void)
     const history = snapshot.docs.map(doc => doc.data() as GradingResult);
     callback(history);
   }, (error) => {
-    handleFirestoreError(error, OperationType.GET, 'history');
+    handleFirestoreError(error, "get", 'history');
   });
 };
 
@@ -61,7 +54,7 @@ export const subscribeToCollection = (collectionName: string, callback: (data: a
     const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     callback(data);
   }, (error) => {
-    handleFirestoreError(error, OperationType.GET, collectionName);
+    handleFirestoreError(error, "get", collectionName);
   });
 };
 
@@ -73,6 +66,6 @@ export const saveToCollection = async (collectionName: string, data: any) => {
     });
     return docRef.id;
   } catch (error) {
-    handleFirestoreError(error, OperationType.WRITE, collectionName);
+    handleFirestoreError(error, "write", collectionName);
   }
 };

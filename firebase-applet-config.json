@@ -7,5 +7,6 @@
   "storageBucket": "aitekshiruvchi.firebasestorage.app",
   "messagingSenderId": "964410618656",
   "measurementId": "",
-  "oAuthClientId": "964410618656-2hjb1pdkascqe3099vsdra6v9seke3va.apps.googleusercontent.com"
+  "oAuthClientId": "964410618656-2hjb1pdkascqe3099vsdra6v9seke3va.apps.googleusercontent.com",
+  "recaptchaSiteKey": ""
 }
