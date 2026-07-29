@@ -266,8 +266,8 @@ function MainApp() {
       />
       
       <div className="flex-1 p-4 md:p-8 overflow-y-auto h-full md:h-screen">
-        <div className="mx-auto max-w-3xl relative">
-          <div className="absolute right-0 top-0 flex items-center gap-3">
+        <div className="mx-auto max-w-3xl relative pt-14">
+          <div className="absolute right-0 top-0 flex items-center gap-3 z-10">
             {role === 'teacher' && activeView === 'all-students' && (
               <button
                 onClick={() => setIsAddStudentModalOpen(true)}
@@ -318,7 +318,7 @@ function MainApp() {
         {(activeView === 'home' || activeView === 'grade-task') && (
           <>
             {/* Header */}
-            <header className="mb-6 md:mb-10 text-center pt-10 md:pt-0">
+            <header className="mb-6 md:mb-10 text-center">
               <div className="mx-auto mb-3 md:mb-4 flex h-12 w-12 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-indigo-600 dark:bg-indigo-500 text-white shadow-lg">
                 <Calculator className="h-6 w-6 md:h-8 md:w-8" />
               </div>
