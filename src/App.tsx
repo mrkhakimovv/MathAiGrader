@@ -257,7 +257,7 @@ function MainApp() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 transition-colors flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 transition-colors flex flex-col md:flex-row pb-16 md:pb-0">
       <Sidebar 
         onProfileClick={() => setIsProfileModalOpen(true)}
         activeView={activeView}
@@ -265,7 +265,7 @@ function MainApp() {
         role={role}
       />
       
-      <div className="flex-1 p-4 md:p-8 overflow-y-auto h-screen">
+      <div className="flex-1 p-4 md:p-8 overflow-y-auto h-full md:h-screen">
         <div className="mx-auto max-w-3xl relative">
           <div className="absolute right-0 top-0 flex items-center gap-3">
             {role === 'teacher' && activeView === 'all-students' && (
@@ -318,14 +318,14 @@ function MainApp() {
         {(activeView === 'home' || activeView === 'grade-task') && (
           <>
             {/* Header */}
-            <header className="mb-10 text-center pt-8 md:pt-0">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 dark:bg-indigo-500 text-white shadow-lg">
-                <Calculator className="h-8 w-8" />
+            <header className="mb-6 md:mb-10 text-center pt-10 md:pt-0">
+              <div className="mx-auto mb-3 md:mb-4 flex h-12 w-12 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-indigo-600 dark:bg-indigo-500 text-white shadow-lg">
+                <Calculator className="h-6 w-6 md:h-8 md:w-8" />
               </div>
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white md:text-4xl">
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white lg:text-4xl">
                 {selectedTaskForGrading ? "Vazifani topshirish" : "Math AI Grader"}
               </h1>
-              <p className="mt-3 text-lg text-slate-600 dark:text-slate-400">
+              <p className="mt-2 md:mt-3 text-sm md:text-lg text-slate-600 dark:text-slate-400">
                 {selectedTaskForGrading ? `Siz hozir ushbu vazifani bajaryapsiz: ${selectedTaskForGrading.title}` : "Upload student math homework for automated step-by-step verification and grading."}
               </p>
             </header>

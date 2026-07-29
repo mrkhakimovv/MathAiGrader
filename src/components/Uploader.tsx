@@ -112,15 +112,15 @@ export function Uploader({ onFilesSelect, selectedFiles, onClear }: UploaderProp
           ref={fileInputRef}
           onChange={handleFileChange}
         />
-        <div className="flex flex-col items-center justify-center gap-4 text-center">
-          <div className={cn("flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors group-hover:bg-indigo-100 group-hover:text-indigo-600 dark:group-hover:bg-indigo-900/30 dark:group-hover:text-indigo-400", isDragging && "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400")}>
-            <UploadCloud className="h-8 w-8" />
+        <div className="flex flex-col items-center justify-center gap-3 md:gap-4 text-center">
+          <div className={cn("flex h-12 w-12 md:h-16 md:w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 transition-colors group-hover:bg-indigo-100 group-hover:text-indigo-600 dark:group-hover:bg-indigo-900/30 dark:group-hover:text-indigo-400", isDragging && "bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400")}>
+            <UploadCloud className="h-6 w-6 md:h-8 md:w-8" />
           </div>
-          <div>
-            <p className="text-base font-medium text-slate-900 dark:text-slate-100">
+          <div className="px-2">
+            <p className="text-sm md:text-base font-medium text-slate-900 dark:text-slate-100">
               Click to upload, drag and drop, or paste (Ctrl+V)
             </p>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs md:text-sm text-slate-500 dark:text-slate-400">
               SVG, PNG, JPG, GIF or PDF (max. 10MB)
             </p>
           </div>

@@ -12,7 +12,7 @@ interface SidebarProps {
 
 export function Sidebar({ onProfileClick, activeView, onChangeView, role }: SidebarProps) {
   return (
-    <div className="w-16 md:w-20 bg-indigo-600 dark:bg-indigo-500 flex flex-col items-center py-8 gap-8 rounded-r-3xl h-screen sticky top-0 shrink-0 shadow-lg z-10">
+    <div className="fixed md:sticky bottom-0 md:top-0 left-0 right-0 md:w-20 bg-indigo-600 dark:bg-indigo-500 flex md:flex-col items-center justify-around md:justify-start md:py-8 md:gap-8 rounded-t-3xl md:rounded-t-none md:rounded-r-3xl h-16 md:h-screen shadow-[0_-4px_20px_rgba(0,0,0,0.1)] md:shadow-lg z-50">
       <button 
         onClick={() => onChangeView('home')}
         className={`${activeView === 'home' ? 'text-white scale-110' : 'text-indigo-200'} hover:text-white hover:scale-110 transition-all`} 
@@ -77,7 +77,8 @@ export function Sidebar({ onProfileClick, activeView, onChangeView, role }: Side
         </>
       )}
 
-      <div className="flex-1" />
+      <div className="hidden md:block md:flex-1" />
+
       <button 
         onClick={onProfileClick}
         className="text-indigo-200 hover:text-white hover:scale-110 transition-all" 
