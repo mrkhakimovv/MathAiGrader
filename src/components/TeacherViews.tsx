@@ -28,8 +28,8 @@ export function AllStudentsView({ students, onDeleteStudent, history = [] }: All
   const filteredStudents = students.filter(student => {
     const query = searchQuery.toLowerCase();
     const fullName = `${student.firstName} ${student.lastName}`.toLowerCase();
-    const group = (student.group || '').toLowerCase();
-    return fullName.includes(query) || group.includes(query);
+    const groupString = (student.groups ? student.groups.join(', ') : (student.group || '')).toLowerCase();
+    return fullName.includes(query) || groupString.includes(query);
   });
 
   const getStudentStats = (student: any) => {
@@ -108,7 +108,7 @@ export function AllStudentsView({ students, onDeleteStudent, history = [] }: All
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-slate-500">Guruh:</span>
-                  <span>{student.group}</span>
+                  <span>{student.groups ? student.groups.join(', ') : student.group}</span>
                 </div>
               </div>
             </div>
@@ -576,7 +576,7 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
 
   const getGroupStudents = () => {
     if (!selectedGroup) return [];
-    const groupStudents = students.filter(s => s.group === selectedGroup.name);
+    const groupStudents = students.filter(s => s.group === selectedGroup.name || (s.groups && s.groups.includes(selectedGroup.name)));
     return groupStudents.map(student => {
       const rawHistory = history.filter(h => h.studentUsername === student.username);
       
@@ -894,7 +894,7 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
 
                 {activeTab === 'all-students' && (
                   (() => {
-                    const allStudents = students.filter(s => s.group === selectedGroup?.name);
+                    const allStudents = students.filter(s => s.group === selectedGroup?.name || (s.groups && s.groups.includes(selectedGroup?.name)));
                     return allStudents.length > 0 ? (
                       <div className="space-y-3">
                         {allStudents.map((student, idx) => (

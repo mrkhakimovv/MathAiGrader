@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Loader2, GraduationCap } from 'lucide-react';
 import { db } from '../lib/firebase';
-import { collection, addDoc, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, where, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: (user: any) => void }) {
   const { groupId } = useParams();
@@ -16,6 +16,21 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
   const [groupName, setGroupName] = useState('');
   const [teacherUsername, setTeacherUsername] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [existingUser, setExistingUser] = useState<any>(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("math_grader_user");
+    if (storedUser) {
+      try {
+        const user = JSON.parse(storedUser);
+        if (user.role === 'student') {
+          setExistingUser(user);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     // Fetch group details to display the group name
@@ -50,6 +65,36 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
     };
     fetchGroup();
   }, [groupId]);
+
+  const handleJoinExisting = async () => {
+    if (!existingUser || !existingUser.id) return;
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      const studentRef = doc(db, "students", existingUser.id);
+      const targetGroup = groupName || groupId;
+      
+      // Update in Firestore
+      await updateDoc(studentRef, {
+        groups: arrayUnion(targetGroup)
+      });
+      
+      // Update local storage
+      const updatedUser = {
+        ...existingUser,
+        groups: [...(existingUser.groups || []), targetGroup]
+      };
+      
+      localStorage.setItem("math_grader_user", JSON.stringify(updatedUser));
+      onRegisterSuccess(updatedUser);
+      navigate('/');
+    } catch (err: any) {
+      setError("Xatolik yuz berdi: " + err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,8 +161,34 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
+        {existingUser ? (
+          <div className="mb-6 rounded-xl border border-indigo-100 bg-indigo-50/50 p-6 dark:border-indigo-500/20 dark:bg-indigo-500/10 text-center">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Sizda allaqachon akkaunt mavjud:</p>
+            <p className="font-bold text-lg text-slate-900 dark:text-white mb-4">{existingUser.firstName} {existingUser.lastName}</p>
+            <p className="text-sm text-slate-700 dark:text-slate-300 mb-6">
+              Siz ushbu guruhga (<span className="font-semibold">{groupName || groupId}</span>) ham qo'shilishni xohlaysizmi?
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleJoinExisting}
+                disabled={isLoading}
+                className="w-full flex items-center justify-center rounded-xl bg-indigo-600 dark:bg-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-md transition-all hover:bg-indigo-700 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-70"
+              >
+                {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                Ha, qo'shilish
+              </button>
+              <button
+                onClick={() => setExistingUser(null)}
+                disabled={isLoading}
+                className="w-full rounded-xl bg-white dark:bg-slate-800 px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all"
+              >
+                Boshqa akkaunt yaratish
+              </button>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
             <label htmlFor="firstName" className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
               Ism
             </label>
@@ -207,6 +278,7 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
             )}
           </button>
         </form>
+        )}
       </div>
     </div>
   );

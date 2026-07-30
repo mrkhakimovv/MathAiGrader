@@ -78,7 +78,11 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
                 </div>
                 <div>
                   <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-0.5">Guruh</p>
-                  <p className="font-bold text-slate-900 dark:text-white">{studentInfo.group || 'Guruhsiz'}</p>
+                  <p className="font-bold text-slate-900 dark:text-white">
+                    {studentInfo.groups && studentInfo.groups.length > 0 
+                      ? studentInfo.groups.join(', ') 
+                      : (studentInfo.group || 'Guruhsiz')}
+                  </p>
                 </div>
               </div>
               
@@ -89,7 +93,7 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
                 <div>
                   <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-0.5">Vazifalar</p>
                   <p className="font-bold text-slate-900 dark:text-white">
-                    {tasks.filter(t => !t.group || t.group === studentInfo.group).length} ta mavjud
+                    {tasks.filter(t => !t.group || t.group === 'Barcha guruhlar' || t.group === studentInfo.group || (studentInfo.groups && studentInfo.groups.includes(t.group))).length} ta mavjud
                   </p>
                 </div>
               </div>

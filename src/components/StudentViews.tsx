@@ -46,7 +46,7 @@ export function StudentTasksView({ tasks, studentInfo, onSolveTask }: StudentTas
     });
   };
 
-  const studentTasks = tasks.filter(t => !t.group || t.group === studentInfo?.group);
+  const studentTasks = tasks.filter(t => !t.group || t.group === 'Barcha guruhlar' || t.group === studentInfo?.group || (studentInfo?.groups && studentInfo.groups.includes(t.group)));
 
   // Sort tasks: pending first, then expired
   const sortedTasks = [...studentTasks].sort((a, b) => {
@@ -152,7 +152,7 @@ export function StudentStatsView({ tasks, history, studentInfo }: StudentStatsVi
     ? (uniqueHistory.reduce((sum, r) => sum + r.score, 0) / uniqueHistory.length).toFixed(1) 
     : '0';
 
-  const studentTasks = tasks.filter(t => !t.group || t.group === studentInfo?.group);
+  const studentTasks = tasks.filter(t => !t.group || t.group === 'Barcha guruhlar' || t.group === studentInfo?.group || (studentInfo?.groups && studentInfo.groups.includes(t.group)));
 
   const chartData = useMemo(() => {
     // Reverse history to show oldest to newest left to right
