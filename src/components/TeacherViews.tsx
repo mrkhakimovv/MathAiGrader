@@ -537,7 +537,7 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
   const [copied, setCopied] = useState(false);
   const [groupToDelete, setGroupToDelete] = useState<{ index: number, name: string } | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<any>(null);
-  const [activeTab, setActiveTab] = useState<'students' | 'tasks'>('students');
+  const [activeTab, setActiveTab] = useState<'students' | 'tasks' | 'all-students'>('students');
 
   const handleDelete = (e: React.MouseEvent, index: number, groupName: string) => {
     e.stopPropagation();
@@ -785,6 +785,16 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                 >
                   Guruh vazifalari
                 </button>
+                <button
+                  onClick={() => setActiveTab('all-students')}
+                  className={`pb-3 font-semibold text-sm transition-colors border-b-2 ${
+                    activeTab === 'all-students' 
+                      ? 'border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400' 
+                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                  }`}
+                >
+                  Barcha o'quvchilar
+                </button>
               </div>
 
               <div className="flex-1 overflow-y-auto">
@@ -877,6 +887,39 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                       <div className="text-center py-10 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
                         <FilePlus className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
                         <p className="text-slate-500 dark:text-slate-400 font-medium">Bu guruh uchun hozircha vazifalar berilmagan</p>
+                      </div>
+                    );
+                  })()
+                )}
+
+                {activeTab === 'all-students' && (
+                  (() => {
+                    const allStudents = students.filter(s => s.group === selectedGroup?.name);
+                    return allStudents.length > 0 ? (
+                      <div className="space-y-3">
+                        {allStudents.map((student, idx) => (
+                          <div 
+                            key={student.id || idx}
+                            className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50"
+                          >
+                            <div className="flex items-center gap-4">
+                              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 font-bold text-slate-700 dark:text-slate-300">
+                                {student.firstName?.charAt(0) || ''}{student.lastName?.charAt(0) || ''}
+                              </div>
+                              <div>
+                                <p className="font-bold text-slate-900 dark:text-white">{student.firstName} {student.lastName}</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                  Username: <span className="font-mono">{student.username}</span> • Parol: <span className="font-mono">{student.password}</span>
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-10 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+                        <Users className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+                        <p className="text-slate-500 dark:text-slate-400 font-medium">Bu guruhda hozircha o'quvchilar yo'q</p>
                       </div>
                     );
                   })()
