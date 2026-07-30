@@ -80,7 +80,10 @@ export async function evaluateHomework(images: { imageBase64: string, mimeType: 
   let promptString = `You are an expert mathematics teacher evaluating a student's homework submission. Your native language is Uzbek, and you MUST provide all feedback, explanations, and evaluations exclusively in the Uzbek language.\nThe student submitted a math problem.\n`;
   
   if (taskReference) {
-    promptString += `\nHere is the reference material provided by the teacher for this specific homework task (including correct answers, expected question count, etc):\n${JSON.stringify(taskReference)}\n\nPlease ensure your grading strictly aligns with this reference material. CRITICAL: Compare the number of questions answered by the student with the 'questionCount' in the reference (if provided). If the student missed any questions, state clearly in the 'feedback' that they did not answer all questions (mentioning how many they answered vs how many were expected) and reduce the score accordingly.\n`;
+    promptString += `\nHere is the reference material provided by the teacher for this specific homework task (including correct answers, expected question count, etc):\n${JSON.stringify(taskReference)}\n\nPlease ensure your grading strictly aligns with this reference material. 
+CRITICAL RULES:
+1. Compare the questions answered by the student with the problems in the reference material. If the student submitted completely different problems that are NOT part of the teacher's assignment, you MUST score it 0 and set the feedback exactly to: "Bu misollar uyga vazifada mavjud emas." Stop further grading if they are completely unrelated.
+2. Compare the number of questions answered by the student with the 'questionCount' in the reference. If the student missed any questions, state clearly in the 'feedback' that they did not answer all questions (mentioning how many they answered vs how many were expected) and reduce the score accordingly.\n`;
   }
 
   promptString += `Please analyze the provided file(s) or image(s) of the student's work. Follow these steps:

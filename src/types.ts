@@ -7,4 +7,5 @@ export interface GradingResult {
   errorSteps: string[];
   createdAt?: any;
   studentUsername?: string;
+  taskId?: string;
 }

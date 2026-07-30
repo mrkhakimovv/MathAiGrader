@@ -18,10 +18,19 @@ interface ProfileModalProps {
 export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkMode, username, onLogout, userRole, studentInfo, tasks = [] }: ProfileModalProps) {
   if (!isOpen) return null;
 
-  const total = history.length;
-  const avgScore = total > 0 ? (history.reduce((acc, curr) => acc + curr.score, 0) / total).toFixed(1) : "0.0";
-  const perfect = history.filter(h => h.isCorrect).length;
-  const incorrect = history.filter(h => !h.isCorrect && !h.isPartiallyCorrect).length;
+  const uniqueHistoryMap = new Map();
+  history.forEach(h => {
+    const key = h.taskId || h.createdAt || Math.random().toString();
+    if (!uniqueHistoryMap.has(key) || uniqueHistoryMap.get(key).score < h.score) {
+      uniqueHistoryMap.set(key, h);
+    }
+  });
+  const uniqueHistory = Array.from(uniqueHistoryMap.values());
+
+  const total = uniqueHistory.length;
+  const avgScore = total > 0 ? (uniqueHistory.reduce((acc, curr) => acc + curr.score, 0) / total).toFixed(1) : "0.0";
+  const perfect = uniqueHistory.filter(h => h.isCorrect).length;
+  const incorrect = uniqueHistory.filter(h => !h.isCorrect && !h.isPartiallyCorrect).length;
   const partial = total - perfect - incorrect;
 
   return (

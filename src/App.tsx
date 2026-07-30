@@ -3,7 +3,6 @@ import { StudentRegistration } from "./components/StudentRegistration";
 import React, { useState, useEffect } from "react";
 import { Uploader } from "./components/Uploader";
 import { ResultCard } from "./components/ResultCard";
-import { SummarySection } from "./components/SummarySection";
 import { ProfileModal } from "./components/ProfileModal";
 import { LoginScreen } from "./components/LoginScreen";
 import { AdminPanel } from "./components/AdminPanel";
@@ -34,11 +33,8 @@ function MainApp() {
   const [isAddGroupModalOpen, setIsAddGroupModalOpen] = useState(false);
   const [isTaskSubmitting, setIsTaskSubmitting] = useState(false);
   const [taskUploadProgress, setTaskUploadProgress] = useState(0);
-  const [groups, setGroups] = useState<string[]>(['Mathematics A1', 'Physics B2']);
-  const [groupDetails, setGroupDetails] = useState<any[]>([
-    { name: 'Mathematics A1', days: 'Du, Ch, Ju', time: '14:00 - 16:00' },
-    { name: 'Physics B2', days: 'Se, Pa, Sh', time: '10:00 - 12:00' }
-  ]);
+  const [groups, setGroups] = useState<string[]>([]);
+  const [groupDetails, setGroupDetails] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [selectedTaskForGrading, setSelectedTaskForGrading] = useState<any>(null);
@@ -87,17 +83,26 @@ function MainApp() {
     const unsubscribeTasks = subscribeToCollection("tasks", (newTasks) => {
       setTasks(newTasks);
     });
+    const unsubscribeTeachers = subscribeToCollection("teachers", (newTeachers) => {
+      setTeachers(newTeachers);
+    });
     return () => {
       unsubscribeHistory();
       unsubscribeStudents();
       unsubscribeGroups();
       unsubscribeTasks();
+      unsubscribeTeachers();
     };
   }, []);
 
   const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
   const userHistory = role === 'student' ? history.filter(h => h.studentUsername === currentUser) : history;
+  
+  const teacherGroupDetails = role === 'teacher' ? groupDetails.filter(g => g.teacherUsername === currentUser) : groupDetails;
+  const teacherGroups = teacherGroupDetails.map(g => g.name);
+  const teacherStudents = role === 'teacher' ? students.filter(s => s.teacherUsername === currentUser) : students;
+  const teacherTasks = role === 'teacher' ? tasks.filter(t => t.teacherUsername === currentUser) : tasks;
 
     const handleLogin = async (username: string, pass: string) => {
     if (username === 'admin') {
@@ -225,7 +230,7 @@ function MainApp() {
 
       const data: GradingResult = await response.json();
       setResult(data);
-      saveResult({ ...data, studentUsername: currentUser || 'unknown' });
+      saveResult({ ...data, studentUsername: currentUser || 'unknown', taskId: selectedTaskForGrading?.id || 'unknown' });
     } catch (err: any) {
       setError(err.message || "An unexpected error occurred.");
     } finally {
@@ -247,8 +252,23 @@ function MainApp() {
     return (
       <AdminPanel
         teachers={teachers}
-        onCreateTeacher={(u, p) => setTeachers([...teachers, { username: u, password: p, id: Math.floor(100000 + Math.random() * 900000).toString() }])}
-        onDeleteTeacher={(id) => setTeachers(teachers.filter(t => t.id !== id))}
+        onCreateTeacher={async (u, p) => {
+          try {
+            await saveToCollection("teachers", { username: u, password: p });
+            alert("O'qituvchi muvaffaqiyatli qo'shildi!");
+          } catch(err) {
+            console.error(err);
+            alert("Xatolik yuz berdi");
+          }
+        }}
+        onDeleteTeacher={async (id) => {
+          try {
+            await deleteDoc(doc(db, "teachers", id));
+          } catch(err) {
+            console.error(err);
+            alert("Xatolik yuz berdi");
+          }
+        }}
         isDarkMode={isDarkMode}
         toggleDarkMode={toggleDarkMode}
         onLogout={handleLogout}
@@ -315,7 +335,7 @@ function MainApp() {
             </button>
           </div>
 
-        {(activeView === 'home' || activeView === 'grade-task') && (
+        {((activeView === 'home' && role !== 'student') || activeView === 'grade-task') && (
           <>
             {/* Header */}
             <header className="mb-6 md:mb-10 text-center">
@@ -384,16 +404,13 @@ function MainApp() {
                   <ResultCard result={result} onReset={handleReset} />
                 </div>
               )}
-              
-              {/* Summary Section */}
-              <SummarySection history={userHistory} />
             </main>
           </>
         )}
 
         {activeView === 'all-students' && (
           <AllStudentsView 
-            students={students}
+            students={teacherStudents}
             history={userHistory} 
             onDeleteStudent={async (student) => {
               try {
@@ -409,12 +426,12 @@ function MainApp() {
           />
         )}
         {activeView === 'create-group' && <CreateGroupView />}
-        {activeView === 'create-task' && <CreateTaskView groups={groups} isSubmitting={isTaskSubmitting} uploadProgress={taskUploadProgress} onCreateTask={async (task) => {
+        {activeView === 'create-task' && <CreateTaskView groups={teacherGroups} isSubmitting={isTaskSubmitting} uploadProgress={taskUploadProgress} onCreateTask={async (task) => {
           try {
             setIsTaskSubmitting(true);
             setTaskUploadProgress(0);
             
-            const taskToSave = { ...task };
+            const taskToSave: any = { ...task, teacherUsername: currentUser };
             const uploadedFiles = [];
             
             const totalFiles = (task.files?.length || 0) + (task.examples?.length || 0);
@@ -487,10 +504,35 @@ function MainApp() {
         }} />}
         {activeView === 'all-groups' && (
           <AllGroupsView 
-            groups={groupDetails} 
-            onDeleteGroup={(index) => {
+            groups={teacherGroupDetails} 
+            students={teacherStudents}
+            history={userHistory}
+            tasks={teacherTasks}
+            onDeleteTask={async (task) => {
+              try {
+                if (task.id) {
+                  await deleteDoc(doc(db, "tasks", task.id));
+                  setTasks(tasks.filter(t => t.id !== task.id));
+                }
+              } catch (err) {
+                console.error("Error deleting task:", err);
+                alert("Vazifani o'chirishda xatolik yuz berdi.");
+              }
+            }}
+            onDeleteGroup={async (index) => {
               const updatedGroups = [...groupDetails];
               const groupName = updatedGroups[index].name;
+              
+              // Also delete from firebase
+              try {
+                const groupToDelete = groupDetails[index];
+                if (groupToDelete && groupToDelete.id) {
+                   await deleteDoc(doc(db, "groups", groupToDelete.id));
+                }
+              } catch(e) {
+                 console.log(e);
+              }
+              
               updatedGroups.splice(index, 1);
               setGroupDetails(updatedGroups);
               setGroups(groups.filter(g => g !== groupName));
@@ -503,11 +545,11 @@ function MainApp() {
             studentInfo={students.find(s => s.username === currentUser)} 
             onSolveTask={(task) => {
               setSelectedTaskForGrading(task);
-              setActiveView('home');
+              setActiveView('grade-task');
             }}
           />
         )}
-        {activeView === 'student-stats' && <StudentStatsView tasks={tasks} history={userHistory} studentInfo={students.find(s => s.username === currentUser)} />}
+        {activeView === 'home' && role === 'student' && <StudentStatsView tasks={tasks} history={userHistory} studentInfo={students.find(s => s.username === currentUser)} />}
       </div>
       </div>
 
@@ -527,9 +569,9 @@ function MainApp() {
       <AddStudentModal
         isOpen={isAddStudentModalOpen}
         onClose={() => setIsAddStudentModalOpen(false)}
-        groups={groups}
+        groups={teacherGroups}
         onAddStudent={async (student) => {
-          await saveToCollection("students", student);
+          await saveToCollection("students", { ...student, teacherUsername: currentUser });
           alert(`${student.firstName} muvaffaqiyatli qo'shildi!`);
         }}
       />
@@ -538,7 +580,7 @@ function MainApp() {
         isOpen={isAddGroupModalOpen}
         onClose={() => setIsAddGroupModalOpen(false)}
         onAddGroup={async (group) => {
-          await saveToCollection("groups", group);
+          await saveToCollection("groups", { ...group, teacherUsername: currentUser });
           alert(`"${group.name}" guruhi muvaffaqiyatli yaratildi!`);
         }}
       />
