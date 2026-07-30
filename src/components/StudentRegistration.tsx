@@ -14,6 +14,7 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [groupName, setGroupName] = useState('');
+  const [teacherUsername, setTeacherUsername] = useState<string | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -26,13 +27,21 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
         const q = query(groupsRef, where('id', '==', groupId));
         const snapshot = await getDocs(q);
         if (!snapshot.empty) {
-          setGroupName(snapshot.docs[0].data().name);
+          const groupData = snapshot.docs[0].data();
+          setGroupName(groupData.name);
+          if (groupData.teacherUsername) {
+            setTeacherUsername(groupData.teacherUsername);
+          }
         } else {
           // Fallback to checking document ID if id field doesn't exist
           const docRef = doc(db, 'groups', groupId);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            setGroupName(docSnap.data().name);
+            const groupData = docSnap.data();
+            setGroupName(groupData.name);
+            if (groupData.teacherUsername) {
+              setTeacherUsername(groupData.teacherUsername);
+            }
           }
         }
       } catch (err) {
@@ -53,7 +62,7 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
     setError('');
     
     try {
-      const studentData = {
+      const studentData: any = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phone: phone.trim(),
@@ -63,6 +72,10 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
         role: 'student',
         createdAt: new Date().toISOString()
       };
+      
+      if (teacherUsername) {
+        studentData.teacherUsername = teacherUsername;
+      }
       
       const docRef = await addDoc(collection(db, "students"), studentData);
       
