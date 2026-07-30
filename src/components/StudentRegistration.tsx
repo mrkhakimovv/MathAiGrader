@@ -19,7 +19,7 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
   const [existingUser, setExistingUser] = useState<any>(null);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("math_grader_user");
+    const storedUser = localStorage.getItem("almath_user");
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser);
@@ -86,7 +86,7 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
         groups: [...(existingUser.groups || []), targetGroup]
       };
       
-      localStorage.setItem("math_grader_user", JSON.stringify(updatedUser));
+      localStorage.setItem("almath_user", JSON.stringify(updatedUser));
       onRegisterSuccess(updatedUser);
       navigate('/');
     } catch (err: any) {
@@ -132,7 +132,7 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
         ...studentData
       };
       
-      localStorage.setItem("math_grader_user", JSON.stringify(userToStore));
+      localStorage.setItem("almath_user", JSON.stringify(userToStore));
       onRegisterSuccess(userToStore);
       navigate('/'); // Go to main app
     } catch (err: any) {

@@ -18,7 +18,10 @@ import { doc, deleteDoc, getDocs, query, where, collection } from "firebase/fire
 import { db, storage } from "./lib/firebase";
 import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
+import { WelcomeScreen } from "./components/WelcomeScreen";
+
 function MainApp() {
+  const [showLogin, setShowLogin] = useState(false);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [role, setRole] = useState<'admin' | 'teacher' | 'student' | null>(null);
   const [activeView, setActiveView] = useState<ViewType>('home');
@@ -58,7 +61,7 @@ function MainApp() {
   }, [isDarkMode]);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("math_grader_user");
+    const storedUser = localStorage.getItem("almath_user");
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser);
@@ -109,7 +112,7 @@ function MainApp() {
       if (pass === '7788') {
         setCurrentUser('admin');
         setRole('admin');
-        localStorage.setItem("math_grader_user", JSON.stringify({ username: 'admin', role: 'admin' }));
+        localStorage.setItem("almath_user", JSON.stringify({ username: 'admin', role: 'admin' }));
         return true;
       }
       return false;
@@ -118,7 +121,7 @@ function MainApp() {
     if (username === 'teacher' && pass === '7744') {
       setCurrentUser('teacher');
       setRole('teacher');
-      localStorage.setItem("math_grader_user", JSON.stringify({ username: 'teacher', role: 'teacher' }));
+      localStorage.setItem("almath_user", JSON.stringify({ username: 'teacher', role: 'teacher' }));
       return true;
     }
     
@@ -127,7 +130,7 @@ function MainApp() {
       if (teacher.password === pass) {
         setCurrentUser(username);
         setRole('teacher');
-        localStorage.setItem("math_grader_user", JSON.stringify({ username, role: 'teacher' }));
+        localStorage.setItem("almath_user", JSON.stringify({ username, role: 'teacher' }));
         return true;
       }
       return false;
@@ -146,7 +149,7 @@ function MainApp() {
           role: 'student',
           ...studentData
         };
-        localStorage.setItem("math_grader_user", JSON.stringify(userToStore));
+        localStorage.setItem("almath_user", JSON.stringify(userToStore));
         setCurrentUser(studentData.username);
         setRole('student');
         return true;
@@ -162,7 +165,7 @@ function MainApp() {
     setCurrentUser(null);
     setRole(null);
     setActiveView('home');
-    localStorage.removeItem("math_grader_user");
+    localStorage.removeItem("almath_user");
   };
 
   const handleFilesSelect = (files: File[]) => {
@@ -239,9 +242,19 @@ function MainApp() {
   };
 
   if (!currentUser) {
+    if (showLogin) {
+      return (
+        <LoginScreen
+          onLogin={handleLogin}
+          isDarkMode={isDarkMode}
+          toggleDarkMode={toggleDarkMode}
+          onBack={() => setShowLogin(false)}
+        />
+      );
+    }
     return (
-      <LoginScreen
-        onLogin={handleLogin}
+      <WelcomeScreen
+        onLoginClick={() => setShowLogin(true)}
         isDarkMode={isDarkMode}
         toggleDarkMode={toggleDarkMode}
       />
@@ -339,14 +352,14 @@ function MainApp() {
           <>
             {/* Header */}
             <header className="mb-6 md:mb-10 text-center">
-              <div className="mx-auto mb-3 md:mb-4 flex h-12 w-12 md:h-16 md:w-16 items-center justify-center rounded-2xl bg-indigo-600 dark:bg-indigo-500 text-white shadow-lg">
-                <Calculator className="h-6 w-6 md:h-8 md:w-8" />
+              <div className="mx-auto mb-3 md:mb-4 flex h-16 w-16 justify-center">
+                <img src="/logo.png" alt="ALMATH Logo" className="h-full w-full rounded-full object-cover" />
               </div>
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white lg:text-4xl">
-                {selectedTaskForGrading ? "Vazifani topshirish" : "Math AI Grader"}
+                {selectedTaskForGrading ? "Vazifani topshirish" : "ALMATH"}
               </h1>
               <p className="mt-2 md:mt-3 text-sm md:text-lg text-slate-600 dark:text-slate-400">
-                {selectedTaskForGrading ? `Siz hozir ushbu vazifani bajaryapsiz: ${selectedTaskForGrading.title}` : "Upload student math homework for automated step-by-step verification and grading."}
+                {selectedTaskForGrading ? `Siz hozir ushbu vazifani bajaryapsiz: ${selectedTaskForGrading.title}` : "O'quvchilar uy vazifalarini avtomatik tekshirish tizimi."}
               </p>
             </header>
 

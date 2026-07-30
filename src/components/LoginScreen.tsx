@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Calculator, Lock, User as UserIcon, Moon, Sun } from 'lucide-react';
+import { Calculator, Lock, User as UserIcon, Moon, Sun, ArrowLeft } from 'lucide-react';
 
 interface LoginScreenProps {
   onLogin: (username: string, password: string) => Promise<boolean> | boolean;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
+  onBack?: () => void;
 }
 
-export function LoginScreen({ onLogin, isDarkMode, toggleDarkMode }: LoginScreenProps) {
+export function LoginScreen({ onLogin, isDarkMode, toggleDarkMode, onBack }: LoginScreenProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +29,17 @@ export function LoginScreen({ onLogin, isDarkMode, toggleDarkMode }: LoginScreen
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 transition-colors relative">
+      {onBack && (
+        <div className="absolute left-4 top-4 md:left-8 md:top-8">
+          <button
+            onClick={onBack}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+        </div>
+      )}
       <div className="absolute right-4 top-4 md:right-8 md:top-8">
         <button
           onClick={toggleDarkMode}
@@ -40,11 +52,11 @@ export function LoginScreen({ onLogin, isDarkMode, toggleDarkMode }: LoginScreen
 
       <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 p-8 sm:p-10 animate-in fade-in zoom-in-95 duration-500">
         <div className="text-center mb-8">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-500/30 mb-5">
-            <Calculator className="h-8 w-8 text-white" />
+          <div className="mx-auto flex h-20 w-20 justify-center mb-5">
+            <img src="/logo.png" alt="ALMATH Logo" className="h-full w-full rounded-full object-cover" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Welcome Back</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-2">Sign in to your Math AI Grader account</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">Sign in to your ALMATH account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
