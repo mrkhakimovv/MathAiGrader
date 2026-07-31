@@ -8,51 +8,9 @@ interface WelcomeScreenProps {
   toggleDarkMode: () => void;
 }
 
-const faqData = [
-  {
-    category: "Kurslar haqida",
-    color: "bg-primary",
-    items: [
-      { q: "Kurslarni qanday boshlash mumkin?", a: "Kursni boshlash uchun avval ro'yxatdan o'ting, so'ngra \"Kurslar\" bo'limidan o'zingizga ma'qul bo'lgan kursni tanlab, \"Sotib olish\" tugmasini bosing. To'lov tasdiqlangach, kurs materiallari avtomatik ravishda shaxsiy kabinetingizda paydo bo'ladi." },
-      { q: "Sertifikat beriladimi?", a: "Ha, kursni to'liq tamomlagan va yakuniy imtihonlarni muvaffaqiyatli topshirgan barcha talabalarga Almath platformasining rasmiy elektron sertifikati taqdim etiladi." }
-    ]
-  },
-  {
-    category: "To'lov tizimi",
-    color: "bg-tertiary-container",
-    items: [
-      { q: "Qanday to'lov usullari mavjud?", a: "Biz Click, Payme, Uzum va Visa/Mastercard kabi barcha ommabop to'lov tizimlarini qabul qilamiz. Shuningdek, xalqaro foydalanuvchilar uchun Stripe va PayPal tizimlari ham mavjud." },
-      { q: "To'lovdan keyin qaytarib berish kafolati bormi?", a: "Ha, agar kurs sizga ma'qul kelmasa, birinchi 3 kun ichida to'lovni 100% qaytarib olishingiz mumkin. Bunda hech qanday ortiqcha savollar berilmaydi." }
-    ]
-  },
-  {
-    category: "Texnik yordam",
-    color: "bg-secondary",
-    items: [
-      { q: "Videolar yuklanmay qolsa nima qilish kerak?", a: "Birinchi navbatda internet tezligingizni tekshiring. Muammo davom etsa, brauzer keshini tozalang yoki boshqa brauzer orqali kirib ko'ring. Agar bu ham yordam bermasa, texnik guruhimizga yozing." }
-    ]
-  }
-];
-
-function FaqAccordionItem({ question, answer, isOpen, onClick }: { question: string, answer: string, isOpen: boolean, onClick: () => void }) {
-  return (
-    <div className={`glass-effect rounded-2xl overflow-hidden transition-all duration-300 ${isOpen ? 'ring-2 ring-primary/20' : ''}`}>
-      <button className="w-full flex items-center justify-between p-6 text-left hover:bg-surface-container-low dark:hover:bg-surface-container-highest transition-colors group focus:outline-none" onClick={onClick}>
-        <span className="font-body-lg text-body-lg font-semibold text-on-surface-variant dark:text-surface-variant group-hover:text-primary transition-colors">{question}</span>
-        <span className={`material-symbols-outlined transition-transform duration-300 text-outline ${isOpen ? 'rotate-180' : ''}`}>expand_more</span>
-      </button>
-      <div className={`px-6 overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-[500px] pb-6 opacity-100' : 'max-h-0 opacity-0'}`}>
-        <p className="font-body-md text-body-md text-secondary dark:text-secondary-fixed">{answer}</p>
-      </div>
-    </div>
-  );
-}
-
 export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: WelcomeScreenProps) {
   const headerRef = useRef<HTMLElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
-  const [searchFaq, setSearchFaq] = useState('');
-  const [openFaqIndex, setOpenFaqIndex] = useState<string | null>(null);
   const [isContactFormSubmitted, setIsContactFormSubmitted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -110,7 +68,6 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
             <a href="#testlar" className="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary px-4 py-1 transition-colors font-label-md text-label-md">Testlar</a>
             <a href="#biz-haqimizda" className="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary px-4 py-1 transition-colors font-label-md text-label-md">Biz haqimizda</a>
             <a href="#aloqa" className="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary px-4 py-1 transition-colors font-label-md text-label-md">Aloqa</a>
-            <a href="#faq" className="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary px-4 py-1 transition-colors font-label-md text-label-md">FAQ</a>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
             <button onClick={toggleDarkMode} className="p-2 rounded-full hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300">
@@ -120,9 +77,7 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
               <span className="material-symbols-outlined">person</span>
               Kabinet
             </button>
-            <button className="hidden sm:block p-2 rounded-full bg-primary text-on-primary shadow-md hover:shadow-lg transition-all active:scale-95 duration-200">
-              <span className="material-symbols-outlined">search</span>
-            </button>
+
             <button 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
               className="lg:hidden p-2 flex items-center justify-center rounded-full hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-all duration-300"
@@ -139,7 +94,6 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
             <a href="#testlar" onClick={() => setIsMobileMenuOpen(false)} className="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary px-4 py-3 transition-colors font-label-md text-label-md">Testlar</a>
             <a href="#biz-haqimizda" onClick={() => setIsMobileMenuOpen(false)} className="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary px-4 py-3 transition-colors font-label-md text-label-md">Biz haqimizda</a>
             <a href="#aloqa" onClick={() => setIsMobileMenuOpen(false)} className="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary px-4 py-3 transition-colors font-label-md text-label-md">Aloqa</a>
-            <a href="#faq" onClick={() => setIsMobileMenuOpen(false)} className="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-inverse-primary px-4 py-3 transition-colors font-label-md text-label-md">FAQ</a>
             
             <div className="mt-4 pt-4 border-t border-outline-variant/20 flex flex-col gap-3">
               <button onClick={() => { setIsMobileMenuOpen(false); onLoginClick(); }} className="flex md:hidden items-center justify-center gap-2 w-full px-6 py-3 rounded-xl bg-primary text-on-primary font-label-md text-label-md hover:bg-primary/90 transition-all active:scale-95 duration-200">
@@ -155,11 +109,7 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
         {/* Hero Section */}
         <section className="max-w-container-max mx-auto px-margin-mobile md:px-gutter pt-20 pb-24 grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-stack-lg animate-fade-in">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-container/10 border border-primary/20 text-primary-container font-label-md text-label-md">
-              <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-              <span>Real testlar · Real natijalar</span>
-            </div>
+
             
             {/* Headlines */}
             <div className="space-y-4">
@@ -616,88 +566,85 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
 
 
 
+        
         {/* Jamoamiz */}
         <div className="py-section-gap bg-surface-container-low dark:bg-surface-container-highest relative overflow-hidden">
           <div className="max-w-container-max mx-auto px-gutter relative z-10">
-            <div className="text-center mb-16">
+            <motion.div 
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="text-center mb-16"
+            >
               <h2 className="font-headline-md md:font-headline-lg text-headline-md md:text-headline-lg mb-4 text-on-background dark:text-inverse-on-surface">Bizning jamoamiz</h2>
               <p className="text-on-surface-variant dark:text-surface-variant font-body-lg text-body-lg max-w-2xl mx-auto">Muvaffaqiyatimiz ortida turgan tajribali ustozlar va texnologiya ixlosmandlari bilan tanishing.</p>
-            </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            </motion.div>
+            
+            <div className="grid sm:grid-cols-2 gap-10 max-w-4xl mx-auto">
               {/* Team Member 1 */}
-              <div className="group relative bg-surface-container-lowest dark:bg-surface-container-low rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all">
-                <div className="h-64 overflow-hidden">
-                  <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Team member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBrLsUeyTzhqhPzdUGBFB3DfiUe2kIV-D5zRIKIH08uEp6CDaE86dJywgdkUh-g652UH1D427E8rHSistdcupfgX-8-tiZsYlPQY8lMMKbozvTn6Hxiz34RyDAkL8v1cCUAUUYBGpw7jWR7kSKUY6R-bppzvPptaTYIh18aWM_C57_sT3IYKFcD4rGZBZQf2U7X0FiN27JP9fHZKXM37QLcGW8E4pWfGv2HdQTFnkUUUGUMV18sQt_"/>
+              <motion.div 
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="group relative bg-surface-container-lowest dark:bg-surface-container-low rounded-[2rem] overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 border border-outline-variant/30 hover:border-primary/50"
+              >
+                <div className="h-80 overflow-hidden relative">
+                  <div className="absolute inset-0 bg-primary/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" alt="Panji Soatov" src="/xodim1.jpg"/>
                 </div>
-                <div className="p-6">
-                  <h4 className="font-headline-md text-headline-md mb-1 text-on-background dark:text-inverse-on-surface">Akmal Salimov</h4>
-                  <p className="text-primary dark:text-primary-fixed-dim font-label-md text-label-md mb-4">Asoschi va CEO</p>
+                <div className="p-8 relative">
+                  <div className="absolute -top-6 right-8 w-12 h-12 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-lg transform group-hover:-translate-y-2 transition-transform duration-500">
+                    <span className="material-symbols-outlined">star</span>
+                  </div>
+                  <h4 className="font-headline-lg text-2xl mb-2 text-on-background dark:text-inverse-on-surface group-hover:text-primary transition-colors font-bold">Panji Soatov</h4>
+                  <p className="text-primary dark:text-primary-fixed-dim font-label-md text-label-md mb-6 uppercase tracking-wider">Asoschi va CEO</p>
+                  <p className="text-on-surface-variant font-body-md mb-6">Ta'lim sohasida 8 yillik tajribaga ega. Almath platformasining g'oya muallifi va boshqaruvchisi.</p>
                   <div className="flex gap-3">
-                    <a className="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors" href="#"><span className="material-symbols-outlined text-xl">language</span></a>
-                    <a className="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors" href="#"><span className="material-symbols-outlined text-xl">mail</span></a>
+                    <a className="group/btn w-11 h-11 rounded-full bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-[#0088cc] dark:hover:bg-[#0088cc] hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-outline-variant/20 hover:border-transparent" href="https://t.me/panji_soatov" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+                      <i className="bi bi-telegram text-xl group-hover/btn:scale-110 group-hover/btn:-rotate-6 transition-transform duration-300"></i>
+                    </a>
+                    <a className="group/btn w-11 h-11 rounded-full bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-outline-variant/20 hover:border-transparent" href="https://instagram.com/soatov_matematika" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                      <i className="bi bi-instagram text-xl group-hover/btn:scale-110 transition-transform duration-300"></i>
+                    </a>
                   </div>
                 </div>
-              </div>
+              </motion.div>
+
               {/* Team Member 2 */}
-              <div className="group relative bg-surface-container-lowest dark:bg-surface-container-low rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all">
-                <div className="h-64 overflow-hidden">
-                  <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Team member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhPpDJjfCWMwtx7NuyaK7KripkK-8bgy1sQWsqZsij2t1SPYw5_-LtEuLnyKVH7DG11cWzcth1DYXQERJc3zsotbIjCADs5kYe5slfX9U8tNwmThBCH76I-Ia58UM1ZaQgckEL6kWYBUU5yY0Nc3dp2dYgqxxmN7wO_DaBDbp-qpbTj3Ihym0GAn9Ff5S2xIbJbpg6b7dIIo1T_NR282CfONfFXW8KFiYkWLCJnthQ-64CNaxZA3q7"/>
+              <motion.div 
+                initial={{ opacity: 0, x: 30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="group relative bg-surface-container-lowest dark:bg-surface-container-low rounded-[2rem] overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 border border-outline-variant/30 hover:border-secondary/50"
+              >
+                <div className="h-80 overflow-hidden relative">
+                  <div className="absolute inset-0 bg-secondary/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" alt="Quvonchbek Hakimov" src="/xodim2.jpg"/>
                 </div>
-                <div className="p-6">
-                  <h4 className="font-headline-md text-headline-md mb-1 text-on-background dark:text-inverse-on-surface">Diyora Omonova</h4>
-                  <p className="text-primary dark:text-primary-fixed-dim font-label-md text-label-md mb-4">Bosh metodist</p>
+                <div className="p-8 relative">
+                  <div className="absolute -top-6 right-8 w-12 h-12 bg-secondary text-on-secondary rounded-full flex items-center justify-center shadow-lg transform group-hover:-translate-y-2 transition-transform duration-500">
+                    <span className="material-symbols-outlined">code</span>
+                  </div>
+                  <h4 className="font-headline-lg text-2xl mb-2 text-on-background dark:text-inverse-on-surface group-hover:text-secondary transition-colors font-bold">Quvonchbek Hakimov</h4>
+                  <p className="text-secondary dark:text-secondary-fixed-dim font-label-md text-label-md mb-6 uppercase tracking-wider">Texnik rahbar (CTO)</p>
+                  <p className="text-on-surface-variant font-body-md mb-6">Sun'iy intellekt va zamonaviy web texnologiyalar bo'yicha mutaxassis. Tizim arxitekturasi muallifi.</p>
                   <div className="flex gap-3">
-                    <a className="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors" href="#"><span className="material-symbols-outlined text-xl">language</span></a>
-                    <a className="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors" href="#"><span className="material-symbols-outlined text-xl">mail</span></a>
+                    <a className="group/btn w-11 h-11 rounded-full bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-[#0088cc] dark:hover:bg-[#0088cc] hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-outline-variant/20 hover:border-transparent" href="https://t.me/quvonchbek_hakimov" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+                      <i className="bi bi-telegram text-xl group-hover/btn:scale-110 group-hover/btn:-rotate-6 transition-transform duration-300"></i>
+                    </a>
+                    <a className="group/btn w-11 h-11 rounded-full bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-outline-variant/20 hover:border-transparent" href="https://instagram.com/hakimov_matematika" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                      <i className="bi bi-instagram text-xl group-hover/btn:scale-110 transition-transform duration-300"></i>
+                    </a>
                   </div>
                 </div>
-              </div>
-              {/* Team Member 3 */}
-              <div className="group relative bg-surface-container-lowest dark:bg-surface-container-low rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all">
-                <div className="h-64 overflow-hidden">
-                  <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Team member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA44RHNV6_OPf-FmbVjW3M3YmSo3Jc8SqS3COUw9x44TxtaQMNFYE7Hx326KjqJg8ASfN0fXsw-Nq9UE9TeVtsHDJ3paEQp0auB_qcHXVdwykMcBR2wOZwUaBvBT9ww0Snf36Cj6ZSTpDqxAF8MQA1cWP1CguxlJjR84JTts6fOLN9uxnnka_j6JqU8yS40qEH9zzP8xUnHoPP1uBhHYG1n9RaV0tBpArQYrFZuX_AMT92VVvsCcPgr"/>
-                </div>
-                <div className="p-6">
-                  <h4 className="font-headline-md text-headline-md mb-1 text-on-background dark:text-inverse-on-surface">Rustam Shokirov</h4>
-                  <p className="text-primary dark:text-primary-fixed-dim font-label-md text-label-md mb-4">Akademik maslahatchi</p>
-                  <div className="flex gap-3">
-                    <a className="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors" href="#"><span className="material-symbols-outlined text-xl">language</span></a>
-                    <a className="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors" href="#"><span className="material-symbols-outlined text-xl">mail</span></a>
-                  </div>
-                </div>
-              </div>
-              {/* Team Member 4 */}
-              <div className="group relative bg-surface-container-lowest dark:bg-surface-container-low rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all">
-                <div className="h-64 overflow-hidden">
-                  <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="Team member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAaMjpMXQWcBT0v2PWAPPRNTswMxjtptVkAgE-pECYj7255NvMHRN8MvwYZIPJS4NqP-LYIbrjAhVEUKhE7GNeK64cXSDRF1OI0ug364eh_aD917gbOaP1qZyGLfRSfbPM40ezAM3dQIohkghGcw0odCDpT6Sw55c6wQn_MJQSuOF06I-zTV9MM8SkwOqs3BfLwZbxXz60QW86R1AAxHy0bGeK0IyMfOycB7vSalIcnfB_y1tr6qGM9"/>
-                </div>
-                <div className="p-6">
-                  <h4 className="font-headline-md text-headline-md mb-1 text-on-background dark:text-inverse-on-surface">Jasur Alimov</h4>
-                  <p className="text-primary dark:text-primary-fixed-dim font-label-md text-label-md mb-4">Dizayn rahbari</p>
-                  <div className="flex gap-3">
-                    <a className="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors" href="#"><span className="material-symbols-outlined text-xl">language</span></a>
-                    <a className="text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors" href="#"><span className="material-symbols-outlined text-xl">mail</span></a>
-                  </div>
-                </div>
-              </div>
+              </motion.div>
             </div>
           </div>
           <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
           <div className="absolute -top-24 -left-24 w-96 h-96 bg-tertiary/5 rounded-full blur-3xl pointer-events-none"></div>
-        </div>
-
-        {/* CTA Section */}
-        <div className="py-section-gap px-gutter bg-background dark:bg-inverse-surface">
-          <div className="max-w-container-max mx-auto bg-primary rounded-[3rem] p-12 md:p-20 relative overflow-hidden text-center shadow-2xl">
-            <div className="relative z-10 max-w-2xl mx-auto space-y-8">
-              <h2 className="font-headline-md md:font-headline-lg text-headline-md md:text-headline-lg text-on-primary">Siz ham jamoamizning bir qismiga aylaning</h2>
-              <p className="text-on-primary-container font-body-lg text-body-lg">Biz bilan birga kelajak ta'limini yarating va matematika dunyosini o'zgartiring.</p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <button className="bg-on-primary text-primary px-8 py-4 rounded-2xl font-label-md text-label-md hover:scale-105 transition-transform active:scale-95">Hozir boshlang</button>
-                <button className="bg-transparent border-2 border-on-primary text-on-primary px-8 py-4 rounded-2xl font-label-md text-label-md hover:bg-on-primary/10 transition-colors active:scale-95">Biz bilan bog'lanish</button>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
       <section id="aloqa" className="pt-24 pb-section-gap bg-background dark:bg-inverse-surface border-t border-outline-variant/20">
@@ -827,111 +774,6 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
                 </div>
               )}
             </div>
-          </div>
-          
-          {/* Map Section */}
-          <div className="mt-section-gap">
-            <div className="glass-effect rounded-2xl overflow-hidden shadow-lg border border-outline-variant/30 h-[450px] relative group">
-              {/* Location Label Overlay */}
-              <div className="absolute top-6 left-6 z-10 bg-surface-container-lowest/90 dark:bg-surface-container-low/90 backdrop-blur p-4 rounded-xl shadow-md border border-outline-variant/20 max-w-xs">
-                <p className="font-label-md text-primary dark:text-primary-fixed-dim mb-1">Bizning ofisimiz</p>
-                <p className="font-body-md text-on-surface dark:text-inverse-on-surface text-sm">Almath bosh ofisi zamonaviy markazda joylashgan.</p>
-              </div>
-              
-              {/* Map Placeholder Image */}
-              <div className="w-full h-full bg-surface-container-highest dark:bg-surface-container relative">
-                <img className="w-full h-full object-cover grayscale-[20%] group-hover:scale-105 transition-transform duration-700 opacity-80" alt="Map" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMSvc9TxVqctJn0c7saXAKw-LQ8KQGt6azf-1VMFNr2CA1pmv2ovI6kvHxjSML5pPSIilhjGk4VGW1kB4VXtzQ1VAyXPELtbBsTVKtSmDkFI5742VijzkJXbXmfSli7yopa312BrWD9yqsiuTBZJq71JfPK3gEpDNiDqLSBH8au1LtcyJYaPQ6tBEWGkNKlkV2fn3ZNrmG6uLqABpV76A3Uvw5VRivWppA1eWQKuwQikDO6kLUSz9t" />
-                {/* Atmospheric Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-background/40 dark:from-inverse-surface/80 to-transparent pointer-events-none"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section id="faq" className="pt-24 pb-section-gap bg-surface dark:bg-inverse-surface border-t border-outline-variant/20">
-        <div className="max-w-[900px] mx-auto px-margin-mobile md:px-gutter">
-          {/* Hero Section & Search */}
-          <div className="text-center mb-stack-lg">
-            <h2 className="font-display-md md:font-display-xl text-headline-lg-mobile md:text-display-xl text-on-background dark:text-inverse-on-surface mb-4 leading-tight">Qanday yordam bera olamiz?</h2>
-            <p className="font-body-lg text-body-lg text-secondary dark:text-secondary-fixed max-w-2xl mx-auto mb-10">Almath platformasi haqida ko'p beriladigan savollarga javoblarni shu yerdan topishingiz mumkin.</p>
-            <div className="relative max-w-xl mx-auto">
-              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-outline">
-                <span className="material-symbols-outlined">search</span>
-              </div>
-              <input 
-                type="text" 
-                value={searchFaq}
-                onChange={(e) => setSearchFaq(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 rounded-xl border-none ring-1 ring-outline-variant focus:ring-2 focus:ring-primary transition-all bg-surface-container-lowest dark:bg-surface-container shadow-sm font-body-md text-body-md text-on-surface dark:text-inverse-on-surface" 
-                placeholder="Savolingizni yozing..." 
-              />
-            </div>
-          </div>
-
-          {/* Quick Categories */}
-          <div className="flex flex-wrap justify-center gap-4 mb-section-gap">
-            <button className="px-6 py-3 rounded-full glass-effect hover:bg-primary-container/10 text-primary font-label-md transition-all active:scale-95 flex items-center gap-2">
-              <span className="material-symbols-outlined text-[20px]">school</span> Kurslar
-            </button>
-            <button className="px-6 py-3 rounded-full glass-effect hover:bg-primary-container/10 text-secondary dark:text-secondary-fixed font-label-md transition-all active:scale-95 flex items-center gap-2">
-              <span className="material-symbols-outlined text-[20px]">payments</span> To'lovlar
-            </button>
-            <button className="px-6 py-3 rounded-full glass-effect hover:bg-primary-container/10 text-secondary dark:text-secondary-fixed font-label-md transition-all active:scale-95 flex items-center gap-2">
-              <span className="material-symbols-outlined text-[20px]">support_agent</span> Texnik yordam
-            </button>
-          </div>
-
-          {/* FAQ Accordion */}
-          <div className="space-y-4">
-            {faqData.map((group, groupIndex) => {
-              const filteredItems = group.items.filter(item => 
-                item.q.toLowerCase().includes(searchFaq.toLowerCase()) || 
-                item.a.toLowerCase().includes(searchFaq.toLowerCase())
-              );
-              
-              if (filteredItems.length === 0) return null;
-              
-              return (
-                <div key={groupIndex} className="mb-10 animate-fade-in">
-                  <h3 className="font-headline-md text-headline-md text-on-surface dark:text-inverse-on-surface mb-6 flex items-center gap-3">
-                    <span className={`w-1 h-8 ${group.color} rounded-full`}></span> {group.category}
-                  </h3>
-                  <div className="space-y-3">
-                    {filteredItems.map((item, itemIndex) => {
-                      const id = `${groupIndex}-${itemIndex}`;
-                      return (
-                        <FaqAccordionItem 
-                          key={id}
-                          question={item.q}
-                          answer={item.a}
-                          isOpen={openFaqIndex === id}
-                          onClick={() => setOpenFaqIndex(openFaqIndex === id ? null : id)}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* CTA Section */}
-          <div className="mt-20 p-10 rounded-3xl bg-primary-container text-on-primary-container relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="relative z-10 max-w-md">
-              <h4 className="font-headline-md text-headline-md font-bold mb-4">Hali ham savollaringiz bormi?</h4>
-              <p className="font-body-md text-body-md opacity-90">Bizning qo'llab-quvvatlash jamoamiz haftasiga 7 kun, kuniga 24 soat xizmatingizda.</p>
-            </div>
-            <div className="relative z-10 flex flex-col sm:flex-row gap-4">
-              <button className="px-8 py-4 rounded-full bg-on-primary-container text-primary font-bold hover:scale-105 transition-transform flex items-center justify-center gap-2">
-                <span className="material-symbols-outlined">chat</span> Bizga yozing
-              </button>
-              <button className="px-8 py-4 rounded-full border-2 border-on-primary-container/30 hover:bg-on-primary-container/10 transition-colors font-bold">
-                Aloqa sahifasi
-              </button>
-            </div>
-            {/* Abstract light circles for effect */}
-            <div className="absolute -top-24 -right-24 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
-            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
           </div>
         </div>
       </section>

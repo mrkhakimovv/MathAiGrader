@@ -1,9 +1,12 @@
 import fs from 'fs';
-const content = fs.readFileSync('src/components/WelcomeScreen.tsx', 'utf-8');
 
-const target = '      <section id="testlar" className="pt-24';
-const replacement = '        </section>\n      </section>\n      <section id="testlar" className="pt-24';
+let content = fs.readFileSync('src/components/WelcomeScreen.tsx', 'utf-8');
 
-const newContent = content.replace(target, replacement);
-fs.writeFileSync('src/components/WelcomeScreen.tsx', newContent);
-console.log("Fixed sections");
+// The botched part is between `toggleDarkMode: () => void;\n}` and `export function WelcomeScreen`.
+const startIdx = content.indexOf(') {');
+const exportIdx = content.indexOf('export function WelcomeScreen');
+if (startIdx < exportIdx) {
+  content = content.substring(0, startIdx) + content.substring(exportIdx);
+}
+fs.writeFileSync('src/components/WelcomeScreen.tsx', content);
+console.log("Fixed");
