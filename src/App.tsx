@@ -19,6 +19,7 @@ import { db, storage } from "./lib/firebase";
 import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 import { DashboardStats } from "./components/DashboardStats";
+import { HomeView } from "./components/HomeView";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 
 function MainApp() {
@@ -354,7 +355,13 @@ function MainApp() {
           </div>
 
         {activeView === 'home' && role !== 'student' && (
-          <DashboardStats groupDetails={teacherGroupDetails} students={teacherStudents} tasks={teacherTasks} />
+          <div className="space-y-8">
+            <HomeView role={role} username={currentUser} />
+            <DashboardStats groupDetails={teacherGroupDetails} students={teacherStudents} tasks={teacherTasks} />
+          </div>
+        )}
+        {activeView === 'home' && role === 'student' && (
+          <HomeView role={role} username={currentUser} />
         )}
 
         {activeView === 'grade-task' && (
@@ -570,7 +577,7 @@ function MainApp() {
             }}
           />
         )}
-        {activeView === 'home' && role === 'student' && <StudentStatsView tasks={tasks} history={userHistory} studentInfo={students.find(s => s.username === currentUser)} />}
+        {activeView === 'student-stats' && role === 'student' && <StudentStatsView tasks={tasks} history={userHistory} studentInfo={students.find(s => s.username === currentUser)} />}
       </div>
       </div>
 

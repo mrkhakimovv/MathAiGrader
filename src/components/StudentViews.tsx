@@ -11,6 +11,7 @@ interface StudentTasksViewProps {
 
 export function StudentTasksView({ tasks, studentInfo, onSolveTask }: StudentTasksViewProps) {
   const [now, setNow] = useState(new Date());
+  const [selectedGroup, setSelectedGroup] = useState<string>('Barcha vazifalar');
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 60000); // update every minute
@@ -46,10 +47,16 @@ export function StudentTasksView({ tasks, studentInfo, onSolveTask }: StudentTas
     });
   };
 
+  const studentGroups = studentInfo?.groups || (studentInfo?.group ? [studentInfo.group] : []);
+  
   const studentTasks = tasks.filter(t => !t.group || t.group === 'Barcha guruhlar' || t.group === studentInfo?.group || (studentInfo?.groups && studentInfo.groups.includes(t.group)));
 
+  const filteredTasks = selectedGroup === 'Barcha vazifalar' 
+    ? studentTasks 
+    : studentTasks.filter(t => t.group === selectedGroup || !t.group || t.group === 'Barcha guruhlar');
+
   // Sort tasks: pending first, then expired
-  const sortedTasks = [...studentTasks].sort((a, b) => {
+  const sortedTasks = [...filteredTasks].sort((a, b) => {
     const aExpired = isExpired(a.endDate);
     const bExpired = isExpired(b.endDate);
     if (aExpired === bExpired) {
@@ -70,6 +77,34 @@ export function StudentTasksView({ tasks, studentInfo, onSolveTask }: StudentTas
         </div>
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Uyga vazifalar ro'yxati</h2>
       </div>
+      
+      {studentGroups.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-6">
+          <button
+            onClick={() => setSelectedGroup('Barcha vazifalar')}
+            className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+              selectedGroup === 'Barcha vazifalar'
+                ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
+                : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+            }`}
+          >
+            Barcha vazifalar
+          </button>
+          {studentGroups.map((group: string) => (
+            <button
+              key={group}
+              onClick={() => setSelectedGroup(group)}
+              className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+                selectedGroup === group
+                  ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
+                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
+              }`}
+            >
+              {group}
+            </button>
+          ))}
+        </div>
+      )}
       
       {sortedTasks.length === 0 ? (
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center shadow-sm">

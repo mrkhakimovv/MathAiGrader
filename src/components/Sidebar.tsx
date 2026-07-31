@@ -66,6 +66,14 @@ export function Sidebar({ onProfileClick, activeView, onChangeView, role }: Side
           >
             <BookOpen className="h-6 w-6 md:h-7 md:w-7" />
           </button>
+          
+          <button 
+            onClick={() => onChangeView('student-stats')}
+            className={`${activeView === 'student-stats' ? 'text-white scale-110' : 'text-indigo-200'} hover:text-white hover:scale-110 transition-all`} 
+            title="Statistika (Statistics)"
+          >
+            <BarChart2 className="h-6 w-6 md:h-7 md:w-7" />
+          </button>
         </>
       )}
 
