@@ -263,7 +263,7 @@ export function ResultCard({ result, onReset }: ResultCardProps) {
         {/* Feedback Section */}
         <div>
           <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            Teacher's Feedback
+            Tahlil va Xulosa
           </h3>
           <div className="rounded-xl bg-slate-50 dark:bg-slate-950 p-4 sm:p-5 text-slate-800 dark:text-slate-200 overflow-x-auto transition-colors">
             {isRawMode ? (
@@ -284,7 +284,7 @@ export function ResultCard({ result, onReset }: ResultCardProps) {
         {result.errorSteps && result.errorSteps.length > 0 && (
           <div>
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-rose-500 dark:text-rose-400">
-              Identified Errors
+              Xatolar va kamchiliklar
             </h3>
             <ul className="flex flex-col gap-2">
               {result.errorSteps.map((step, index) => (

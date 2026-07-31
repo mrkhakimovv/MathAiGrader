@@ -152,10 +152,10 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
                 Tizimga kirish
                 <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
               </button>
-              <button className="px-10 py-4 rounded-full bg-surface-container-lowest dark:bg-surface-container-low border border-outline-variant/30 text-on-surface dark:text-inverse-on-surface font-label-md text-label-md flex items-center justify-center gap-3 hover:bg-surface-container-low dark:hover:bg-surface-container-highest transition-all shadow-sm active:scale-95 group">
-                Bepul ro'yxatdan o'tish
+              <a href="https://t.me/panji_soatov" target="_blank" rel="noopener noreferrer" className="px-10 py-4 rounded-full bg-surface-container-lowest dark:bg-surface-container-low border border-outline-variant/30 text-on-surface dark:text-inverse-on-surface font-label-md text-label-md flex items-center justify-center gap-3 hover:bg-surface-container-low dark:hover:bg-surface-container-highest transition-all shadow-sm active:scale-95 group">
+                Offline darslar uchun ro'yxatdan o'tish
                 <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
-              </button>
+              </a>
             </div>
           </div>
           
@@ -222,23 +222,11 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
                 </div>
               </div>
               <div className="p-8 flex-grow flex flex-col">
-                <div className="flex items-center gap-4 text-label-sm text-on-surface-variant dark:text-surface-variant mb-4">
-                  <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px] text-tertiary">play_circle</span> 42 dars</span>
-                  <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px] text-tertiary">schedule</span> 18 soat</span>
-                  <span className="flex items-center gap-1 text-primary"><span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span> 4.9</span>
-                </div>
-                <h3 className="font-headline-md text-2xl mb-3 text-on-surface dark:text-inverse-on-surface group-hover:text-primary transition-colors">Matematika Asoslari</h3>
+                <h3 className="font-headline-md text-2xl mb-3 text-on-surface dark:text-inverse-on-surface group-hover:text-primary transition-colors">Milliy sertifikat</h3>
                 <p className="text-on-surface-variant dark:text-surface-variant font-body-md mb-8 line-clamp-2">
                   Arifmetika, kasrlar, foizlar va sodda tenglamalar. Matematikani noldan o'rganishni istaganlar uchun eng yaxshi tanlov.
                 </p>
-                <div className="mt-auto pt-6 border-t border-outline-variant/20 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <img src="https://ui-avatars.com/api/?name=Ali+Valiyev&background=e0e3e5&color=191c1e" alt="Instructor" className="w-10 h-10 rounded-full border-2 border-surface" />
-                    <div>
-                      <div className="text-label-sm font-bold text-on-surface dark:text-inverse-on-surface">Ali Valiyev</div>
-                      <div className="text-[11px] text-on-surface-variant dark:text-surface-variant">Oliy toifali o'qituvchi</div>
-                    </div>
-                  </div>
+                <div className="mt-auto pt-6 flex items-center justify-end">
                   <button className="w-12 h-12 rounded-full bg-primary-container/20 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-on-primary transition-all duration-300">
                     <span className="material-symbols-outlined transform group-hover:rotate-45 transition-transform">arrow_outward</span>
                   </button>
@@ -266,23 +254,11 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
                 </div>
               </div>
               <div className="p-8 flex-grow flex flex-col">
-                <div className="flex items-center gap-4 text-label-sm text-on-surface-variant dark:text-surface-variant mb-4">
-                  <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px] text-tertiary">play_circle</span> 64 dars</span>
-                  <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px] text-tertiary">schedule</span> 32 soat</span>
-                  <span className="flex items-center gap-1 text-primary"><span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span> 4.8</span>
-                </div>
-                <h3 className="font-headline-md text-2xl mb-3 text-on-surface dark:text-inverse-on-surface group-hover:text-tertiary transition-colors">Algebra va Analiz</h3>
+                <h3 className="font-headline-md text-2xl mb-3 text-on-surface dark:text-inverse-on-surface group-hover:text-tertiary transition-colors">SAT</h3>
                 <p className="text-on-surface-variant dark:text-surface-variant font-body-md mb-8 line-clamp-2">
                   Funksiyalar, hosila, integral va ularning tatbiqlari. OTM ga tayyorlanuvchilar uchun maxsus intensiv kurs.
                 </p>
-                <div className="mt-auto pt-6 border-t border-outline-variant/20 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <img src="https://ui-avatars.com/api/?name=Malika+Azizova&background=e0e3e5&color=191c1e" alt="Instructor" className="w-10 h-10 rounded-full border-2 border-surface" />
-                    <div>
-                      <div className="text-label-sm font-bold text-on-surface dark:text-inverse-on-surface">Malika Azizova</div>
-                      <div className="text-[11px] text-on-surface-variant dark:text-surface-variant">PhD, Professor</div>
-                    </div>
-                  </div>
+                <div className="mt-auto pt-6 flex items-center justify-end">
                   <button className="w-12 h-12 rounded-full bg-tertiary-container/20 text-tertiary flex items-center justify-center group-hover:bg-tertiary group-hover:text-on-tertiary transition-all duration-300">
                     <span className="material-symbols-outlined transform group-hover:rotate-45 transition-transform">arrow_outward</span>
                   </button>
@@ -311,23 +287,11 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
                 </div>
               </div>
               <div className="p-8 flex-grow flex flex-col">
-                <div className="flex items-center gap-4 text-label-sm text-on-surface-variant dark:text-surface-variant mb-4">
-                  <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px] text-tertiary">play_circle</span> 85 dars</span>
-                  <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px] text-tertiary">schedule</span> 45 soat</span>
-                  <span className="flex items-center gap-1 text-primary"><span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span> 5.0</span>
-                </div>
-                <h3 className="font-headline-md text-2xl mb-3 text-on-surface dark:text-inverse-on-surface group-hover:text-secondary transition-colors">Oliy Matematika</h3>
+                <h3 className="font-headline-md text-2xl mb-3 text-on-surface dark:text-inverse-on-surface group-hover:text-secondary transition-colors">Attestatsiya</h3>
                 <p className="text-on-surface-variant dark:text-surface-variant font-body-md mb-8 line-clamp-2">
                   Chiziqli algebra, analitik geometriya va differensial tenglamalar. Talabalar va mutaxassislar uchun chuqurlashtirilgan dastur.
                 </p>
-                <div className="mt-auto pt-6 border-t border-outline-variant/20 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <img src="https://ui-avatars.com/api/?name=Rustam+Umarov&background=e0e3e5&color=191c1e" alt="Instructor" className="w-10 h-10 rounded-full border-2 border-surface" />
-                    <div>
-                      <div className="text-label-sm font-bold text-on-surface dark:text-inverse-on-surface">Rustam Umarov</div>
-                      <div className="text-[11px] text-on-surface-variant dark:text-surface-variant">Xalqaro ekspert</div>
-                    </div>
-                  </div>
+                <div className="mt-auto pt-6 flex items-center justify-end">
                   <button className="w-12 h-12 rounded-full bg-secondary-container/20 text-secondary flex items-center justify-center group-hover:bg-secondary group-hover:text-on-secondary transition-all duration-300">
                     <span className="material-symbols-outlined transform group-hover:rotate-45 transition-transform">arrow_outward</span>
                   </button>
@@ -658,122 +622,36 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
           </div>
           
           {/* Bento Contact Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-             {/* Contact Info Column (Bento Left) */}
-            <div className="lg:col-span-4 flex flex-col gap-8">
-              {/* Contact Card */}
-              <div className="glass-effect p-8 rounded-xl flex flex-col gap-6 shadow-sm border border-outline-variant/30">
-                <h3 className="font-headline-md text-headline-md text-primary dark:text-primary-fixed-dim">Aloqa ma'lumotlari</h3>
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-primary-container/10 flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-primary dark:text-primary-fixed-dim">location_on</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+              <div className="glass-effect p-8 rounded-xl flex flex-col items-center text-center gap-4 shadow-sm border border-outline-variant/30 hover:border-primary/50 transition-colors">
+                  <div className="w-16 h-16 rounded-full bg-primary-container/20 flex items-center justify-center flex-shrink-0 mb-2">
+                    <span className="material-symbols-outlined text-primary dark:text-primary-fixed-dim text-3xl">location_on</span>
                   </div>
                   <div>
-                    <p className="font-label-md text-label-md text-on-surface dark:text-inverse-on-surface">Manzil</p>
-                    <p className="font-body-md text-body-md text-secondary dark:text-secondary-fixed">Toshkent shahri, Yunusobod tumani, Amir Temur ko'chasi 108-uy</p>
+                    <p className="font-label-lg text-label-lg text-on-surface dark:text-inverse-on-surface mb-2">Manzil</p>
+                    <p className="font-body-md text-body-md text-secondary dark:text-secondary-fixed">Surxondaryo viloyati, Sho'rchi tumani, Cambridge School o'quv markazi</p>
                   </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-primary-container/10 flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-primary dark:text-primary-fixed-dim">call</span>
-                  </div>
-                  <div>
-                    <p className="font-label-md text-label-md text-on-surface dark:text-inverse-on-surface">Telefon</p>
-                    <a className="font-body-md text-body-md text-secondary dark:text-secondary-fixed hover:text-primary dark:hover:text-primary-fixed-dim transition-colors" href="tel:+998711234567">+998 71 123-45-67</a>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-lg bg-primary-container/10 flex items-center justify-center flex-shrink-0">
-                    <span className="material-symbols-outlined text-primary dark:text-primary-fixed-dim">mail</span>
-                  </div>
-                  <div>
-                    <p className="font-label-md text-label-md text-on-surface dark:text-inverse-on-surface">Email</p>
-                    <a className="font-body-md text-body-md text-secondary dark:text-secondary-fixed hover:text-primary dark:hover:text-primary-fixed-dim transition-colors" href="mailto:info@almath.uz">info@almath.uz</a>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Social Media Card */}
-              <div className="glass-effect p-8 rounded-xl shadow-sm border border-outline-variant/30">
-                <h3 className="font-label-md text-label-md text-primary dark:text-primary-fixed-dim mb-6">Ijtimoiy tarmoqlarimiz</h3>
-                <div className="flex gap-4">
-                  <a className="w-12 h-12 rounded-full bg-surface-container dark:bg-surface-container-highest flex items-center justify-center hover:bg-primary dark:hover:bg-primary-fixed-dim hover:text-on-primary dark:hover:text-on-primary-fixed transition-all duration-300" href="#">
-                    <span className="material-symbols-outlined text-on-surface dark:text-inverse-on-surface group-hover:text-inherit">alternate_email</span>
-                  </a>
-                  <a className="w-12 h-12 rounded-full bg-surface-container dark:bg-surface-container-highest flex items-center justify-center hover:bg-primary dark:hover:bg-primary-fixed-dim hover:text-on-primary dark:hover:text-on-primary-fixed transition-all duration-300" href="#">
-                    <span className="material-symbols-outlined text-on-surface dark:text-inverse-on-surface group-hover:text-inherit">send</span>
-                  </a>
-                  <a className="w-12 h-12 rounded-full bg-surface-container dark:bg-surface-container-highest flex items-center justify-center hover:bg-primary dark:hover:bg-primary-fixed-dim hover:text-on-primary dark:hover:text-on-primary-fixed transition-all duration-300" href="#">
-                    <span className="material-symbols-outlined text-on-surface dark:text-inverse-on-surface group-hover:text-inherit">public</span>
-                  </a>
-                </div>
               </div>
 
-              {/* Operating Hours */}
-              <div className="glass-effect p-8 rounded-xl shadow-sm border border-outline-variant/30 flex-grow">
-                <h3 className="font-label-md text-label-md text-primary dark:text-primary-fixed-dim mb-4">Ish vaqti</h3>
-                <ul className="space-y-3">
-                  <li className="flex justify-between font-body-md">
-                    <span className="text-secondary dark:text-secondary-fixed">Dushanba - Juma</span>
-                    <span className="text-on-surface dark:text-inverse-on-surface font-semibold">09:00 - 18:00</span>
-                  </li>
-                  <li className="flex justify-between font-body-md">
-                    <span className="text-secondary dark:text-secondary-fixed">Shanba</span>
-                    <span className="text-on-surface dark:text-inverse-on-surface font-semibold">10:00 - 15:00</span>
-                  </li>
-                  <li className="flex justify-between font-body-md">
-                    <span className="text-secondary dark:text-secondary-fixed">Yakshanba</span>
-                    <span className="text-error font-semibold">Yopiq</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-            
-            {/* Contact Form (Bento Center-Right) */}
-            <div className="lg:col-span-8 glass-effect p-8 md:p-12 rounded-xl shadow-sm border border-outline-variant/30 relative overflow-hidden flex flex-col justify-center">
-              <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary-container/5 rounded-full blur-3xl pointer-events-none"></div>
-              <h3 className="font-headline-md text-headline-md text-on-background dark:text-inverse-on-surface mb-8 relative z-10">Bizga xabar qoldiring</h3>
-              
-              <form className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10" onSubmit={(e) => {
-                e.preventDefault();
-                setIsContactFormSubmitted(true);
-              }}>
-                <div className="flex flex-col gap-2">
-                  <label className="font-label-md text-label-md text-on-surface-variant dark:text-surface-variant" htmlFor="name">Ismingiz</label>
-                  <input className="w-full bg-surface-container-lowest/50 dark:bg-surface-container-highest/50 border border-outline-variant rounded-lg p-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-outline-variant text-on-surface dark:text-inverse-on-surface" id="name" placeholder="Ismingizni kiriting" required type="text" />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="font-label-md text-label-md text-on-surface-variant dark:text-surface-variant" htmlFor="email">Email manzilingiz</label>
-                  <input className="w-full bg-surface-container-lowest/50 dark:bg-surface-container-highest/50 border border-outline-variant rounded-lg p-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-outline-variant text-on-surface dark:text-inverse-on-surface" id="email" placeholder="example@mail.com" required type="email" />
-                </div>
-                <div className="flex flex-col gap-2 md:col-span-2">
-                  <label className="font-label-md text-label-md text-on-surface-variant dark:text-surface-variant" htmlFor="subject">Mavzu</label>
-                  <input className="w-full bg-surface-container-lowest/50 dark:bg-surface-container-highest/50 border border-outline-variant rounded-lg p-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-outline-variant text-on-surface dark:text-inverse-on-surface" id="subject" placeholder="Qanday masala bo'yicha bog'lanyapsiz?" required type="text" />
-                </div>
-                <div className="flex flex-col gap-2 md:col-span-2">
-                  <label className="font-label-md text-label-md text-on-surface-variant dark:text-surface-variant" htmlFor="message">Xabar matni</label>
-                  <textarea className="w-full bg-surface-container-lowest/50 dark:bg-surface-container-highest/50 border border-outline-variant rounded-lg p-3 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all placeholder:text-outline-variant text-on-surface dark:text-inverse-on-surface" id="message" placeholder="Xabaringizni bu yerga yozing..." required rows={5}></textarea>
-                </div>
-                <div className="md:col-span-2 mt-4">
-                  <button className="w-full md:w-auto bg-primary text-on-primary px-10 py-4 rounded-lg font-label-md flex items-center justify-center gap-2 hover:bg-primary/90 hover:shadow-xl active:scale-[0.98] transition-all duration-200" type="submit" disabled={isContactFormSubmitted}>
-                    Xabarni yuborish
-                    <span className="material-symbols-outlined">send</span>
-                  </button>
-                </div>
-              </form>
-
-              {/* Success Message */}
-              {isContactFormSubmitted && (
-                <div className="absolute inset-0 bg-surface/95 dark:bg-inverse-surface/95 backdrop-blur flex flex-col items-center justify-center text-center p-8 z-20 animate-fade-in">
-                  <div className="w-20 h-20 bg-primary-container/20 text-primary rounded-full flex items-center justify-center mb-6">
-                    <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'wght' 600" }}>check_circle</span>
+              <div className="glass-effect p-8 rounded-xl flex flex-col items-center text-center gap-4 shadow-sm border border-outline-variant/30 hover:border-primary/50 transition-colors">
+                  <div className="w-16 h-16 rounded-full bg-primary-container/20 flex items-center justify-center flex-shrink-0 mb-2">
+                    <span className="material-symbols-outlined text-primary dark:text-primary-fixed-dim text-3xl">call</span>
                   </div>
-                  <h4 className="font-headline-md text-headline-md text-on-background dark:text-inverse-on-surface mb-2">Rahmat!</h4>
-                  <p className="font-body-md text-body-md text-secondary dark:text-secondary-fixed">Xabaringiz muvaffaqiyatli yuborildi. Tez orada siz bilan bog'lanamiz.</p>
-                  <button className="mt-8 text-primary dark:text-primary-fixed-dim font-label-md hover:underline" onClick={() => setIsContactFormSubmitted(false)}>Yangi xabar yuborish</button>
-                </div>
-              )}
-            </div>
+                  <div>
+                    <p className="font-label-lg text-label-lg text-on-surface dark:text-inverse-on-surface mb-2">Telefon</p>
+                    <a className="font-body-md text-body-md text-secondary dark:text-secondary-fixed hover:text-primary dark:hover:text-primary-fixed-dim transition-colors block" href="tel:+998711234567">+998 71 123-45-67</a>
+                  </div>
+              </div>
+
+              <div className="glass-effect p-8 rounded-xl flex flex-col items-center text-center gap-4 shadow-sm border border-outline-variant/30 hover:border-primary/50 transition-colors">
+                  <div className="w-16 h-16 rounded-full bg-primary-container/20 flex items-center justify-center flex-shrink-0 mb-2">
+                    <span className="material-symbols-outlined text-primary dark:text-primary-fixed-dim text-3xl">send</span>
+                  </div>
+                  <div>
+                    <p className="font-label-lg text-label-lg text-on-surface dark:text-inverse-on-surface mb-2">Telegram</p>
+                    <a className="font-body-md text-body-md text-secondary dark:text-secondary-fixed hover:text-primary dark:hover:text-primary-fixed-dim transition-colors block" href="https://t.me/almath_uz">@almath_uz</a>
+                  </div>
+              </div>
           </div>
         </div>
       </section>

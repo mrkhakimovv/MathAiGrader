@@ -1,3 +1,7 @@
+import Markdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import 'katex/dist/katex.min.css';
 import React, { useState } from 'react';
 import { Users, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, ExternalLink, Search, Calendar, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { GradingResult } from '../types';
@@ -501,15 +505,15 @@ export function CreateTaskView({ onCreateTask, groups, isSubmitting = false, upl
                       <div className="font-semibold text-slate-900 dark:text-white mb-2">
                         {sol.problemNumber}-savol
                       </div>
-                      <div className="text-sm text-slate-700 dark:text-slate-300 mb-2 whitespace-pre-wrap">
-                        {sol.problemText}
+                      <div className="text-sm text-slate-700 dark:text-slate-300 mb-2 markdown-body">
+                        <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.problemText}</Markdown>
                       </div>
                       <div className="text-sm font-medium text-emerald-600 dark:text-emerald-400 mb-1">Yechim:</div>
-                      <div className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap mb-2">
-                        {sol.solutionSteps}
+                      <div className="text-sm text-slate-600 dark:text-slate-400 mb-2 markdown-body">
+                        <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.solutionSteps}</Markdown>
                       </div>
-                      <div className="text-sm font-bold text-slate-900 dark:text-white">
-                        Javob: {sol.finalAnswer}
+                      <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                        Javob: <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.finalAnswer}</Markdown>
                       </div>
                     </div>
                   ))}
@@ -538,6 +542,7 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
   const [groupToDelete, setGroupToDelete] = useState<{ index: number, name: string } | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'students' | 'tasks' | 'all-students'>('students');
+  const [selectedTaskAnalysis, setSelectedTaskAnalysis] = useState<any>(null);
 
   const handleDelete = (e: React.MouseEvent, index: number, groupName: string) => {
     e.stopPropagation();
@@ -843,13 +848,22 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
 
                 {activeTab === 'tasks' && (
                   (() => {
-                    const groupTasks = tasks.filter(t => t.group === selectedGroup?.name || !t.group || t.group === 'Barcha guruhlar' || t.group === '');
+                    const groupTasks = tasks.filter(t => t.group === selectedGroup?.name || !t.group || t.group === 'Barcha guruhlar' || t.group === '').sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
                     return groupTasks.length > 0 ? (
                       <div className="space-y-3">
+                        <div className="flex justify-between items-center px-1 mb-2">
+                          <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Jami vazifalar: {groupTasks.length} ta</span>
+                          <span className="text-xs text-slate-500 dark:text-slate-500">Eng yangilari birinchi tartibda</span>
+                        </div>
                         {groupTasks.map((task, idx) => (
                           <div 
                             key={task.id || idx}
-                            className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 hover:border-indigo-300 dark:hover:border-indigo-500/50 transition-colors"
+                            onClick={() => {
+                              if (task.teacherAnalysis) {
+                                setSelectedTaskAnalysis(task);
+                              }
+                            }}
+                            className={`flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 hover:border-indigo-300 dark:hover:border-indigo-500/50 transition-colors ${task.teacherAnalysis ? 'cursor-pointer' : ''}`}
                           >
                             <div className="flex items-center gap-4">
                               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
@@ -866,7 +880,7 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                             </div>
                             <div className="text-right flex items-center gap-3">
                               <span className="inline-flex items-center rounded-md bg-indigo-50 dark:bg-indigo-400/10 px-2 py-1 text-xs font-medium text-indigo-700 dark:text-indigo-400 ring-1 ring-inset ring-indigo-700/10 dark:ring-indigo-400/30">
-                                {task.examples?.length || 0} ta misol
+                                {task.teacherAnalysis?.questionCount || 0} ta savol
                               </span>
                               {onDeleteTask && (
                                 <button
@@ -930,6 +944,61 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
           </div>
         </div>
       )}
-    </div>
+    
+      {selectedTaskAnalysis && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="w-full max-w-3xl bg-white dark:bg-slate-900 rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                {selectedTaskAnalysis.title} - Tahlil
+              </h3>
+              <button 
+                onClick={() => setSelectedTaskAnalysis(null)}
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto">
+                <div className="mb-4 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-900/20">
+                  <p className="text-sm text-indigo-800 dark:text-indigo-300">
+                    <span className="font-semibold">Jami savollar soni:</span> {selectedTaskAnalysis.teacherAnalysis?.questionCount || 0} ta
+                  </p>
+                  <p className="text-sm text-indigo-700 dark:text-indigo-400 mt-1">
+                    Ushbu tahlil avtomatik tekshiruv uchun asos bo'lib xizmat qiladi. O'quvchilar javoblari ushbu yechimlar asosida baholanadi.
+                  </p>
+                </div>
+                <div className="space-y-4">
+                  {selectedTaskAnalysis.teacherAnalysis?.solutions?.map((sol: any, idx: number) => (
+                    <div key={idx} className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700">
+                      <div className="font-semibold text-slate-900 dark:text-white mb-2">
+                        {sol.problemNumber}-savol
+                      </div>
+                      <div className="text-sm text-slate-700 dark:text-slate-300 mb-2 markdown-body">
+                        <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.problemText}</Markdown>
+                      </div>
+                      <div className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-1">Yechim:</div>
+                      <div className="text-sm text-slate-600 dark:text-slate-400 mb-2 markdown-body">
+                        <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.solutionSteps}</Markdown>
+                      </div>
+                      <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                        Javob: <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.finalAnswer}</Markdown>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+            </div>
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+              <button
+                onClick={() => setSelectedTaskAnalysis(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg font-medium transition-colors"
+              >
+                Yopish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+</div>
   );
 }
