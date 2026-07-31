@@ -84,7 +84,7 @@ export async function evaluateHomework(images: { imageBase64: string, mimeType: 
 CRITICAL RULES:
 1. Compare the questions answered by the student with the problems in the reference material. If the student submitted completely different problems that are NOT part of the teacher's assignment, you MUST score it 0 and set the feedback exactly to: "Bu misollar uyga vazifada mavjud emas." Stop further grading if they are completely unrelated.
 2. Compare the number of questions answered by the student with the 'questionCount' in the reference. If the student missed any questions, state clearly in the 'feedback' that they did not answer all questions (mentioning how many they answered vs how many were expected) and reduce the score accordingly.
-3. If the student answered any question incorrectly, you MUST include the true correct solution (haqiqiy yechim) for that specific question in your 'feedback' field, directly taken from the reference material.\n`;
+3. If the student answered any question incorrectly, you MUST provide a detailed explanation of their mistake and the complete correct step-by-step solution (haqiqiy yechim) directly taken from the reference material. Place this detailed breakdown inside the 'errorSteps' array for each wrong question.\n`;
   }
 
   promptString += `Please analyze the provided file(s) or image(s) of the student's work. Follow these steps:
@@ -157,7 +157,7 @@ Output the result in JSON format matching the schema.`;
                 items: {
                   type: Type.STRING,
                 },
-                description: "A list of specific steps where the student made an error, if any.",
+                description: "A list of specific errors the student made. For each error, clearly state the problem number, explain the mistake, and provide the complete correct step-by-step solution based on the teacher's reference. Use Markdown and LaTeX.",
               },
             },
             required: ["transcription", "isCorrect", "isPartiallyCorrect", "score", "feedback", "errorSteps"],
