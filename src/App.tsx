@@ -18,6 +18,7 @@ import { doc, deleteDoc, getDocs, query, where, collection } from "firebase/fire
 import { db, storage } from "./lib/firebase";
 import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
+import { DashboardStats } from "./components/DashboardStats";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 
 function MainApp() {
@@ -348,7 +349,11 @@ function MainApp() {
             </button>
           </div>
 
-        {((activeView === 'home' && role !== 'student') || activeView === 'grade-task') && (
+        {activeView === 'home' && role !== 'student' && (
+          <DashboardStats groupDetails={teacherGroupDetails} students={teacherStudents} tasks={teacherTasks} />
+        )}
+
+        {activeView === 'grade-task' && (
           <>
             {/* Header */}
             <header className="mb-6 md:mb-10 text-center">
@@ -356,10 +361,10 @@ function MainApp() {
                 <img src="/logo.png" alt="ALMATH Logo" className="h-full w-full rounded-full object-cover" />
               </div>
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white lg:text-4xl">
-                {selectedTaskForGrading ? "Vazifani topshirish" : "ALMATH"}
+                Vazifani topshirish
               </h1>
               <p className="mt-2 md:mt-3 text-sm md:text-lg text-slate-600 dark:text-slate-400">
-                {selectedTaskForGrading ? `Siz hozir ushbu vazifani bajaryapsiz: ${selectedTaskForGrading.title}` : "O'quvchilar uy vazifalarini avtomatik tekshirish tizimi."}
+                Siz hozir ushbu vazifani bajaryapsiz: {selectedTaskForGrading?.title}
               </p>
             </header>
 
@@ -369,7 +374,7 @@ function MainApp() {
                   <form onSubmit={handleSubmit} className="flex flex-col gap-6">
                     <div>
                       <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        {selectedTaskForGrading ? "Yechim faylini yuklang" : "Student Homework Image"}
+                        Yechim faylini yuklang
                       </label>
                       <Uploader
                         selectedFiles={selectedFiles}
@@ -395,21 +400,20 @@ function MainApp() {
                           Tekshirilmoqda...
                         </>
                       ) : (
-                        selectedTaskForGrading ? "Vazifani yuborish" : "Grade Homework"
+                        "Vazifani yuborish"
                       )}
                     </button>
-                    {selectedTaskForGrading && (
-                       <button
-                         type="button"
-                         onClick={() => {
-                           setSelectedTaskForGrading(null);
-                           setActiveView('student-tasks');
-                         }}
-                         className="mt-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-                       >
-                         Boshqa vazifa tanlash
-                       </button>
-                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedTaskForGrading(null);
+                        setActiveView('student-tasks');
+                      }}
+                      className="mt-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                    >
+                      Boshqa vazifa tanlash
+                    </button>
                   </form>
                 </div>
               ) : (
