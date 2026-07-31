@@ -570,6 +570,7 @@ function MainApp() {
         {activeView === 'student-tasks' && (
           <StudentTasksView 
             tasks={tasks} 
+            history={userHistory}
             studentInfo={students.find(s => s.username === currentUser)} 
             onSolveTask={(task) => {
               setSelectedTaskForGrading(task);

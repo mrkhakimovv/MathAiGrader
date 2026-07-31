@@ -1,17 +1,24 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { BookOpen, Calendar, Clock, BarChart2 } from 'lucide-react';
+import Markdown from "react-markdown";
+import remarkMath from "remark-math";
+import remarkBreaks from "remark-breaks";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 import { GradingResult } from '../types';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 interface StudentTasksViewProps {
   tasks: any[];
+  history?: GradingResult[];
   studentInfo?: any;
   onSolveTask?: (task: any) => void;
 }
 
-export function StudentTasksView({ tasks, studentInfo, onSolveTask }: StudentTasksViewProps) {
+export function StudentTasksView({ tasks, history = [], studentInfo, onSolveTask }: StudentTasksViewProps) {
   const [now, setNow] = useState(new Date());
   const [selectedGroup, setSelectedGroup] = useState<string>('Barcha vazifalar');
+  const [expandedFeedbackTaskId, setExpandedFeedbackTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 60000); // update every minute
@@ -116,12 +123,23 @@ export function StudentTasksView({ tasks, studentInfo, onSolveTask }: StudentTas
         <div className="space-y-4">
           {sortedTasks.map(task => {
             const expired = isExpired(task.endDate);
+            const taskHistory = history
+              .filter(h => h.taskId === task.id)
+              .sort((a, b) => new Date(b.createdAt?.toDate ? b.createdAt.toDate() : (b.createdAt || 0)).getTime() - new Date(a.createdAt?.toDate ? a.createdAt.toDate() : (a.createdAt || 0)).getTime());
+            const latestResult = taskHistory.length > 0 ? taskHistory[0] : null;
+            const isExpanded = expandedFeedbackTaskId === task.id;
+
             return (
               <div key={task.id} className={`rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm transition-all hover:shadow-md ${expired ? 'opacity-75' : ''}`}>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">{task.title}</h3>
                     <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{task.group ? `${task.group} guruhi uchun` : 'Barcha guruhlar uchun'}</p>
+                    {latestResult && (
+                      <p className="mt-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                        Baholangan: {latestResult.score} / 100 ball
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     {task.endDate && (
@@ -138,7 +156,56 @@ export function StudentTasksView({ tasks, studentInfo, onSolveTask }: StudentTas
                     )}
                   </div>
                 </div>
-                <div className="mt-6 flex justify-end">
+
+                {isExpanded && latestResult && (
+                  <div className="mt-6 flex flex-col gap-6 p-6 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 animate-in slide-in-from-top-2 duration-300">
+                    <div>
+                      <h4 className="font-semibold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wider text-xs">O'qilgan yechim</h4>
+                      <div className="markdown-body font-mono text-sm overflow-x-auto bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <Markdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>
+                          {latestResult.transcription || "Kiritilmagan"}
+                        </Markdown>
+                      </div>
+                    </div>
+                    
+                    {latestResult.errorSteps && latestResult.errorSteps.length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-rose-500 dark:text-rose-400 mb-3 uppercase tracking-wider text-xs">Xatolar va kamchiliklar</h4>
+                        <ul className="flex flex-col gap-2">
+                          {latestResult.errorSteps.map((step: string, index: number) => (
+                            <li key={index} className="flex items-start gap-3 rounded-lg bg-rose-50 dark:bg-rose-900/20 px-4 py-3 text-sm text-rose-800 dark:text-rose-300 border border-rose-100 dark:border-rose-800/30">
+                              <span className="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                              <div className="markdown-body flex-1 overflow-x-auto">
+                                <Markdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>
+                                  {step}
+                                </Markdown>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    <div>
+                      <h4 className="font-semibold text-indigo-500 dark:text-indigo-400 mb-3 uppercase tracking-wider text-xs">Tahlil va Xulosa</h4>
+                      <div className="markdown-body text-sm text-slate-700 dark:text-slate-200 overflow-x-auto bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <Markdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>
+                          {latestResult.feedback || "Kiritilmagan"}
+                        </Markdown>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-6 flex justify-end gap-3">
+                   {latestResult && (
+                     <button
+                       onClick={() => setExpandedFeedbackTaskId(isExpanded ? null : task.id)}
+                       className="flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm"
+                     >
+                       {isExpanded ? 'Xulosani yashirish' : 'Xulosani ko\'rish'}
+                     </button>
+                   )}
                    <button 
                      disabled={expired}
                      onClick={() => !expired && onSolveTask && onSolveTask(task)}

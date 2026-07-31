@@ -16,8 +16,8 @@ export default defineConfig(() => {
           maximumFileSizeToCacheInBytes: 5 * 1024 * 1024 // 5MB
         },
         manifest: {
-          name: 'Math AI Grader',
-          short_name: 'MathGrader',
+          name: 'ALMATH',
+          short_name: 'ALMATH',
           description: 'Matematika vazifalarini AI orqali tekshirish',
           theme_color: '#ffffff',
           icons: [
