@@ -362,7 +362,7 @@ function MainApp() {
             {/* Header */}
             <header className="mb-6 md:mb-10 text-center">
               <div className="mx-auto mb-3 md:mb-4 flex h-16 w-16 justify-center">
-                <img src="/logo.png" alt="ALMATH Logo" className="h-full w-full rounded-full object-cover" />
+                <img src="/logo.png" alt="ALMATH Logo" className="h-full w-full rounded-2xl object-cover" />
               </div>
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white lg:text-4xl">
                 Vazifani topshirish
