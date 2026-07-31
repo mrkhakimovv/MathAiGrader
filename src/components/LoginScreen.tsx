@@ -53,7 +53,7 @@ export function LoginScreen({ onLogin, isDarkMode, toggleDarkMode, onBack }: Log
       <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 p-8 sm:p-10 animate-in fade-in zoom-in-95 duration-500">
         <div className="text-center mb-8">
           <div className="mx-auto flex h-20 w-20 justify-center mb-5">
-            <img src="/logo.png" alt="ALMATH Logo" className="h-full w-full rounded-full object-cover" />
+            <img src="/logo.png" alt="ALMATH Logo" className="h-full w-full rounded-2xl object-cover" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Welcome Back</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2">Sign in to your ALMATH account</p>

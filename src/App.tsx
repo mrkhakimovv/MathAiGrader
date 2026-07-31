@@ -74,6 +74,10 @@ function MainApp() {
         console.error("Error parsing stored user:", e);
       }
     }
+      }, []);
+
+  useEffect(() => {
+    if (!currentUser) return; // Only fetch data if logged in
     const unsubscribeHistory = subscribeToHistory((newHistory) => {
       setHistory(newHistory);
     });
@@ -97,7 +101,7 @@ function MainApp() {
       unsubscribeTasks();
       unsubscribeTeachers();
     };
-  }, []);
+  }, [currentUser]);
 
   const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
@@ -126,16 +130,16 @@ function MainApp() {
       return true;
     }
     
-    const teacher = teachers.find(t => t.username === username);
-    if (teacher) {
-      if (teacher.password === pass) {
+        try {
+      const qTeacher = query(collection(db, "teachers"), where("username", "==", username), where("password", "==", pass));
+      const snapshotTeacher = await getDocs(qTeacher);
+      if (!snapshotTeacher.empty) {
         setCurrentUser(username);
         setRole('teacher');
         localStorage.setItem("almath_user", JSON.stringify({ username, role: 'teacher' }));
         return true;
       }
-      return false;
-    }
+    } catch(e) { console.error(e); }
 
     // Check if it's a student
     try {

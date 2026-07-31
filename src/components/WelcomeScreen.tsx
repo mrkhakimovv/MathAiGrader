@@ -56,7 +56,7 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
       <header ref={headerRef} className="bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-xl border-b border-outline-variant/30 dark:border-outline/20 sticky top-0 z-50 shadow-sm dark:shadow-none">
         <nav className="flex justify-between items-center w-full px-6 py-4 max-w-container-max mx-auto relative">
           <div className="flex items-center gap-stack-md">
-            <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-lg overflow-hidden">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-lg overflow-hidden">
               <img src="/logo.png" alt="Almath logo" className="w-full h-full object-cover" />
             </div>
             <span className="text-headline-md font-headline-md font-extrabold text-on-surface dark:text-inverse-on-surface">Almath</span>
@@ -333,7 +333,7 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
           >
             <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-primary/5 group-hover:scale-150 transition-transform duration-700 ease-in-out"></div>
             <div className="relative z-10 flex flex-col h-full">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary dark:text-primary-fixed-dim mb-6 group-hover:bg-primary group-hover:text-on-primary transition-colors duration-300 shadow-sm">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary dark:text-primary-fixed-dim mb-6 group-hover:bg-primary group-hover:text-on-primary transition-colors duration-300 shadow-sm">
                 <span className="material-symbols-outlined text-3xl">workspace_premium</span>
               </div>
               <h3 className="font-headline-md text-2xl text-on-surface dark:text-inverse-on-surface mb-3 group-hover:text-primary transition-colors">Milliy Sertifikat</h3>
@@ -361,7 +361,7 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
           >
             <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-tertiary/5 group-hover:scale-150 transition-transform duration-700 ease-in-out"></div>
             <div className="relative z-10 flex flex-col h-full">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-tertiary/10 text-tertiary dark:text-tertiary-fixed-dim mb-6 group-hover:bg-tertiary group-hover:text-on-tertiary transition-colors duration-300 shadow-sm">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-tertiary/10 text-tertiary dark:text-tertiary-fixed-dim mb-6 group-hover:bg-tertiary group-hover:text-on-tertiary transition-colors duration-300 shadow-sm">
                 <span className="material-symbols-outlined text-3xl">school</span>
               </div>
               <h3 className="font-headline-md text-2xl text-on-surface dark:text-inverse-on-surface mb-3 group-hover:text-tertiary transition-colors">Attestatsiya</h3>
@@ -389,7 +389,7 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
           >
             <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-secondary/5 group-hover:scale-150 transition-transform duration-700 ease-in-out"></div>
             <div className="relative z-10 flex flex-col h-full">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/10 text-secondary dark:text-secondary-fixed-dim mb-6 group-hover:bg-secondary group-hover:text-on-secondary transition-colors duration-300 shadow-sm">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-secondary/10 text-secondary dark:text-secondary-fixed-dim mb-6 group-hover:bg-secondary group-hover:text-on-secondary transition-colors duration-300 shadow-sm">
                 <span className="material-symbols-outlined text-3xl">public</span>
               </div>
               <h3 className="font-headline-md text-2xl text-on-surface dark:text-inverse-on-surface mb-3 group-hover:text-secondary transition-colors">SAT</h3>
@@ -417,7 +417,7 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
           >
             <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-primary/5 group-hover:scale-150 transition-transform duration-700 ease-in-out"></div>
             <div className="relative z-10 flex flex-col h-full">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary dark:text-primary-fixed-dim mb-6 group-hover:bg-primary group-hover:text-on-primary transition-colors duration-300 shadow-sm">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary dark:text-primary-fixed-dim mb-6 group-hover:bg-primary group-hover:text-on-primary transition-colors duration-300 shadow-sm">
                 <span className="material-symbols-outlined text-3xl">calculate</span>
               </div>
               <h3 className="font-headline-md text-2xl text-on-surface dark:text-inverse-on-surface mb-3 group-hover:text-primary transition-colors">DTM</h3>
@@ -480,7 +480,7 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
                 className="group relative bg-surface-container-lowest dark:bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/30 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 overflow-hidden"
               >
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-tertiary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                <div className="w-16 h-16 bg-primary-container/30 dark:bg-primary-container/10 flex items-center justify-center rounded-2xl mb-8 group-hover:scale-110 transition-transform duration-500 group-hover:bg-primary/20">
+                <div className="w-16 h-16 bg-primary-container/30 dark:bg-primary-container/10 flex items-center justify-center rounded-full mb-8 group-hover:scale-110 transition-transform duration-500 group-hover:bg-primary/20">
                   <span className="material-symbols-outlined text-primary dark:text-primary-fixed-dim text-4xl">lightbulb</span>
                 </div>
                 <h3 className="font-headline-md text-2xl mb-4 text-on-surface dark:text-inverse-on-surface group-hover:text-primary transition-colors">Innovatsiya</h3>
@@ -498,7 +498,7 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
                 className="group relative bg-surface-container-lowest dark:bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/30 hover:border-tertiary/40 hover:shadow-xl hover:shadow-tertiary/5 transition-all duration-500 overflow-hidden"
               >
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-tertiary to-secondary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                <div className="w-16 h-16 bg-tertiary-container/30 dark:bg-tertiary-container/10 flex items-center justify-center rounded-2xl mb-8 group-hover:scale-110 transition-transform duration-500 group-hover:bg-tertiary/20">
+                <div className="w-16 h-16 bg-tertiary-container/30 dark:bg-tertiary-container/10 flex items-center justify-center rounded-full mb-8 group-hover:scale-110 transition-transform duration-500 group-hover:bg-tertiary/20">
                   <span className="material-symbols-outlined text-tertiary dark:text-tertiary-fixed-dim text-4xl">verified</span>
                 </div>
                 <h3 className="font-headline-md text-2xl mb-4 text-on-surface dark:text-inverse-on-surface group-hover:text-tertiary transition-colors">Sifat</h3>
@@ -516,7 +516,7 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
                 className="group relative bg-surface-container-lowest dark:bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/30 hover:border-secondary/40 hover:shadow-xl hover:shadow-secondary/5 transition-all duration-500 overflow-hidden"
               >
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-secondary to-primary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
-                <div className="w-16 h-16 bg-secondary-container/30 dark:bg-secondary-container/10 flex items-center justify-center rounded-2xl mb-8 group-hover:scale-110 transition-transform duration-500 group-hover:bg-secondary/20">
+                <div className="w-16 h-16 bg-secondary-container/30 dark:bg-secondary-container/10 flex items-center justify-center rounded-full mb-8 group-hover:scale-110 transition-transform duration-500 group-hover:bg-secondary/20">
                   <span className="material-symbols-outlined text-secondary dark:text-secondary-fixed-dim text-4xl">groups</span>
                 </div>
                 <h3 className="font-headline-md text-2xl mb-4 text-on-surface dark:text-inverse-on-surface group-hover:text-secondary transition-colors">Hamjamiyat</h3>
@@ -661,7 +661,7 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
         <div className="max-w-container-max mx-auto px-margin-mobile md:px-gutter flex flex-col md:flex-row justify-between items-center gap-stack-md">
           <div className="flex flex-col items-center md:items-start gap-4">
             <div className="flex items-center gap-stack-md">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary overflow-hidden">
+              <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center text-on-primary overflow-hidden">
                 <img src="/logo.png" alt="Almath logo" className="w-full h-full object-cover" />
               </div>
               <span className="text-headline-md font-headline-md text-on-surface dark:text-inverse-on-surface">Almath</span>
