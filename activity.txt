@@ -1,0 +1,51 @@
+              </div>
+              <div className="flex flex-col gap-4">
+                <div className="p-4 rounded-xl bg-surface-container-low dark:bg-surface-container-highest flex items-center gap-4 border border-outline-variant/10">
+                  <div className="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container">
+                    <span className="material-symbols-outlined">emoji_events</span>
+                  </div>
+                  <div>
+                    <h5 className="font-label-md text-on-surface dark:text-inverse-on-surface">Eng yaxshi natija</h5>
+                    <p className="text-label-sm text-on-surface-variant dark:text-surface-variant">Algebra - 100/100</p>
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl bg-surface-container-low dark:bg-surface-container-highest flex items-center gap-4 border border-outline-variant/10">
+                  <div className="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+                    <span className="material-symbols-outlined">avg_time</span>
+                  </div>
+                  <div>
+                    <h5 className="font-label-md text-on-surface dark:text-inverse-on-surface">O'rtacha vaqt</h5>
+                    <p className="text-label-sm text-on-surface-variant dark:text-surface-variant">24 daqiqa/test</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Background Decorative Gradient */}
+            <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-primary/5 blur-[100px] rounded-full"></div>
+          </div>
+        </section>
+      </section>
+
+      <section id="testlar" className="pt-24 pb-section-gap px-gutter max-w-container-max mx-auto bg-background dark:bg-inverse-surface border-t border-outline-variant/20">
+        <div className="text-center mb-16">
+          <h2 className="font-headline-md md:font-headline-lg text-headline-md md:text-headline-lg text-on-background dark:text-inverse-on-surface mb-4">Test turlari</h2>
+          <p className="font-body-lg text-body-lg text-on-surface-variant dark:text-surface-variant max-w-3xl mx-auto">Qaysi imtihonga tayyorlanayotgan bo'lsangiz — bizda siz uchun maxsus testlar bor</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+          {/* Milliy Sertifikat */}
+          <div className="bg-surface-container-low dark:bg-surface-container-highest border border-outline-variant/30 rounded-3xl p-8 hover:shadow-lg transition-shadow duration-300">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary dark:text-primary-fixed-dim mb-6">
+              <span className="material-symbols-outlined text-3xl">workspace_premium</span>
+            </div>
+            <h3 className="font-headline-md text-[24px] text-on-surface dark:text-inverse-on-surface mb-3">Milliy Sertifikat</h3>
+            <p className="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant leading-relaxed mb-8">
+              Milliy Sertifikat imtihoniga maxsus tayyorlangan test to'plamlari.
+            </p>
+            <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary-container/20 text-primary dark:text-primary-fixed-dim font-label-sm text-label-sm">
+              0 ta test
+            </div>
+          </div>
+
+          {/* Attestatsiya */}
+          <div className="bg-surface-container-low dark:bg-surface-container-highest border border-outline-variant/30 rounded-3xl p-8 hover:shadow-lg transition-shadow duration-300">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { motion } from 'motion/react';
 import { Calculator, Moon, Sun, ArrowRight, Star, Check, Trophy, Users, Search, BookOpen, GraduationCap, Award, Book, Youtube, Instagram, Send, ChevronLeft, ChevronRight, ChevronDown, Target, Zap, Shield, MessageCircle } from 'lucide-react';
 
 interface WelcomeScreenProps {
@@ -220,441 +221,400 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
           </div>
         </section>
         
-        {/* Stats Bar */}
-        <section className="max-w-container-max mx-auto px-margin-mobile md:px-gutter py-12 mb-section-gap">
-          <div className="glass-effect rounded-[32px] p-8 md:p-12 shadow-lg grid grid-cols-1 md:grid-cols-3 gap-8 items-center border border-white/40">
-            <div className="flex items-center gap-6 group">
-              <div className="w-16 h-16 rounded-2xl bg-primary-container/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <span className="material-symbols-outlined text-primary text-[32px]" style={{ fontVariationSettings: "'FILL' 1" }}>groups</span>
-              </div>
-              <div>
-                <div className="text-headline-md font-headline-md text-on-surface">50K+</div>
-                <div className="text-label-md font-label-md text-on-surface-variant">Faol foydalanuvchilar</div>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-6 group border-y md:border-y-0 md:border-x border-outline-variant/30 py-8 md:py-0 md:px-8">
-              <div className="w-16 h-16 rounded-2xl bg-tertiary-container/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <span className="material-symbols-outlined text-tertiary text-[32px]" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>
-              </div>
-              <div>
-                <div className="text-headline-md font-headline-md text-on-surface">35M+</div>
-                <div className="text-label-md font-label-md text-on-surface-variant">Tekshirilgan vazifalar</div>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-6 group md:pl-8">
-              <div className="w-16 h-16 rounded-2xl bg-secondary-container/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <span className="material-symbols-outlined text-on-secondary-container text-[32px]" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
-              </div>
-              <div>
-                <div className="text-headline-md font-headline-md text-on-surface">95%</div>
-                <div className="text-label-md font-label-md text-on-surface-variant">O'qituvchilar mamnuniyati</div>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
 
       {/* Sections for Navigation Links */}
       <section id="kurslar" className="pt-24 pb-section-gap px-gutter max-w-container-max mx-auto bg-surface dark:bg-inverse-surface">
-        {/* Hero & Progress Section */}
-        <header className="mb-section-gap">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-end">
-            <div className="lg:col-span-2">
-              <span className="text-primary font-label-md uppercase tracking-wider mb-2 block">Shaxsiy Panel</span>
-              <h1 className="font-headline-md md:font-headline-lg text-headline-md md:text-headline-lg mb-4 text-on-surface dark:text-inverse-on-surface">Matematika bilim darajang</h1>
-              <p className="font-body-lg text-body-lg text-on-surface-variant dark:text-surface-variant max-w-2xl">
-                Matematikaning turli yo'nalishlari bo'yicha test natijalaringizni kuzatib boring va o'z bilimingizni muntazam oshirib boring.
+        
+        {/* Animated Courses Section */}
+        <motion.section 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="mb-section-gap"
+        >
+          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+            <div className="max-w-2xl">
+              <span className="text-primary font-label-md uppercase tracking-wider mb-2 block">Mukammal ta'lim</span>
+              <h2 className="font-headline-md md:text-headline-lg text-headline-md md:text-headline-lg text-on-surface dark:text-inverse-on-surface mb-4">
+                Matematika Kurslari
+              </h2>
+              <p className="font-body-lg text-body-lg text-on-surface-variant dark:text-surface-variant">
+                Boshlang'ich darajadan to oliy matematikagacha bo'lgan to'liq, tizimli va interaktiv video darsliklar to'plami.
               </p>
             </div>
-            
-            {/* Progress Glass Card */}
-            <div className="glass-effect p-8 rounded-xl shadow-sm border border-outline-variant/30">
-              <div className="flex justify-between items-center mb-6">
-                <span className="font-label-md text-on-surface-variant dark:text-surface-variant">Umumiy progress</span>
-                <span className="text-primary font-bold">68%</span>
-              </div>
-              <div className="h-2 w-full bg-secondary-container dark:bg-secondary-container/20 rounded-full overflow-hidden mb-4">
-                <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: '68%' }}></div>
-              </div>
-              <div className="flex gap-4">
-                <div className="flex flex-col">
-                  <span className="font-headline-md text-headline-md text-primary">24</span>
-                  <span className="text-label-sm text-on-surface-variant dark:text-surface-variant">Yechilgan testlar</span>
-                </div>
-                <div className="w-px h-10 bg-outline-variant/50 self-center"></div>
-                <div className="flex flex-col">
-                  <span className="font-headline-md text-headline-md text-tertiary">12</span>
-                  <span className="text-label-sm text-on-surface-variant dark:text-surface-variant">Sertifikatlar</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Bento Grid Categories - Focus on Math Branches */}
-        <section className="mb-section-gap">
-          <h2 className="font-headline-md text-headline-md mb-8 text-on-surface dark:text-inverse-on-surface">Matematika bo'limlari bo'yicha saralash</h2>
-          <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {/* Algebra - Large Card */}
-            <button className="md:col-span-2 md:row-span-2 group relative overflow-hidden rounded-xl bg-primary-container text-on-primary-container p-8 flex flex-col justify-between items-start transition-all hover:shadow-2xl active:scale-[0.98]">
-              <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl animate-float"></div>
-              <span className="material-symbols-outlined text-4xl mb-4 text-on-primary-container">calculate</span>
-              <div className="text-left relative z-10">
-                <h3 className="font-headline-md text-headline-md mb-2">Algebra</h3>
-                <p className="font-body-md text-body-md opacity-80">Tenglamalar, tengsizliklar va logarifmlar olami.</p>
-                <div className="mt-6 flex items-center gap-2 font-label-md">
-                  <span>12 ta test mavjud</span>
-                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                </div>
-              </div>
-            </button>
-            
-            {/* Geometriya */}
-            <button className="md:col-span-2 group relative overflow-hidden rounded-xl bg-tertiary-container text-on-tertiary-container p-6 flex flex-col justify-between items-start transition-all hover:shadow-xl active:scale-[0.98]">
-              <span className="material-symbols-outlined text-3xl">category</span>
-              <div className="text-left">
-                <h3 className="font-label-md text-headline-md mb-1">Geometriya</h3>
-                <p className="text-label-sm opacity-80">Planimetriya va Stereometriya</p>
-              </div>
-            </button>
-            
-            {/* Matematik Analiz */}
-            <button className="md:col-span-2 group relative overflow-hidden rounded-xl glass-effect border border-outline-variant/30 p-6 flex flex-col justify-between items-start transition-all hover:shadow-xl active:scale-[0.98]">
-              <span className="material-symbols-outlined text-3xl text-primary">insights</span>
-              <div className="text-left">
-                <h3 className="font-label-md text-headline-md text-on-surface dark:text-inverse-on-surface mb-1">Matematik Analiz</h3>
-                <p className="text-label-sm text-on-surface-variant dark:text-surface-variant">Limitlar, Hosilalar va Integrallar</p>
-              </div>
-            </button>
-            
-            {/* Trigonometriya */}
-            <button className="md:col-span-1 group relative overflow-hidden rounded-xl bg-secondary-container text-on-secondary-container p-6 flex flex-col justify-between items-start transition-all hover:shadow-xl active:scale-[0.98]">
-              <span className="material-symbols-outlined text-3xl">change_history</span>
-              <h3 className="font-label-md text-label-md mt-4 text-left">Trigonometriya</h3>
-            </button>
-            
-            {/* Ehtimollar nazariyasi */}
-            <button className="md:col-span-1 group relative overflow-hidden rounded-xl glass-effect border border-outline-variant/30 p-6 flex flex-col justify-between items-start transition-all hover:shadow-xl active:scale-[0.98]">
-              <span className="material-symbols-outlined text-3xl text-primary">casino</span>
-              <h3 className="font-label-md text-label-md mt-4 text-on-surface dark:text-inverse-on-surface text-left">Ehtimollar nazariyasi</h3>
-            </button>
-            
-            {/* Kombinatorika */}
-            <button className="md:col-span-2 group relative overflow-hidden rounded-xl bg-surface-container-highest p-6 flex flex-col justify-between items-start transition-all hover:shadow-xl active:scale-[0.98]">
-              <span className="material-symbols-outlined text-3xl text-on-surface-variant">dashboard_customize</span>
-              <h3 className="font-label-md text-label-md mt-4 text-on-surface dark:text-inverse-on-surface text-left">Kombinatorika</h3>
-            </button>
-          </div>
-        </section>
-
-        {/* Featured Math Tests Section */}
-        <section>
-          <div className="flex justify-between items-center mb-8">
-            <h2 className="font-headline-md text-headline-md text-on-surface dark:text-inverse-on-surface">Mashhur matematika testlari</h2>
-            <a className="text-primary font-label-md flex items-center gap-2 hover:underline" href="#">
-              Barchasini ko'rish
+            <a className="text-primary font-label-md flex items-center gap-2 hover:bg-primary/10 px-6 py-3 rounded-full transition-colors whitespace-nowrap" href="#">
+              Barcha kurslar
               <span className="material-symbols-outlined text-sm">arrow_outward</span>
             </a>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            
-            {/* Test Card 1 */}
-            <div className="glass-effect rounded-xl overflow-hidden group hover:shadow-xl transition-all border border-outline-variant/30 flex flex-col">
-              <div className="relative h-48 w-full overflow-hidden bg-primary/5">
-                <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Abstract blue glowing mathematical equations of logarithms and calculus on dark tech background" src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=600" />
-                <div className="absolute top-4 left-4 bg-primary text-on-primary px-3 py-1 rounded-full text-label-sm">Murakkab</div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Course 1 */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="group flex flex-col bg-surface-container-lowest dark:bg-surface-container-low rounded-3xl overflow-hidden border border-outline-variant/30 hover:border-primary/50 shadow-sm hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
+            >
+              <div className="relative h-56 w-full overflow-hidden">
+                <div className="absolute inset-0 bg-primary/20 mix-blend-overlay z-10 group-hover:opacity-0 transition-opacity duration-500"></div>
+                <img 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                  alt="Asosiy matematika" 
+                  src="https://images.unsplash.com/photo-1596495578065-6e0763fa1178?auto=format&fit=crop&q=80&w=600" 
+                />
+                <div className="absolute top-4 left-4 z-20 flex gap-2">
+                  <span className="bg-primary text-on-primary px-3 py-1 rounded-full text-label-sm font-label-sm shadow-md">Boshlang'ich</span>
+                  <span className="bg-surface/90 text-on-surface px-3 py-1 rounded-full text-label-sm font-label-sm shadow-md backdrop-blur-sm">Ommabop</span>
+                </div>
               </div>
-              <div className="p-6 flex-grow flex flex-col">
-                <h4 className="font-headline-md text-body-lg mb-2 text-on-surface dark:text-inverse-on-surface text-left">Logarifmik tenglamalar</h4>
-                <p className="text-on-surface-variant dark:text-surface-variant font-body-md text-body-md mb-6 line-clamp-2 text-left">Logarifmik ifodalarni soddalashtirish va murakkab tenglamalar majmuasi.</p>
-                <div className="mt-auto">
-                  <div className="flex items-center gap-4 mb-6 text-on-surface-variant dark:text-surface-variant text-label-sm">
-                    <div className="flex items-center gap-1">
-                      <span className="material-symbols-outlined text-lg">timer</span>
-                      <span>60 daqiqa</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="material-symbols-outlined text-lg">quiz</span>
-                      <span>30 savol</span>
+              <div className="p-8 flex-grow flex flex-col">
+                <div className="flex items-center gap-4 text-label-sm text-on-surface-variant dark:text-surface-variant mb-4">
+                  <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px] text-tertiary">play_circle</span> 42 dars</span>
+                  <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px] text-tertiary">schedule</span> 18 soat</span>
+                  <span className="flex items-center gap-1 text-primary"><span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span> 4.9</span>
+                </div>
+                <h3 className="font-headline-md text-2xl mb-3 text-on-surface dark:text-inverse-on-surface group-hover:text-primary transition-colors">Matematika Asoslari</h3>
+                <p className="text-on-surface-variant dark:text-surface-variant font-body-md mb-8 line-clamp-2">
+                  Arifmetika, kasrlar, foizlar va sodda tenglamalar. Matematikani noldan o'rganishni istaganlar uchun eng yaxshi tanlov.
+                </p>
+                <div className="mt-auto pt-6 border-t border-outline-variant/20 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <img src="https://ui-avatars.com/api/?name=Ali+Valiyev&background=e0e3e5&color=191c1e" alt="Instructor" className="w-10 h-10 rounded-full border-2 border-surface" />
+                    <div>
+                      <div className="text-label-sm font-bold text-on-surface dark:text-inverse-on-surface">Ali Valiyev</div>
+                      <div className="text-[11px] text-on-surface-variant dark:text-surface-variant">Oliy toifali o'qituvchi</div>
                     </div>
                   </div>
-                  <button className="w-full bg-surface-container-low dark:bg-surface-container-highest hover:bg-primary hover:text-on-primary text-primary font-label-md py-3 rounded-lg transition-all flex items-center justify-center gap-2 group/btn">
-                    Testni boshlash
-                    <span className="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">play_arrow</span>
+                  <button className="w-12 h-12 rounded-full bg-primary-container/20 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-on-primary transition-all duration-300">
+                    <span className="material-symbols-outlined transform group-hover:rotate-45 transition-transform">arrow_outward</span>
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            {/* Test Card 2 */}
-            <div className="glass-effect rounded-xl overflow-hidden group hover:shadow-xl transition-all border border-outline-variant/30 flex flex-col">
-              <div className="relative h-48 w-full overflow-hidden bg-tertiary/5">
-                <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="Geometric 3D shapes and vectors representation in a clean modern blue workspace" src="https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&q=80&w=600" />
-                <div className="absolute top-4 left-4 bg-tertiary text-on-tertiary px-3 py-1 rounded-full text-label-sm">O'rta</div>
+            {/* Course 2 */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="group flex flex-col bg-surface-container-lowest dark:bg-surface-container-low rounded-3xl overflow-hidden border border-outline-variant/30 hover:border-tertiary/50 shadow-sm hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
+            >
+              <div className="relative h-56 w-full overflow-hidden">
+                <div className="absolute inset-0 bg-tertiary/20 mix-blend-overlay z-10 group-hover:opacity-0 transition-opacity duration-500"></div>
+                <img 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                  alt="Algebra va Analiz" 
+                  src="https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=600" 
+                />
+                <div className="absolute top-4 left-4 z-20">
+                  <span className="bg-tertiary text-on-tertiary px-3 py-1 rounded-full text-label-sm font-label-sm shadow-md">O'rta daraja</span>
+                </div>
               </div>
-              <div className="p-6 flex-grow flex flex-col">
-                <h4 className="font-headline-md text-body-lg mb-2 text-on-surface dark:text-inverse-on-surface text-left">Vektorlar va ularning xossalari</h4>
-                <p className="text-on-surface-variant dark:text-surface-variant font-body-md text-body-md mb-6 line-clamp-2 text-left">Tekislikda va fazoda vektorlar, skalyar ko'paytma va proyeksiyalar.</p>
-                <div className="mt-auto">
-                  <div className="flex items-center gap-4 mb-6 text-on-surface-variant dark:text-surface-variant text-label-sm">
-                    <div className="flex items-center gap-1">
-                      <span className="material-symbols-outlined text-lg">timer</span>
-                      <span>45 daqiqa</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="material-symbols-outlined text-lg">quiz</span>
-                      <span>25 savol</span>
+              <div className="p-8 flex-grow flex flex-col">
+                <div className="flex items-center gap-4 text-label-sm text-on-surface-variant dark:text-surface-variant mb-4">
+                  <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px] text-tertiary">play_circle</span> 64 dars</span>
+                  <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px] text-tertiary">schedule</span> 32 soat</span>
+                  <span className="flex items-center gap-1 text-primary"><span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span> 4.8</span>
+                </div>
+                <h3 className="font-headline-md text-2xl mb-3 text-on-surface dark:text-inverse-on-surface group-hover:text-tertiary transition-colors">Algebra va Analiz</h3>
+                <p className="text-on-surface-variant dark:text-surface-variant font-body-md mb-8 line-clamp-2">
+                  Funksiyalar, hosila, integral va ularning tatbiqlari. OTM ga tayyorlanuvchilar uchun maxsus intensiv kurs.
+                </p>
+                <div className="mt-auto pt-6 border-t border-outline-variant/20 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <img src="https://ui-avatars.com/api/?name=Malika+Azizova&background=e0e3e5&color=191c1e" alt="Instructor" className="w-10 h-10 rounded-full border-2 border-surface" />
+                    <div>
+                      <div className="text-label-sm font-bold text-on-surface dark:text-inverse-on-surface">Malika Azizova</div>
+                      <div className="text-[11px] text-on-surface-variant dark:text-surface-variant">PhD, Professor</div>
                     </div>
                   </div>
-                  <button className="w-full bg-surface-container-low dark:bg-surface-container-highest hover:bg-primary hover:text-on-primary text-primary font-label-md py-3 rounded-lg transition-all flex items-center justify-center gap-2 group/btn">
-                    Testni boshlash
-                    <span className="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">play_arrow</span>
+                  <button className="w-12 h-12 rounded-full bg-tertiary-container/20 text-tertiary flex items-center justify-center group-hover:bg-tertiary group-hover:text-on-tertiary transition-all duration-300">
+                    <span className="material-symbols-outlined transform group-hover:rotate-45 transition-transform">arrow_outward</span>
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
 
-            {/* Test Card 3 */}
-            <div className="glass-effect rounded-xl overflow-hidden group hover:shadow-xl transition-all border border-outline-variant/30 flex flex-col">
-              <div className="relative h-48 w-full overflow-hidden bg-secondary/5">
-                <img className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt="High tech neon lines representing integration and mathematical analysis curves" src="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&q=80&w=600" />
-                <div className="absolute top-4 left-4 bg-secondary text-on-secondary px-3 py-1 rounded-full text-label-sm">Murakkab</div>
+            {/* Course 3 */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="group flex flex-col bg-surface-container-lowest dark:bg-surface-container-low rounded-3xl overflow-hidden border border-outline-variant/30 hover:border-secondary/50 shadow-sm hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2"
+            >
+              <div className="relative h-56 w-full overflow-hidden">
+                <div className="absolute inset-0 bg-secondary/20 mix-blend-overlay z-10 group-hover:opacity-0 transition-opacity duration-500"></div>
+                <img 
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                  alt="Oliy Matematika" 
+                  src="https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&q=80&w=600" 
+                />
+                <div className="absolute top-4 left-4 z-20 flex gap-2">
+                  <span className="bg-secondary text-on-secondary px-3 py-1 rounded-full text-label-sm font-label-sm shadow-md">Murakkab</span>
+                  <span className="bg-error text-on-error px-3 py-1 rounded-full text-label-sm font-label-sm shadow-md">Yangi</span>
+                </div>
               </div>
-              <div className="p-6 flex-grow flex flex-col">
-                <h4 className="font-headline-md text-body-lg mb-2 text-on-surface dark:text-inverse-on-surface text-left">Integrallarni hisoblash</h4>
-                <p className="text-on-surface-variant dark:text-surface-variant font-body-md text-body-md mb-6 line-clamp-2 text-left">Aniq va aniqmas integrallar, Nyuton-Leybnits formulasi qo'llanilishi.</p>
-                <div className="mt-auto">
-                  <div className="flex items-center gap-4 mb-6 text-on-surface-variant dark:text-surface-variant text-label-sm">
-                    <div className="flex items-center gap-1">
-                      <span className="material-symbols-outlined text-lg">timer</span>
-                      <span>50 daqiqa</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <span className="material-symbols-outlined text-lg">quiz</span>
-                      <span>20 savol</span>
+              <div className="p-8 flex-grow flex flex-col">
+                <div className="flex items-center gap-4 text-label-sm text-on-surface-variant dark:text-surface-variant mb-4">
+                  <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px] text-tertiary">play_circle</span> 85 dars</span>
+                  <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[16px] text-tertiary">schedule</span> 45 soat</span>
+                  <span className="flex items-center gap-1 text-primary"><span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>star</span> 5.0</span>
+                </div>
+                <h3 className="font-headline-md text-2xl mb-3 text-on-surface dark:text-inverse-on-surface group-hover:text-secondary transition-colors">Oliy Matematika</h3>
+                <p className="text-on-surface-variant dark:text-surface-variant font-body-md mb-8 line-clamp-2">
+                  Chiziqli algebra, analitik geometriya va differensial tenglamalar. Talabalar va mutaxassislar uchun chuqurlashtirilgan dastur.
+                </p>
+                <div className="mt-auto pt-6 border-t border-outline-variant/20 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <img src="https://ui-avatars.com/api/?name=Rustam+Umarov&background=e0e3e5&color=191c1e" alt="Instructor" className="w-10 h-10 rounded-full border-2 border-surface" />
+                    <div>
+                      <div className="text-label-sm font-bold text-on-surface dark:text-inverse-on-surface">Rustam Umarov</div>
+                      <div className="text-[11px] text-on-surface-variant dark:text-surface-variant">Xalqaro ekspert</div>
                     </div>
                   </div>
-                  <button className="w-full bg-surface-container-low dark:bg-surface-container-highest hover:bg-primary hover:text-on-primary text-primary font-label-md py-3 rounded-lg transition-all flex items-center justify-center gap-2 group/btn">
-                    Testni boshlash
-                    <span className="material-symbols-outlined text-sm group-hover/btn:translate-x-1 transition-transform">play_arrow</span>
+                  <button className="w-12 h-12 rounded-full bg-secondary-container/20 text-secondary flex items-center justify-center group-hover:bg-secondary group-hover:text-on-secondary transition-all duration-300">
+                    <span className="material-symbols-outlined transform group-hover:rotate-45 transition-transform">arrow_outward</span>
                   </button>
                 </div>
               </div>
-            </div>
-
+            </motion.div>
           </div>
-        </section>
-
-        {/* Activity Graph */}
-        <section className="mt-section-gap">
-          <div className="glass-effect rounded-2xl p-8 border border-outline-variant/20 shadow-lg relative overflow-hidden">
-            <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-              <div>
-                <h2 className="font-headline-md text-headline-md mb-4 text-on-surface dark:text-inverse-on-surface">Haftalik faollik</h2>
-                <p className="text-on-surface-variant dark:text-surface-variant font-body-md mb-6">Siz o'tgan haftaga qaraganda 15% ko'proq matematika testlarini yechdingiz. Shunday davom eting!</p>
-                <div className="flex items-end gap-2 h-48">
-                  <div className="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary cursor-pointer" style={{ height: '40%' }}></div>
-                  <div className="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary cursor-pointer" style={{ height: '60%' }}></div>
-                  <div className="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary cursor-pointer" style={{ height: '35%' }}></div>
-                  <div className="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary cursor-pointer" style={{ height: '85%' }}></div>
-                  <div className="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary cursor-pointer" style={{ height: '55%' }}></div>
-                  <div className="flex-1 bg-primary rounded-t-lg" style={{ height: '95%' }}></div>
-                  <div className="flex-1 bg-primary/20 rounded-t-lg" style={{ height: '20%' }}></div>
-                </div>
-                <div className="flex justify-between mt-4 text-label-sm text-on-surface-variant dark:text-surface-variant font-medium">
-                  <span>Du</span><span>Se</span><span>Ch</span><span>Pa</span><span>Ju</span><span>Sha</span><span>Ya</span>
-                </div>
-              </div>
-              <div className="flex flex-col gap-4">
-                <div className="p-4 rounded-xl bg-surface-container-low dark:bg-surface-container-highest flex items-center gap-4 border border-outline-variant/10">
-                  <div className="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container">
-                    <span className="material-symbols-outlined">emoji_events</span>
-                  </div>
-                  <div>
-                    <h5 className="font-label-md text-on-surface dark:text-inverse-on-surface">Eng yaxshi natija</h5>
-                    <p className="text-label-sm text-on-surface-variant dark:text-surface-variant">Algebra - 100/100</p>
-                  </div>
-                </div>
-                <div className="p-4 rounded-xl bg-surface-container-low dark:bg-surface-container-highest flex items-center gap-4 border border-outline-variant/10">
-                  <div className="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
-                    <span className="material-symbols-outlined">avg_time</span>
-                  </div>
-                  <div>
-                    <h5 className="font-label-md text-on-surface dark:text-inverse-on-surface">O'rtacha vaqt</h5>
-                    <p className="text-label-sm text-on-surface-variant dark:text-surface-variant">24 daqiqa/test</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            {/* Background Decorative Gradient */}
-            <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-primary/5 blur-[100px] rounded-full"></div>
-          </div>
-        </section>
+        </motion.section>
       </section>
-
-      <section id="testlar" className="pt-24 pb-section-gap px-gutter max-w-container-max mx-auto bg-background dark:bg-inverse-surface border-t border-outline-variant/20">
-        <div className="text-center mb-16">
-          <h2 className="font-headline-md md:font-headline-lg text-headline-md md:text-headline-lg text-on-background dark:text-inverse-on-surface mb-4">Test turlari</h2>
-          <p className="font-body-lg text-body-lg text-on-surface-variant dark:text-surface-variant max-w-3xl mx-auto">Qaysi imtihonga tayyorlanayotgan bo'lsangiz — bizda siz uchun maxsus testlar bor</p>
+      {/* Animated Tests Section */}
+      <motion.section 
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-100px" }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        id="testlar" 
+        className="pt-24 pb-section-gap px-gutter max-w-container-max mx-auto bg-background dark:bg-inverse-surface border-t border-outline-variant/20"
+      >
+        <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+          <div className="max-w-3xl">
+            <span className="text-primary font-label-md uppercase tracking-wider mb-2 block">Imtihonlarga tayyorgarlik</span>
+            <h2 className="font-headline-md md:font-headline-lg text-headline-md md:text-headline-lg text-on-background dark:text-inverse-on-surface mb-4">
+              Test turlari
+            </h2>
+            <p className="font-body-lg text-body-lg text-on-surface-variant dark:text-surface-variant">
+              Qaysi imtihonga tayyorlanayotgan bo'lsangiz — bizda siz uchun maxsus, xalqaro va davlat standartlariga mos testlar mavjud.
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           {/* Milliy Sertifikat */}
-          <div className="bg-surface-container-low dark:bg-surface-container-highest border border-outline-variant/30 rounded-3xl p-8 hover:shadow-lg transition-shadow duration-300">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary dark:text-primary-fixed-dim mb-6">
-              <span className="material-symbols-outlined text-3xl">workspace_premium</span>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            whileInView={{ opacity: 1, scale: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="group relative bg-surface-container-lowest dark:bg-surface-container-highest border border-outline-variant/30 hover:border-primary/50 rounded-3xl p-8 hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-primary/5 group-hover:scale-150 transition-transform duration-700 ease-in-out"></div>
+            <div className="relative z-10 flex flex-col h-full">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary dark:text-primary-fixed-dim mb-6 group-hover:bg-primary group-hover:text-on-primary transition-colors duration-300 shadow-sm">
+                <span className="material-symbols-outlined text-3xl">workspace_premium</span>
+              </div>
+              <h3 className="font-headline-md text-2xl text-on-surface dark:text-inverse-on-surface mb-3 group-hover:text-primary transition-colors">Milliy Sertifikat</h3>
+              <p className="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant leading-relaxed mb-8 flex-grow">
+                Milliy Sertifikat imtihoniga maxsus tayyorlangan test to'plamlari va moslashtirilgan o'quv materiallari.
+              </p>
+              <div className="flex items-center justify-between mt-auto">
+                <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary-container/20 text-primary dark:text-primary-fixed-dim font-label-sm text-label-sm">
+                  0 ta test
+                </div>
+                <button className="w-10 h-10 rounded-full bg-surface-container text-on-surface flex items-center justify-center opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 hover:bg-primary hover:text-on-primary">
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </button>
+              </div>
             </div>
-            <h3 className="font-headline-md text-[24px] text-on-surface dark:text-inverse-on-surface mb-3">Milliy Sertifikat</h3>
-            <p className="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant leading-relaxed mb-8">
-              Milliy Sertifikat imtihoniga maxsus tayyorlangan test to'plamlari.
-            </p>
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary-container/20 text-primary dark:text-primary-fixed-dim font-label-sm text-label-sm">
-              0 ta test
-            </div>
-          </div>
+          </motion.div>
 
           {/* Attestatsiya */}
-          <div className="bg-surface-container-low dark:bg-surface-container-highest border border-outline-variant/30 rounded-3xl p-8 hover:shadow-lg transition-shadow duration-300">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-tertiary/10 text-tertiary dark:text-tertiary-fixed-dim mb-6">
-              <span className="material-symbols-outlined text-3xl">school</span>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            whileInView={{ opacity: 1, scale: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="group relative bg-surface-container-lowest dark:bg-surface-container-highest border border-outline-variant/30 hover:border-tertiary/50 rounded-3xl p-8 hover:shadow-xl hover:shadow-tertiary/5 transition-all duration-500 overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-tertiary/5 group-hover:scale-150 transition-transform duration-700 ease-in-out"></div>
+            <div className="relative z-10 flex flex-col h-full">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-tertiary/10 text-tertiary dark:text-tertiary-fixed-dim mb-6 group-hover:bg-tertiary group-hover:text-on-tertiary transition-colors duration-300 shadow-sm">
+                <span className="material-symbols-outlined text-3xl">school</span>
+              </div>
+              <h3 className="font-headline-md text-2xl text-on-surface dark:text-inverse-on-surface mb-3 group-hover:text-tertiary transition-colors">Attestatsiya</h3>
+              <p className="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant leading-relaxed mb-8 flex-grow">
+                O'qituvchilar uchun attestatsiya imtihoniga tayyorgarlik testlari. Bilimni baholash standarti.
+              </p>
+              <div className="flex items-center justify-between mt-auto">
+                <div className="inline-flex items-center px-4 py-2 rounded-full bg-tertiary-container/20 text-tertiary dark:text-tertiary-fixed-dim font-label-sm text-label-sm">
+                  2 ta test
+                </div>
+                <button className="w-10 h-10 rounded-full bg-surface-container text-on-surface flex items-center justify-center opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 hover:bg-tertiary hover:text-on-tertiary">
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </button>
+              </div>
             </div>
-            <h3 className="font-headline-md text-[24px] text-on-surface dark:text-inverse-on-surface mb-3">Attestatsiya</h3>
-            <p className="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant leading-relaxed mb-8">
-              O'qituvchilar uchun attestatsiya imtihoniga tayyorgarlik testlari.
-            </p>
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-tertiary-container/20 text-tertiary dark:text-tertiary-fixed-dim font-label-sm text-label-sm">
-              2 ta test
-            </div>
-          </div>
+          </motion.div>
 
           {/* SAT */}
-          <div className="bg-surface-container-low dark:bg-surface-container-highest border border-outline-variant/30 rounded-3xl p-8 hover:shadow-lg transition-shadow duration-300">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/10 text-secondary dark:text-secondary-fixed-dim mb-6">
-              <span className="material-symbols-outlined text-3xl">menu_book</span>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            whileInView={{ opacity: 1, scale: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="group relative bg-surface-container-lowest dark:bg-surface-container-highest border border-outline-variant/30 hover:border-secondary/50 rounded-3xl p-8 hover:shadow-xl hover:shadow-secondary/5 transition-all duration-500 overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-secondary/5 group-hover:scale-150 transition-transform duration-700 ease-in-out"></div>
+            <div className="relative z-10 flex flex-col h-full">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/10 text-secondary dark:text-secondary-fixed-dim mb-6 group-hover:bg-secondary group-hover:text-on-secondary transition-colors duration-300 shadow-sm">
+                <span className="material-symbols-outlined text-3xl">public</span>
+              </div>
+              <h3 className="font-headline-md text-2xl text-on-surface dark:text-inverse-on-surface mb-3 group-hover:text-secondary transition-colors">SAT</h3>
+              <p className="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant leading-relaxed mb-8 flex-grow">
+                SAT imtihoniga yo'naltirilgan matematika testlari. Xalqaro standartlar va talablar asosida.
+              </p>
+              <div className="flex items-center justify-between mt-auto">
+                <div className="inline-flex items-center px-4 py-2 rounded-full bg-secondary-container/20 text-secondary dark:text-secondary-fixed-dim font-label-sm text-label-sm">
+                  0 ta test
+                </div>
+                <button className="w-10 h-10 rounded-full bg-surface-container text-on-surface flex items-center justify-center opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 hover:bg-secondary hover:text-on-secondary">
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </button>
+              </div>
             </div>
-            <h3 className="font-headline-md text-[24px] text-on-surface dark:text-inverse-on-surface mb-3">SAT</h3>
-            <p className="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant leading-relaxed mb-8">
-              SAT imtihoniga yo'naltirilgan matematika testlari. Xalqaro standartlar asosida.
-            </p>
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-secondary-container/20 text-secondary dark:text-secondary-fixed-dim font-label-sm text-label-sm">
-              0 ta test
-            </div>
-          </div>
+          </motion.div>
 
           {/* DTM */}
-          <div className="bg-surface-container-low dark:bg-surface-container-highest border border-outline-variant/30 rounded-3xl p-8 hover:shadow-lg transition-shadow duration-300">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary dark:text-primary-fixed-dim mb-6">
-              <span className="material-symbols-outlined text-3xl">calculate</span>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            whileInView={{ opacity: 1, scale: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="group relative bg-surface-container-lowest dark:bg-surface-container-highest border border-outline-variant/30 hover:border-primary/50 rounded-3xl p-8 hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-primary/5 group-hover:scale-150 transition-transform duration-700 ease-in-out"></div>
+            <div className="relative z-10 flex flex-col h-full">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary dark:text-primary-fixed-dim mb-6 group-hover:bg-primary group-hover:text-on-primary transition-colors duration-300 shadow-sm">
+                <span className="material-symbols-outlined text-3xl">calculate</span>
+              </div>
+              <h3 className="font-headline-md text-2xl text-on-surface dark:text-inverse-on-surface mb-3 group-hover:text-primary transition-colors">DTM</h3>
+              <p className="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant leading-relaxed mb-8 flex-grow">
+                Davlat Test Markazi imtihoniga to'liq tayyorgarlik. Majburiy matematika bloki va maxsus fan testlari.
+              </p>
+              <div className="flex items-center justify-between mt-auto">
+                <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary-container/20 text-primary dark:text-primary-fixed-dim font-label-sm text-label-sm">
+                  1 ta test
+                </div>
+                <button className="w-10 h-10 rounded-full bg-surface-container text-on-surface flex items-center justify-center opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 hover:bg-primary hover:text-on-primary">
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </button>
+              </div>
             </div>
-            <h3 className="font-headline-md text-[24px] text-on-surface dark:text-inverse-on-surface mb-3">DTM</h3>
-            <p className="font-body-md text-body-md text-on-surface-variant dark:text-surface-variant leading-relaxed mb-8">
-              Davlat Test Markazi imtihoniga to'liq tayyorgarlik. Majburiy matematika bloki va fan testlari.
-            </p>
-            <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary-container/20 text-primary dark:text-primary-fixed-dim font-label-sm text-label-sm">
-              1 ta test
-            </div>
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       <section id="biz-haqimizda" className="pt-24 pb-section-gap overflow-x-hidden border-t border-outline-variant/20 bg-background dark:bg-inverse-surface">
-        
-        {/* Hero Section */}
-        <div className="relative min-h-[70vh] flex items-center px-gutter py-section-gap">
-          <div className="relative z-10 max-w-container-max mx-auto grid md:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <span className="inline-block px-4 py-1 bg-primary-container/10 text-primary dark:text-primary-fixed-dim rounded-full font-label-sm text-label-sm uppercase tracking-wider">Kelajak ta'limi</span>
-              <h2 className="font-display-md md:font-display-xl text-headline-lg-mobile md:text-display-xl text-on-background dark:text-inverse-on-surface leading-tight">Bilim sari yangi <br/><span className="text-primary dark:text-primary-fixed-dim">matematik yo'l</span></h2>
-              <p className="text-on-surface-variant dark:text-surface-variant font-body-lg text-body-lg max-w-xl">Almath — bu shunchaki platforma emas, bu matematik tafakkurni shakllantirish va murakkab masalalarni sodda hamda interaktiv usulda o'rganish makonidir.</p>
-            </div>
-            <div className="relative h-[400px] rounded-3xl overflow-hidden shadow-2xl">
-              <img className="w-full h-full object-cover" alt="Almath ta'lim" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTaB5C7dfqkHLNCBKt5Zajd6iFqKjOqR9tuwbpqzd4FpvALpnSC2AKJGkACWAeYpwuBVmN0e_dwFMlIuTph4fw9vaPrHu6HMtH66QWR46G3T20666_hSOA5Qfe7iHdBipFj27jL1-T_pYkTF1bTlIo9hxO1BSGlRM_ETT06ZqIAaQ6Ad1TzIscxFvhrj9ghp-H7lrxC5A3GUZ074FRu-NaG875amCH5K9uJaKTzA1hO8mfgisnj3_8"/>
-            </div>
-          </div>
-        </div>
+        {/* Bizning missiyamiz - Animated */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8 }}
+          className="bg-surface-container-low dark:bg-surface-container-highest py-section-gap relative overflow-hidden"
+        >
+          {/* Decorative background elements */}
+          <div className="absolute top-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+          <div className="absolute bottom-0 right-0 w-80 h-80 bg-tertiary/5 rounded-full blur-3xl translate-x-1/3 translate-y-1/3"></div>
 
-        {/* Bizning missiyamiz */}
-        <div className="bg-surface-container-low dark:bg-surface-container-highest py-section-gap">
-          <div className="max-w-container-max mx-auto px-gutter">
-            <div className="text-center mb-16">
+          <div className="max-w-container-max mx-auto px-gutter relative z-10">
+            <motion.div 
+              initial={{ y: 20, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="text-center mb-16"
+            >
               <h2 className="font-headline-md md:font-headline-lg text-headline-md md:text-headline-lg mb-4 text-on-background dark:text-inverse-on-surface">Bizning missiyamiz</h2>
-              <div className="h-1.5 w-24 bg-primary dark:bg-primary-fixed-dim mx-auto rounded-full"></div>
-            </div>
+              <div className="h-1.5 w-24 bg-primary dark:bg-primary-fixed-dim mx-auto rounded-full overflow-hidden">
+                <motion.div 
+                  initial={{ x: "-100%" }}
+                  whileInView={{ x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  className="h-full w-full bg-tertiary dark:bg-tertiary-fixed-dim"
+                ></motion.div>
+              </div>
+            </motion.div>
+            
             <div className="grid md:grid-cols-3 gap-8">
-              <div className="glass-effect p-8 rounded-3xl hover:-translate-y-2 transition-transform duration-300">
-                <div className="w-14 h-14 bg-secondary-container dark:bg-secondary-container/20 flex items-center justify-center rounded-2xl mb-6">
-                  <span className="material-symbols-outlined text-primary dark:text-primary-fixed-dim text-3xl">lightbulb</span>
+              {/* Innovatsiya */}
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="group relative bg-surface-container-lowest dark:bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/30 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/5 transition-all duration-500 overflow-hidden"
+              >
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary to-tertiary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                <div className="w-16 h-16 bg-primary-container/30 dark:bg-primary-container/10 flex items-center justify-center rounded-2xl mb-8 group-hover:scale-110 transition-transform duration-500 group-hover:bg-primary/20">
+                  <span className="material-symbols-outlined text-primary dark:text-primary-fixed-dim text-4xl">lightbulb</span>
                 </div>
-                <h3 className="font-headline-md text-headline-md mb-4 text-on-surface dark:text-inverse-on-surface">Innovatsiya</h3>
-                <p className="text-on-surface-variant dark:text-surface-variant font-body-md text-body-md">Eng so'nggi texnologiyalar va pedagogik metodikalarni birlashtirib, o'quvchilarga dunyo miqyosidagi bilim berish.</p>
-              </div>
-              <div className="glass-effect p-8 rounded-3xl hover:-translate-y-2 transition-transform duration-300">
-                <div className="w-14 h-14 bg-secondary-container dark:bg-secondary-container/20 flex items-center justify-center rounded-2xl mb-6">
-                  <span className="material-symbols-outlined text-primary dark:text-primary-fixed-dim text-3xl">verified</span>
-                </div>
-                <h3 className="font-headline-md text-headline-md mb-4 text-on-surface dark:text-inverse-on-surface">Sifat</h3>
-                <p className="text-on-surface-variant dark:text-surface-variant font-body-md text-body-md">Har bir kurs va test materiallari ekspertlar tomonidan sinchkovlik bilan tekshirilib, yuqori sifat standartlariga muvofiqlashtiriladi.</p>
-              </div>
-              <div className="glass-effect p-8 rounded-3xl hover:-translate-y-2 transition-transform duration-300">
-                <div className="w-14 h-14 bg-secondary-container dark:bg-secondary-container/20 flex items-center justify-center rounded-2xl mb-6">
-                  <span className="material-symbols-outlined text-primary dark:text-primary-fixed-dim text-3xl">groups</span>
-                </div>
-                <h3 className="font-headline-md text-headline-md mb-4 text-on-surface dark:text-inverse-on-surface">Hamjamiyat</h3>
-                <p className="text-on-surface-variant dark:text-surface-variant font-body-md text-body-md">Matematika ixlosmandlarini birlashtiruvchi, bir-birini qo'llab-quvvatlovchi global o'quv muhitini yaratish.</p>
-              </div>
-            </div>
-          </div>
-        </div>
+                <h3 className="font-headline-md text-2xl mb-4 text-on-surface dark:text-inverse-on-surface group-hover:text-primary transition-colors">Innovatsiya</h3>
+                <p className="text-on-surface-variant dark:text-surface-variant font-body-md text-body-md leading-relaxed">
+                  Eng so'nggi texnologiyalar va ilg'or pedagogik metodikalarni birlashtirib, o'quvchilarga dunyo miqyosidagi zamonaviy bilim berish.
+                </p>
+              </motion.div>
 
-        {/* Growth Timeline */}
-        <div className="py-section-gap bg-surface dark:bg-inverse-surface">
-          <div className="max-w-container-max mx-auto px-gutter">
-            <div className="flex flex-col md:flex-row gap-16 items-start">
-              <div className="md:w-1/3 sticky top-32">
-                <h2 className="font-headline-md md:font-headline-lg text-headline-md md:text-headline-lg mb-6 text-on-background dark:text-inverse-on-surface">Rivojlanish yo'limiz</h2>
-                <p className="text-on-surface-variant dark:text-surface-variant font-body-lg text-body-lg">G'oyadan platformagacha bo'lgan masofani biz qat'iyat va bilimga bo'lgan muhabbat bilan bosib o'tdik.</p>
-                <div className="mt-8 flex gap-4">
-                  <div className="p-4 bg-primary-container/10 dark:bg-primary-container/20 rounded-2xl">
-                    <div className="text-primary dark:text-primary-fixed-dim font-bold text-headline-md">50k+</div>
-                    <div className="text-on-surface-variant dark:text-surface-variant text-label-sm uppercase">O'quvchilar</div>
-                  </div>
-                  <div className="p-4 bg-primary-container/10 dark:bg-primary-container/20 rounded-2xl">
-                    <div className="text-primary dark:text-primary-fixed-dim font-bold text-headline-md">200+</div>
-                    <div className="text-on-surface-variant dark:text-surface-variant text-label-sm uppercase">Kurslar</div>
-                  </div>
+              {/* Sifat */}
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="group relative bg-surface-container-lowest dark:bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/30 hover:border-tertiary/40 hover:shadow-xl hover:shadow-tertiary/5 transition-all duration-500 overflow-hidden"
+              >
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-tertiary to-secondary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                <div className="w-16 h-16 bg-tertiary-container/30 dark:bg-tertiary-container/10 flex items-center justify-center rounded-2xl mb-8 group-hover:scale-110 transition-transform duration-500 group-hover:bg-tertiary/20">
+                  <span className="material-symbols-outlined text-tertiary dark:text-tertiary-fixed-dim text-4xl">verified</span>
                 </div>
-              </div>
-              <div className="md:w-2/3 space-y-12">
-                <div className="relative pl-12 border-l-2 border-primary-container/30 dark:border-primary-container/20 pb-12">
-                  <div className="absolute -left-2 top-0 w-4 h-4 bg-primary dark:bg-primary-fixed-dim rounded-full outline outline-8 outline-primary-container/10 dark:outline-primary-container/20"></div>
-                  <span className="text-primary dark:text-primary-fixed-dim font-bold font-headline-md">2021 — Poydevor</span>
-                  <h4 className="font-headline-md text-headline-md mt-2 mb-4 text-on-background dark:text-inverse-on-surface">Birinchi qadamlar</h4>
-                  <p className="text-on-surface-variant dark:text-surface-variant font-body-md text-body-md">Kichik bir jamoaning matematika ta'limini raqamlashtirish haqidagi orzusi va birinchi interaktiv darsliklarning yaratilishi.</p>
+                <h3 className="font-headline-md text-2xl mb-4 text-on-surface dark:text-inverse-on-surface group-hover:text-tertiary transition-colors">Sifat</h3>
+                <p className="text-on-surface-variant dark:text-surface-variant font-body-md text-body-md leading-relaxed">
+                  Har bir o'quv kursi va test materiallari ekspertlar tomonidan sinchkovlik bilan tekshirilib, yuqori ta'lim standartlariga qat'iy muvofiqlashtiriladi.
+                </p>
+              </motion.div>
+
+              {/* Hamjamiyat */}
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="group relative bg-surface-container-lowest dark:bg-surface-container-lowest p-8 rounded-3xl border border-outline-variant/30 hover:border-secondary/40 hover:shadow-xl hover:shadow-secondary/5 transition-all duration-500 overflow-hidden"
+              >
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-secondary to-primary transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                <div className="w-16 h-16 bg-secondary-container/30 dark:bg-secondary-container/10 flex items-center justify-center rounded-2xl mb-8 group-hover:scale-110 transition-transform duration-500 group-hover:bg-secondary/20">
+                  <span className="material-symbols-outlined text-secondary dark:text-secondary-fixed-dim text-4xl">groups</span>
                 </div>
-                <div className="relative pl-12 border-l-2 border-primary-container/30 dark:border-primary-container/20 pb-12">
-                  <div className="absolute -left-2 top-0 w-4 h-4 bg-primary dark:bg-primary-fixed-dim rounded-full opacity-60"></div>
-                  <span className="text-primary dark:text-primary-fixed-dim font-bold font-headline-md">2022 — Kengayish</span>
-                  <h4 className="font-headline-md text-headline-md mt-2 mb-4 text-on-background dark:text-inverse-on-surface">Platformaning ishga tushishi</h4>
-                  <p className="text-on-surface-variant dark:text-surface-variant font-body-md text-body-md">Almath Beta versiyasi ishga tushirildi. Birinchi 10,000 foydalanuvchi va 50 ta fundamental kurs platformaga yuklandi.</p>
-                </div>
-                <div className="relative pl-12 border-l-2 border-primary-container/30 dark:border-primary-container/20 pb-12">
-                  <div className="absolute -left-2 top-0 w-4 h-4 bg-primary dark:bg-primary-fixed-dim rounded-full opacity-40"></div>
-                  <span className="text-primary dark:text-primary-fixed-dim font-bold font-headline-md">2023 — E'tirof</span>
-                  <h4 className="font-headline-md text-headline-md mt-2 mb-4 text-on-background dark:text-inverse-on-surface">Yil ta'lim startapi</h4>
-                  <p className="text-on-surface-variant dark:text-surface-variant font-body-md text-body-md">Milliy miqyosdagi mukofotlar va xalqaro oliygohlar bilan hamkorlik shartnomalarining imzolanishi.</p>
-                </div>
-                <div className="relative pl-12 border-l-2 border-primary-container/30 dark:border-primary-container/20">
-                  <div className="absolute -left-2 top-0 w-4 h-4 bg-primary dark:bg-primary-fixed-dim rounded-full opacity-20"></div>
-                  <span className="text-primary dark:text-primary-fixed-dim font-bold font-headline-md">2024 — Bugun</span>
-                  <h4 className="font-headline-md text-headline-md mt-2 mb-4 text-on-background dark:text-inverse-on-surface">Global platforma</h4>
-                  <p className="text-on-surface-variant dark:text-surface-variant font-body-md text-body-md">Sun'iy intellekt yordamida shaxsiylashtirilgan o'qitish tizimining joriy etilishi va Markaziy Osiyo bo'ylab yetakchilik.</p>
-                </div>
-              </div>
+                <h3 className="font-headline-md text-2xl mb-4 text-on-surface dark:text-inverse-on-surface group-hover:text-secondary transition-colors">Hamjamiyat</h3>
+                <p className="text-on-surface-variant dark:text-surface-variant font-body-md text-body-md leading-relaxed">
+                  Matematika ixlosmandlari va mutaxassislarni birlashtiruvchi, bir-birini qo'llab-quvvatlovchi va rivojlantiruvchi global o'quv muhitini yaratish.
+                </p>
+              </motion.div>
             </div>
           </div>
-        </div>
+        </motion.div>
+
+
 
         {/* Jamoamiz */}
         <div className="py-section-gap bg-surface-container-low dark:bg-surface-container-highest relative overflow-hidden">

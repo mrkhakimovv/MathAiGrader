@@ -1,0 +1,45 @@
+        {/* Activity Graph */}
+        <section className="mt-section-gap">
+          <div className="glass-effect rounded-2xl p-8 border border-outline-variant/20 shadow-lg relative overflow-hidden">
+            <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+              <div>
+                <h2 className="font-headline-md text-headline-md mb-4 text-on-surface dark:text-inverse-on-surface">Haftalik faollik</h2>
+                <p className="text-on-surface-variant dark:text-surface-variant font-body-md mb-6">Siz o'tgan haftaga qaraganda 15% ko'proq matematika testlarini yechdingiz. Shunday davom eting!</p>
+                <div className="flex items-end gap-2 h-48">
+                  <div className="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary cursor-pointer" style={{ height: '40%' }}></div>
+                  <div className="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary cursor-pointer" style={{ height: '60%' }}></div>
+                  <div className="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary cursor-pointer" style={{ height: '35%' }}></div>
+                  <div className="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary cursor-pointer" style={{ height: '85%' }}></div>
+                  <div className="flex-1 bg-primary/20 rounded-t-lg transition-all hover:bg-primary cursor-pointer" style={{ height: '55%' }}></div>
+                  <div className="flex-1 bg-primary rounded-t-lg" style={{ height: '95%' }}></div>
+                  <div className="flex-1 bg-primary/20 rounded-t-lg" style={{ height: '20%' }}></div>
+                </div>
+                <div className="flex justify-between mt-4 text-label-sm text-on-surface-variant dark:text-surface-variant font-medium">
+                  <span>Du</span><span>Se</span><span>Ch</span><span>Pa</span><span>Ju</span><span>Sha</span><span>Ya</span>
+                </div>
+              </div>
+              <div className="flex flex-col gap-4">
+                <div className="p-4 rounded-xl bg-surface-container-low dark:bg-surface-container-highest flex items-center gap-4 border border-outline-variant/10">
+                  <div className="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container">
+                    <span className="material-symbols-outlined">emoji_events</span>
+                  </div>
+                  <div>
+                    <h5 className="font-label-md text-on-surface dark:text-inverse-on-surface">Eng yaxshi natija</h5>
+                    <p className="text-label-sm text-on-surface-variant dark:text-surface-variant">Algebra - 100/100</p>
+                  </div>
+                </div>
+                <div className="p-4 rounded-xl bg-surface-container-low dark:bg-surface-container-highest flex items-center gap-4 border border-outline-variant/10">
+                  <div className="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+                    <span className="material-symbols-outlined">avg_time</span>
+                  </div>
+                  <div>
+                    <h5 className="font-label-md text-on-surface dark:text-inverse-on-surface">O'rtacha vaqt</h5>
+                    <p className="text-label-sm text-on-surface-variant dark:text-surface-variant">24 daqiqa/test</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {/* Background Decorative Gradient */}
+            <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-primary/5 blur-[100px] rounded-full"></div>
+          </div>
+        </section>
