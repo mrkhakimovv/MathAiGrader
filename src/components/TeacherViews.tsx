@@ -543,6 +543,7 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
   const [taskToDelete, setTaskToDelete] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'students' | 'tasks' | 'all-students'>('students');
   const [selectedTaskAnalysis, setSelectedTaskAnalysis] = useState<any>(null);
+  const [analysisTab, setAnalysisTab] = useState<'tahlil' | 'submissions'>('tahlil');
 
   const handleDelete = (e: React.MouseEvent, index: number, groupName: string) => {
     e.stopPropagation();
@@ -859,11 +860,10 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                           <div 
                             key={task.id || idx}
                             onClick={() => {
-                              if (task.teacherAnalysis) {
-                                setSelectedTaskAnalysis(task);
-                              }
+                              setSelectedTaskAnalysis(task);
+                              setAnalysisTab('tahlil');
                             }}
-                            className={`flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 hover:border-indigo-300 dark:hover:border-indigo-500/50 transition-colors ${task.teacherAnalysis ? 'cursor-pointer' : ''}`}
+                            className={`flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 hover:border-indigo-300 dark:hover:border-indigo-500/50 transition-colors cursor-pointer`}
                           >
                             <div className="flex items-center gap-4">
                               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
@@ -948,45 +948,136 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
       {selectedTaskAnalysis && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
           <div className="w-full max-w-3xl bg-white dark:bg-slate-900 rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
-                {selectedTaskAnalysis.title} - Tahlil
-              </h3>
-              <button 
-                onClick={() => setSelectedTaskAnalysis(null)}
-                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors"
-              >
-                <X className="h-5 w-5" />
-              </button>
+            <div className="flex flex-col border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-between p-6 pb-2">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                  {selectedTaskAnalysis.title}
+                </h3>
+                <button 
+                  onClick={() => setSelectedTaskAnalysis(null)}
+                  className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="flex px-6 gap-6">
+                <button
+                  onClick={() => setAnalysisTab('tahlil')}
+                  className={`pb-3 font-semibold text-sm transition-colors border-b-2 ${
+                    analysisTab === 'tahlil' 
+                      ? 'border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400' 
+                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                  }`}
+                >
+                  Tahlil
+                </button>
+                <button
+                  onClick={() => setAnalysisTab('submissions')}
+                  className={`pb-3 font-semibold text-sm transition-colors border-b-2 ${
+                    analysisTab === 'submissions' 
+                      ? 'border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400' 
+                      : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                  }`}
+                >
+                  Vazifa bajarganlar
+                </button>
+              </div>
             </div>
             <div className="p-6 overflow-y-auto">
-                <div className="mb-4 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-900/20">
-                  <p className="text-sm text-indigo-800 dark:text-indigo-300">
-                    <span className="font-semibold">Jami savollar soni:</span> {selectedTaskAnalysis.teacherAnalysis?.questionCount || 0} ta
-                  </p>
-                  <p className="text-sm text-indigo-700 dark:text-indigo-400 mt-1">
-                    Ushbu tahlil avtomatik tekshiruv uchun asos bo'lib xizmat qiladi. O'quvchilar javoblari ushbu yechimlar asosida baholanadi.
-                  </p>
-                </div>
-                <div className="space-y-4">
-                  {selectedTaskAnalysis.teacherAnalysis?.solutions?.map((sol: any, idx: number) => (
-                    <div key={idx} className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700">
-                      <div className="font-semibold text-slate-900 dark:text-white mb-2">
-                        {sol.problemNumber}-savol
-                      </div>
-                      <div className="text-sm text-slate-700 dark:text-slate-300 mb-2 markdown-body">
-                        <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.problemText}</Markdown>
-                      </div>
-                      <div className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-1">Yechim:</div>
-                      <div className="text-sm text-slate-600 dark:text-slate-400 mb-2 markdown-body">
-                        <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.solutionSteps}</Markdown>
-                      </div>
-                      <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1">
-                        Javob: <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.finalAnswer}</Markdown>
-                      </div>
+              {analysisTab === 'tahlil' && (
+                selectedTaskAnalysis.teacherAnalysis ? (
+                  <>
+                    <div className="mb-4 p-4 rounded-xl border border-indigo-100 dark:border-indigo-900/50 bg-indigo-50/50 dark:bg-indigo-900/20">
+                      <p className="text-sm text-indigo-800 dark:text-indigo-300">
+                        <span className="font-semibold">Jami savollar soni:</span> {selectedTaskAnalysis.teacherAnalysis?.questionCount || 0} ta
+                      </p>
+                      <p className="text-sm text-indigo-700 dark:text-indigo-400 mt-1">
+                        Ushbu tahlil avtomatik tekshiruv uchun asos bo'lib xizmat qiladi. O'quvchilar javoblari ushbu yechimlar asosida baholanadi.
+                      </p>
                     </div>
-                  ))}
-                </div>
+                    <div className="space-y-4">
+                      {selectedTaskAnalysis.teacherAnalysis?.solutions?.map((sol: any, idx: number) => (
+                        <div key={idx} className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700">
+                          <div className="font-semibold text-slate-900 dark:text-white mb-2">
+                            {sol.problemNumber}-savol
+                          </div>
+                          <div className="text-sm text-slate-700 dark:text-slate-300 mb-2 markdown-body">
+                            <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.problemText}</Markdown>
+                          </div>
+                          <div className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-1">Yechim:</div>
+                          <div className="text-sm text-slate-600 dark:text-slate-400 mb-2 markdown-body">
+                            <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.solutionSteps}</Markdown>
+                          </div>
+                          <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                            Javob: <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.finalAnswer}</Markdown>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-10">
+                    <p className="text-slate-500 dark:text-slate-400">Ushbu vazifa uchun tahlil mavjud emas.</p>
+                  </div>
+                )
+              )}
+
+              {analysisTab === 'submissions' && (
+                (() => {
+                  const submissions = history
+                    .filter(h => h.taskId === selectedTaskAnalysis.id)
+                    .sort((a, b) => (b.score || 0) - (a.score || 0));
+
+                  // Group by studentUsername, keeping the highest score
+                  const uniqueSubmissions = submissions.reduce((acc: any[], curr: any) => {
+                    if (!acc.find(item => item.studentUsername === curr.studentUsername)) {
+                      acc.push(curr);
+                    }
+                    return acc;
+                  }, []);
+
+                  return uniqueSubmissions.length > 0 ? (
+                    <div className="space-y-3">
+                      {uniqueSubmissions.map((sub: any, idx: number) => {
+                        const student = students.find(s => s.username === sub.studentUsername) || { fullName: sub.studentUsername };
+                        return (
+                          <div key={idx} className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50">
+                            <div className="flex items-center gap-4">
+                              <div className={`flex h-10 w-10 items-center justify-center rounded-full font-bold text-sm ${
+                                idx === 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
+                                idx === 1 ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300' :
+                                idx === 2 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
+                                'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400'
+                              }`}>
+                                {idx + 1}
+                              </div>
+                              <div>
+                                <p className="font-semibold text-slate-900 dark:text-white">{student.fullName || sub.studentUsername}</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                  Natija yuborilgan: {sub.createdAt?.seconds ? new Date(sub.createdAt.seconds * 1000).toLocaleDateString() : ''}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-semibold ${
+                                sub.score >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
+                                sub.score >= 60 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
+                                'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400'
+                              }`}>
+                                {sub.score} ball
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-10">
+                      <p className="text-slate-500 dark:text-slate-400">Ushbu vazifani hali hech kim bajarmagan.</p>
+                    </div>
+                  );
+                })()
+              )}
             </div>
             <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex justify-end">
               <button

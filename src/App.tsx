@@ -381,79 +381,51 @@ function MainApp() {
 
             <main className="flex flex-col gap-8">
               {!result ? (
-                <div className="flex flex-col md:flex-row gap-8 items-start">
-                  {/* Task details side */}
-                  <div className="w-full md:w-1/2 flex flex-col gap-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm md:p-8 transition-colors">
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Vazifa shartlari</h3>
-                    {(!selectedTaskForGrading?.exampleUrls?.length && !selectedTaskForGrading?.fileUrls?.length) ? (
-                      <p className="text-sm text-slate-500 dark:text-slate-400">O'qituvchi fayl yuklamagan.</p>
-                    ) : (
-                      <div className="flex flex-col gap-4">
-                        {[...(selectedTaskForGrading?.exampleUrls || []), ...(selectedTaskForGrading?.fileUrls || [])].map((file: any, index: number) => (
-                          <div key={index} className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-                            {file.type?.startsWith('image/') || file.name?.match(/\.(jpg|jpeg|png|gif)$/i) ? (
-                              <img src={file.url} alt={`Vazifa ${index + 1}`} className="w-full h-auto object-contain bg-slate-50 dark:bg-slate-950" />
-                            ) : (
-                              <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800/50">
-                                <FilePlus className="h-8 w-8 text-indigo-500" />
-                                <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:underline">
-                                  {file.name || 'Faylni ochish'}
-                                </a>
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm md:p-8 transition-colors">
+                  <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        Yechim faylini yuklang
+                      </label>
+                      <Uploader
+                        selectedFiles={selectedFiles}
+                        onFilesSelect={handleFilesSelect}
+                        onClear={handleClear}
+                      />
+                    </div>
+
+                    {error && (
+                      <div className="rounded-lg bg-rose-50 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-800 p-4 text-sm text-rose-800 dark:text-rose-300">
+                        {error}
                       </div>
                     )}
-                  </div>
-                  
-                  {/* Upload side */}
-                  <div className="w-full md:w-1/2 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm md:p-8 transition-colors">
-                    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                      <div>
-                        <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
-                          Yechim faylini yuklang
-                        </label>
-                        <Uploader
-                          selectedFiles={selectedFiles}
-                          onFilesSelect={handleFilesSelect}
-                          onClear={handleClear}
-                        />
-                      </div>
 
-                      {error && (
-                        <div className="rounded-lg bg-rose-50 dark:bg-rose-900/30 border border-rose-200 dark:border-rose-800 p-4 text-sm text-rose-800 dark:text-rose-300">
-                          {error}
-                        </div>
+                    <button
+                      type="submit"
+                      disabled={selectedFiles.length === 0 || isLoading}
+                      className="mt-4 flex w-full items-center justify-center rounded-xl bg-indigo-600 dark:bg-indigo-500 px-6 py-4 text-base font-semibold text-white shadow-md transition-all hover:bg-indigo-700 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:shadow-none dark:focus:ring-offset-slate-950"
+                    >
+                      {isLoading ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Tekshirilmoqda...
+                        </>
+                      ) : (
+                        "Vazifani yuborish"
                       )}
+                    </button>
 
-                      <button
-                        type="submit"
-                        disabled={selectedFiles.length === 0 || isLoading}
-                        className="mt-4 flex w-full items-center justify-center rounded-xl bg-indigo-600 dark:bg-indigo-500 px-6 py-4 text-base font-semibold text-white shadow-md transition-all hover:bg-indigo-700 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:shadow-none dark:focus:ring-offset-slate-950"
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                            Tekshirilmoqda...
-                          </>
-                        ) : (
-                          "Vazifani yuborish"
-                        )}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedTaskForGrading(null);
-                          setActiveView('student-tasks');
-                        }}
-                        className="mt-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
-                      >
-                        Boshqa vazifa tanlash
-                      </button>
-                    </form>
-                  </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedTaskForGrading(null);
+                        setActiveView('student-tasks');
+                      }}
+                      className="mt-2 text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                    >
+                      Boshqa vazifa tanlash
+                    </button>
+                  </form>
                 </div>
               ) : (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
