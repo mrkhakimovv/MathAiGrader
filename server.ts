@@ -1,5 +1,7 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
+import multer from "multer";
 import { createServer as createViteServer } from "vite";
 import * as dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
@@ -7,19 +9,44 @@ import { evaluateHomework, analyzeTeacherExamples } from "./src/server/evaluator
 
 dotenv.config();
 
+const uploadDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadDir)
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    cb(null, uniqueSuffix + '-' + file.originalname)
+  }
+})
+const upload = multer({ storage: storage, limits: { fileSize: 50 * 1024 * 1024 } }); // 50MB limit
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  // Trust the first proxy to correctly resolve client IP for rate limiting
   app.set("trust proxy", 1);
   app.use(express.json({ limit: "50mb" }));
-
+  
+  // Serve uploaded files statically
+  app.use("/uploads", express.static(uploadDir));
+  
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
     message: { error: "Siz juda ko'p so'rov yubordingiz. Iltimos, 15 daqiqadan so'ng qayta urining." },
     validate: { xForwardedForHeader: false }
+  });
+
+  app.post("/api/upload", upload.single("file"), (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ error: "Fayl topilmadi" });
+    }
+    res.json({ url: `/uploads/${req.file.filename}` });
   });
 
   app.post("/api/grade", limiter, async (req, res) => {
@@ -30,23 +57,16 @@ async function startServer() {
         return res.status(400).json({ error: "Image data is required" });
       }
 
-      let totalSize = 0;
       const formattedImages = images.map((img: any) => {
         const base64Data = img.imageBase64.split(",")[1] || img.imageBase64;
-        totalSize += Buffer.byteLength(base64Data, "base64");
         return {
           imageBase64: base64Data,
           mimeType: img.mimeType
         };
       });
       
-      if (totalSize > 15 * 1024 * 1024) {
-        return res.status(413).json({ error: "Fayllar hajmi juda katta. Iltimos, jami 15MB dan kichik rasmlar yuklang." });
-      }
-
       const result = await evaluateHomework(formattedImages, taskReference);
       res.json(result);
-
     } catch (error: any) {
       console.error("Error evaluating homework:", error);
       const statusCode = error.message && error.message.includes("API kaliti noto'g'ri") ? 401 : 500;
@@ -62,23 +82,16 @@ async function startServer() {
         return res.status(400).json({ error: "Image data is required" });
       }
 
-      let totalSize = 0;
       const formattedImages = images.map((img: any) => {
         const base64Data = img.imageBase64.split(",")[1] || img.imageBase64;
-        totalSize += Buffer.byteLength(base64Data, "base64");
         return {
           imageBase64: base64Data,
           mimeType: img.mimeType
         };
       });
       
-      if (totalSize > 15 * 1024 * 1024) {
-        return res.status(413).json({ error: "Fayllar hajmi juda katta. Iltimos, jami 15MB dan kichik rasmlar yuklang." });
-      }
-
       const result = await analyzeTeacherExamples(formattedImages);
       res.json(result);
-
     } catch (error: any) {
       console.error("Error analyzing examples:", error);
       const statusCode = error.message && error.message.includes("API kaliti noto'g'ri") ? 401 : 500;

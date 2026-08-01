@@ -67,5 +67,6 @@ export const saveToCollection = async (collectionName: string, data: any) => {
     return docRef.id;
   } catch (error) {
     handleFirestoreError(error, "write", collectionName);
+    throw error;
   }
 };
