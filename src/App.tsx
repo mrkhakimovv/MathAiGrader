@@ -19,6 +19,7 @@ import { doc, deleteDoc, getDocs, query, where, collection, updateDoc } from "fi
 import { db, storage } from "./lib/firebase";
 import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
+import { QRCodeSVG } from 'qrcode.react';
 import { DashboardStats } from "./components/DashboardStats";
 import { HomeView } from "./components/HomeView";
 import { WelcomeScreen } from "./components/WelcomeScreen";
@@ -709,9 +710,19 @@ function MainApp() {
               </button>
             </div>
             <div className="p-6">
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
-                Quyidagi havolani o'quvchilarga yuboring. Ular ushbu havola orqali ro'yxatdan o'tganlarida, to'g'ridan-to'g'ri sizning o'quvchilaringiz ro'yxatiga tushadilar.
-              </p>
+              <div className="flex flex-col items-center mb-6">
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-4 inline-block">
+                  <QRCodeSVG 
+                    value={`${window.location.origin}/t/${currentUser}`} 
+                    size={160} 
+                    level="H" 
+                    includeMargin={false} 
+                  />
+                </div>
+                <p className="text-sm text-slate-600 dark:text-slate-400 text-center">
+                  Quyidagi havolani o'quvchilarga yuboring yoki QR kodni skaner qildiring. Ular ushbu havola orqali ro'yxatdan o'tganlarida, to'g'ridan-to'g'ri sizning o'quvchilaringiz ro'yxatiga tushadilar.
+                </p>
+              </div>
               
               <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
                 <input 
