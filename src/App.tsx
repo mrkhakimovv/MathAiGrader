@@ -505,6 +505,19 @@ function MainApp() {
                 alert("Xatolik yuz berdi.");
               }
             }}
+            onEditStudentInfo={async (studentId, updates) => {
+              try {
+                await updateDoc(doc(db, "students", studentId), {
+                  firstName: updates.firstName,
+                  lastName: updates.lastName,
+                  phone: updates.phone
+                });
+                alert("O'quvchi ma'lumotlari yangilandi!");
+              } catch (err) {
+                console.error("Error updating student info:", err);
+                alert("Xatolik yuz berdi.");
+              }
+            }}
             onDeleteStudent={async (student) => {
               try {
                 if (student.id) {

@@ -3,7 +3,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import React, { useState } from 'react';
-import { Users, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, ExternalLink, Search, Calendar, CheckCircle, XCircle, Loader2, FolderPlus } from 'lucide-react';
+import { Users, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, ExternalLink, Search, Calendar, CheckCircle, XCircle, Loader2, FolderPlus, Edit2 } from 'lucide-react';
 import { GradingResult } from '../types';
 
 interface AllStudentsViewProps {
@@ -12,13 +12,18 @@ interface AllStudentsViewProps {
   history?: GradingResult[];
   groups?: string[];
   onUpdateStudentGroups?: (studentId: string, groups: string[]) => void;
+  onEditStudentInfo?: (studentId: string, updates: any) => void;
 }
 
-export function AllStudentsView({ students, onDeleteStudent, history = [], groups = [], onUpdateStudentGroups }: AllStudentsViewProps) {
+export function AllStudentsView({ students, onDeleteStudent, history = [], groups = [], onUpdateStudentGroups, onEditStudentInfo }: AllStudentsViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [studentToDelete, setStudentToDelete] = useState<any>(null);
   const [studentToAssign, setStudentToAssign] = useState<any>(null);
+  const [studentToEdit, setStudentToEdit] = useState<any>(null);
+  const [editFirstName, setEditFirstName] = useState('');
+  const [editLastName, setEditLastName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
 
   const handleDelete = (e: React.MouseEvent, student: any) => {
@@ -99,30 +104,47 @@ export function AllStudentsView({ students, onDeleteStudent, history = [], group
             <div 
               key={index} 
               onClick={() => setSelectedStudent(student)}
-              className="cursor-pointer rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm hover:shadow-md transition-shadow relative group"
+              className="cursor-pointer rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm hover:shadow-md transition-shadow group"
             >
-              <div className="absolute top-4 right-4 flex gap-1">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setStudentToAssign(student);
-                    setSelectedGroups(student.groups || (student.group ? [student.group] : []));
-                  }}
-                  className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded-lg transition-colors"
-                  title="Guruhga biriktirish"
-                >
-                  <FolderPlus className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={(e) => handleDelete(e, student)}
-                  className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors"
-                  title="O'quvchini o'chirish"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </button>
+              <div className="flex justify-between items-start mb-4 gap-4">
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white break-words flex-1 leading-tight">
+                  {student.firstName} {student.lastName}
+                </h3>
+                <div className="flex gap-1 shrink-0 -mt-2 -mr-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setStudentToEdit(student);
+                      setEditFirstName(student.firstName || '');
+                      setEditLastName(student.lastName || '');
+                      setEditPhone(student.phone || '');
+                    }}
+                    className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors"
+                    title="O'quvchi ma'lumotlarini tahrirlash"
+                  >
+                    <Edit2 className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setStudentToAssign(student);
+                      setSelectedGroups(student.groups || (student.group ? [student.group] : []));
+                    }}
+                    className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded-lg transition-colors"
+                    title="Guruhga biriktirish"
+                  >
+                    <FolderPlus className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={(e) => handleDelete(e, student)}
+                    className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors"
+                    title="O'quvchini o'chirish"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 pr-20">{student.firstName} {student.lastName}</h3>
-              <div className="space-y-2 mt-4 text-slate-600 dark:text-slate-300">
+              <div className="space-y-2 text-slate-600 dark:text-slate-300">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-slate-500">Telefon:</span>
                   <span>{student.phone}</span>
@@ -139,6 +161,84 @@ export function AllStudentsView({ students, onDeleteStudent, history = [], group
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm text-center py-12">
           <Users className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
           <p className="text-slate-500 dark:text-slate-400">Hech qanday o'quvchi topilmadi.</p>
+        </div>
+      )}
+
+      {/* Edit Student Modal */}
+      {studentToEdit && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-xl border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">O'quvchini tahrirlash</h3>
+              <button
+                onClick={() => setStudentToEdit(null)}
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  Ism
+                </label>
+                <input
+                  type="text"
+                  value={editFirstName}
+                  onChange={(e) => setEditFirstName(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  Familiya
+                </label>
+                <input
+                  type="text"
+                  value={editLastName}
+                  onChange={(e) => setEditLastName(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  Telefon raqami
+                </label>
+                <input
+                  type="tel"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setStudentToEdit(null)}
+                className="flex-1 rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              >
+                Bekor qilish
+              </button>
+              <button
+                onClick={() => {
+                  if (onEditStudentInfo && studentToEdit.id) {
+                    onEditStudentInfo(studentToEdit.id, {
+                      firstName: editFirstName.trim(),
+                      lastName: editLastName.trim(),
+                      phone: editPhone.trim()
+                    });
+                  }
+                  setStudentToEdit(null);
+                }}
+                disabled={!editFirstName.trim() || !editLastName.trim() || !editPhone.trim()}
+                className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Saqlash
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
