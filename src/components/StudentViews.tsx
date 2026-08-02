@@ -76,6 +76,14 @@ export function StudentTasksView({ tasks, history = [], studentInfo, onSolveTask
     return aExpired ? 1 : -1;
   });
 
+  const getUncompletedCount = (groupName: string) => {
+    const groupTasks = groupName === 'Barcha vazifalar' 
+      ? studentTasks
+      : studentTasks.filter(t => t.group === groupName || !t.group || t.group === 'Barcha guruhlar');
+      
+    return groupTasks.filter(task => !history.some(h => h.taskId === task.id)).length;
+  };
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-8 flex items-center gap-4">
@@ -89,25 +97,35 @@ export function StudentTasksView({ tasks, history = [], studentInfo, onSolveTask
         <div className="flex flex-wrap gap-2 mb-6">
           <button
             onClick={() => setSelectedGroup('Barcha vazifalar')}
-            className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+            className={`relative px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
               selectedGroup === 'Barcha vazifalar'
                 ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
                 : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
             Barcha vazifalar
+            {getUncompletedCount('Barcha vazifalar') > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-slate-950">
+                {getUncompletedCount('Barcha vazifalar')}
+              </span>
+            )}
           </button>
           {studentGroups.map((group: string) => (
             <button
               key={group}
               onClick={() => setSelectedGroup(group)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+              className={`relative px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
                 selectedGroup === group
                   ? 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm'
                   : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
             >
               {group}
+              {getUncompletedCount(group) > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-white dark:ring-slate-950">
+                  {getUncompletedCount(group)}
+                </span>
+              )}
             </button>
           ))}
         </div>

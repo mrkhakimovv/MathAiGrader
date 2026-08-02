@@ -12,9 +12,9 @@ import { StudentTasksView, StudentStatsView } from "./components/StudentViews";
 import { AddStudentModal } from "./components/AddStudentModal";
 import { AddGroupModal } from "./components/AddGroupModal";
 import { GradingResult } from "./types";
-import { Calculator, Loader2, Moon, Sun, UserPlus, Users, FilePlus } from "lucide-react";
+import { Calculator, Loader2, Moon, Sun, UserPlus, Users, FilePlus, Link, Check, Copy, X, Bell } from "lucide-react";
 import { saveResult, subscribeToHistory, subscribeToCollection, saveToCollection } from "./lib/db";
-import { doc, deleteDoc, getDocs, query, where, collection } from "firebase/firestore";
+import { doc, deleteDoc, getDocs, query, where, collection, updateDoc } from "firebase/firestore";
 import { db, storage } from "./lib/firebase";
 import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
@@ -35,6 +35,8 @@ function MainApp() {
   const [error, setError] = useState<string | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
+  const [isAcceptStudentModalOpen, setIsAcceptStudentModalOpen] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const [isAddGroupModalOpen, setIsAddGroupModalOpen] = useState(false);
   const [isTaskSubmitting, setIsTaskSubmitting] = useState(false);
   const [taskUploadProgress, setTaskUploadProgress] = useState(0);
@@ -269,7 +271,7 @@ function MainApp() {
 
   if (role === 'admin') {
     return (
-      <AdminPanel
+      <AdminPanel 
         teachers={teachers}
         onCreateTeacher={async (u, p) => {
           try {
@@ -295,6 +297,18 @@ function MainApp() {
     );
   }
 
+  // Calculate uncompleted tasks for student
+  let uncompletedTasksCount = 0;
+  if (role === 'student' && currentUser) {
+    const studentInfo = students.find(s => s.username === currentUser);
+    if (studentInfo) {
+      const studentTasks = tasks.filter(t => !t.group || t.group === 'Barcha guruhlar' || t.group === studentInfo.group || (studentInfo.groups && studentInfo.groups.includes(t.group)));
+      uncompletedTasksCount = studentTasks.filter(task => {
+        return !userHistory.some(h => h.taskId === task.id);
+      }).length;
+    }
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-sans text-slate-900 dark:text-slate-100 transition-colors flex flex-col md:flex-row pb-16 md:pb-0">
       <Sidebar 
@@ -302,20 +316,36 @@ function MainApp() {
         activeView={activeView}
         onChangeView={setActiveView}
         role={role}
+        uncompletedTasksCount={uncompletedTasksCount}
       />
       
       <div className="flex-1 p-4 md:p-8 overflow-y-auto h-full md:h-screen">
         <div className="mx-auto max-w-3xl relative pt-14">
+          <div className="absolute left-0 top-0 flex items-center gap-2 z-10">
+            <img src="/logo.png" alt="ALMATH Logo" className="h-9 w-9 rounded-xl shadow-sm object-cover" />
+            <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">ALMATH</span>
+          </div>
+
           <div className="absolute right-0 top-0 flex items-center gap-3 z-10">
             {role === 'teacher' && activeView === 'all-students' && (
-              <button
-                onClick={() => setIsAddStudentModalOpen(true)}
-                className="flex h-9 items-center justify-center gap-2 rounded-lg bg-indigo-600 dark:bg-indigo-500 px-3 text-sm font-semibold text-white hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors shadow-sm"
-                aria-label="Add Student"
-              >
-                <UserPlus className="h-4 w-4" />
-                <span className="hidden sm:inline">O'quvchi qo'shish</span>
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setIsAcceptStudentModalOpen(true)}
+                  className="flex h-9 items-center justify-center gap-2 rounded-lg bg-emerald-600 dark:bg-emerald-500 px-3 text-sm font-semibold text-white hover:bg-emerald-700 dark:hover:bg-emerald-600 transition-colors shadow-sm"
+                  aria-label="Accept Student"
+                >
+                  <Link className="h-4 w-4" />
+                  <span className="hidden sm:inline">O'quvchi qabul qilish</span>
+                </button>
+                <button
+                  onClick={() => setIsAddStudentModalOpen(true)}
+                  className="flex h-9 items-center justify-center gap-2 rounded-lg bg-indigo-600 dark:bg-indigo-500 px-3 text-sm font-semibold text-white hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors shadow-sm"
+                  aria-label="Add Student"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  <span className="hidden sm:inline">O'quvchi qo'shish</span>
+                </button>
+              </div>
             )}
             {role === 'teacher' && activeView === 'all-groups' && (
               <button
@@ -345,6 +375,17 @@ function MainApp() {
                 </span>
               </button>
             )}
+            <button
+              className="relative flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
+              aria-label="Notifications"
+            >
+              <Bell className="h-4 w-4" />
+              {(role === 'student' ? uncompletedTasksCount : teacherTasks.length) > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-slate-50 dark:ring-slate-950">
+                  {role === 'student' ? uncompletedTasksCount : teacherTasks.length}
+                </span>
+              )}
+            </button>
             <button
               onClick={toggleDarkMode}
               className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
@@ -439,7 +480,22 @@ function MainApp() {
         {activeView === 'all-students' && (
           <AllStudentsView 
             students={teacherStudents}
-            history={userHistory} 
+            history={userHistory}
+            groups={teacherGroups}
+            onUpdateStudentGroups={async (studentId, groups) => {
+              try {
+                await updateDoc(doc(db, "students", studentId), {
+                  groups: groups
+                });
+                
+                // Update local state is handled by real-time listener if we have one,
+                // but let's just make sure. We do have subscribeToCollection in App.tsx!
+                alert("O'quvchi guruhlari yangilandi!");
+              } catch (err) {
+                console.error("Error updating student groups:", err);
+                alert("Xatolik yuz berdi.");
+              }
+            }}
             onDeleteStudent={async (student) => {
               try {
                 if (student.id) {
@@ -625,6 +681,65 @@ function MainApp() {
           alert(`"${group.name}" guruhi muvaffaqiyatli yaratildi!`);
         }}
       />
+
+      {isAcceptStudentModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-xl overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                O'quvchi qabul qilish
+              </h3>
+              <button 
+                onClick={() => {
+                  setIsAcceptStudentModalOpen(false);
+                  setLinkCopied(false);
+                }}
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+                Quyidagi havolani o'quvchilarga yuboring. Ular ushbu havola orqali ro'yxatdan o'tganlarida, to'g'ridan-to'g'ri sizning o'quvchilaringiz ro'yxatiga tushadilar.
+              </p>
+              
+              <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl border border-slate-200 dark:border-slate-700">
+                <input 
+                  type="text" 
+                  readOnly 
+                  value={`${window.location.origin}/t/${currentUser}`} 
+                  className="flex-1 bg-transparent border-none text-sm font-medium text-slate-700 dark:text-slate-300 px-2 focus:outline-none focus:ring-0" 
+                />
+                <button 
+                  onClick={() => {
+                    navigator.clipboard.writeText(`${window.location.origin}/t/${currentUser}`);
+                    setLinkCopied(true);
+                    setTimeout(() => setLinkCopied(false), 2000);
+                  }} 
+                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    linkCopied 
+                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' 
+                      : 'bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600'
+                  }`}
+                >
+                  {linkCopied ? (
+                    <>
+                      <Check className="h-4 w-4" />
+                      Nusxa olindi
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="h-4 w-4" />
+                      Nusxa olish
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -633,14 +748,13 @@ export default function App() {
   const navigate = useNavigate();
   
   const handleRegisterSuccess = (user: any) => {
-    // Just force a reload to trigger the auth logic in MainApp
-    // Or we could pass down the user state, but it reads from localStorage on mount.
     window.location.href = '/';
   };
 
   return (
     <Routes>
       <Route path="/register/:groupId" element={<StudentRegistration onRegisterSuccess={handleRegisterSuccess} />} />
+      <Route path="/t/:teacherId" element={<StudentRegistration onRegisterSuccess={handleRegisterSuccess} />} />
       <Route path="/*" element={<MainApp />} />
     </Routes>
   );

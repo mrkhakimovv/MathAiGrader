@@ -82,8 +82,8 @@ export function DashboardStats({ groupDetails, students, tasks }: Props) {
           </h3>
           <div className="space-y-4">
             {groupDetails.length > 0 ? groupDetails.map((group, index) => {
-              const studentsInGroup = students.filter(s => s.group === group.name).length;
-              const maxStudents = Math.max(...groupDetails.map(g => students.filter(s => s.group === g.name).length), 1);
+              const studentsInGroup = students.filter(s => s.group === group.name || (s.groups && s.groups.includes(group.name))).length;
+              const maxStudents = Math.max(...groupDetails.map(g => students.filter(s => s.group === g.name || (s.groups && s.groups.includes(g.name))).length), 1);
               const percentage = (studentsInGroup / maxStudents) * 100;
               
               return (
@@ -127,7 +127,7 @@ export function DashboardStats({ groupDetails, students, tasks }: Props) {
                   </div>
                   <div>
                     <p className="font-medium text-slate-900 dark:text-white">{student.firstName} {student.lastName}</p>
-                    <p className="text-xs text-slate-500">{student.group}</p>
+                    <p className="text-xs text-slate-500">{student.groups ? student.groups.join(', ') : student.group}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1 text-amber-500">

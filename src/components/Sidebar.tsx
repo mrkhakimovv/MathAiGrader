@@ -8,9 +8,10 @@ interface SidebarProps {
   activeView: ViewType;
   onChangeView: (view: ViewType) => void;
   role: 'admin' | 'teacher' | 'student' | null;
+  uncompletedTasksCount?: number;
 }
 
-export function Sidebar({ onProfileClick, activeView, onChangeView, role }: SidebarProps) {
+export function Sidebar({ onProfileClick, activeView, onChangeView, role, uncompletedTasksCount = 0 }: SidebarProps) {
   return (
     <div className="fixed md:sticky bottom-0 md:top-0 left-0 right-0 md:w-20 bg-indigo-600 dark:bg-indigo-500 flex md:flex-col items-center justify-around md:justify-start md:py-8 md:gap-8 rounded-t-3xl md:rounded-t-none md:rounded-r-3xl h-16 md:h-screen shadow-[0_-4px_20px_rgba(0,0,0,0.1)] md:shadow-lg z-50">
       <button 
@@ -61,10 +62,15 @@ export function Sidebar({ onProfileClick, activeView, onChangeView, role }: Side
         <>
           <button 
             onClick={() => onChangeView('student-tasks')}
-            className={`${activeView === 'student-tasks' ? 'text-white scale-110' : 'text-indigo-200'} hover:text-white hover:scale-110 transition-all`} 
+            className={`${activeView === 'student-tasks' ? 'text-white scale-110' : 'text-indigo-200'} hover:text-white hover:scale-110 transition-all relative`} 
             title="Uyga vazifalar (Tasks)"
           >
             <BookOpen className="h-6 w-6 md:h-7 md:w-7" />
+            {uncompletedTasksCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-indigo-600 dark:ring-indigo-500">
+                {uncompletedTasksCount}
+              </span>
+            )}
           </button>
           
           <button 

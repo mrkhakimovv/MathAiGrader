@@ -3,19 +3,23 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import React, { useState } from 'react';
-import { Users, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, ExternalLink, Search, Calendar, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Users, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, ExternalLink, Search, Calendar, CheckCircle, XCircle, Loader2, FolderPlus } from 'lucide-react';
 import { GradingResult } from '../types';
 
 interface AllStudentsViewProps {
   students: any[];
   onDeleteStudent: (student: any) => void;
   history?: GradingResult[];
+  groups?: string[];
+  onUpdateStudentGroups?: (studentId: string, groups: string[]) => void;
 }
 
-export function AllStudentsView({ students, onDeleteStudent, history = [] }: AllStudentsViewProps) {
+export function AllStudentsView({ students, onDeleteStudent, history = [], groups = [], onUpdateStudentGroups }: AllStudentsViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [studentToDelete, setStudentToDelete] = useState<any>(null);
+  const [studentToAssign, setStudentToAssign] = useState<any>(null);
+  const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
 
   const handleDelete = (e: React.MouseEvent, student: any) => {
     e.stopPropagation();
@@ -97,14 +101,27 @@ export function AllStudentsView({ students, onDeleteStudent, history = [] }: All
               onClick={() => setSelectedStudent(student)}
               className="cursor-pointer rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm hover:shadow-md transition-shadow relative group"
             >
-              <button
-                onClick={(e) => handleDelete(e, student)}
-                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors"
-                title="O'quvchini o'chirish"
-              >
-                <Trash2 className="h-5 w-5" />
-              </button>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 pr-8">{student.firstName} {student.lastName}</h3>
+              <div className="absolute top-4 right-4 flex gap-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setStudentToAssign(student);
+                    setSelectedGroups(student.groups || (student.group ? [student.group] : []));
+                  }}
+                  className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded-lg transition-colors"
+                  title="Guruhga biriktirish"
+                >
+                  <FolderPlus className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={(e) => handleDelete(e, student)}
+                  className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors"
+                  title="O'quvchini o'chirish"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 pr-20">{student.firstName} {student.lastName}</h3>
               <div className="space-y-2 mt-4 text-slate-600 dark:text-slate-300">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-slate-500">Telefon:</span>
@@ -122,6 +139,71 @@ export function AllStudentsView({ students, onDeleteStudent, history = [] }: All
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm text-center py-12">
           <Users className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
           <p className="text-slate-500 dark:text-slate-400">Hech qanday o'quvchi topilmadi.</p>
+        </div>
+      )}
+
+      {/* Assign Group Modal */}
+      {studentToAssign && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-xl border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">Guruhga biriktirish</h3>
+              <button
+                onClick={() => setStudentToAssign(null)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+              <span className="font-semibold text-slate-900 dark:text-white">{studentToAssign.firstName} {studentToAssign.lastName}</span> ni quyidagi guruhlarga biriktirish:
+            </p>
+
+            <div className="space-y-2 max-h-60 overflow-y-auto mb-6 pr-2">
+              {groups && groups.length > 0 ? (
+                groups.map(group => (
+                  <label key={group} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedGroups.includes(group)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedGroups([...selectedGroups, group]);
+                        } else {
+                          setSelectedGroups(selectedGroups.filter(g => g !== group));
+                        }
+                      }}
+                      className="h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 dark:border-slate-600 dark:bg-slate-800"
+                    />
+                    <span className="text-sm font-medium text-slate-900 dark:text-white">{group}</span>
+                  </label>
+                ))
+              ) : (
+                <p className="text-sm text-slate-500 text-center py-4">Guruhlar mavjud emas.</p>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setStudentToAssign(null)}
+                className="flex-1 rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              >
+                Bekor qilish
+              </button>
+              <button
+                onClick={() => {
+                  if (onUpdateStudentGroups && studentToAssign.id) {
+                    onUpdateStudentGroups(studentToAssign.id, selectedGroups);
+                  }
+                  setStudentToAssign(null);
+                }}
+                className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-600/20"
+              >
+                Saqlash
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

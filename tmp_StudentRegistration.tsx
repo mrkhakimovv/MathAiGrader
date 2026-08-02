@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Loader2, GraduationCap, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, GraduationCap } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, getDocs, query, where, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 
 export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: (user: any) => void }) {
-  const { groupId, teacherId } = useParams();
+  const { groupId } = useParams();
   const navigate = useNavigate();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -17,8 +17,6 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
   const [teacherUsername, setTeacherUsername] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [existingUser, setExistingUser] = useState<any>(null);
-  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
-  const [suggestedUsernames, setSuggestedUsernames] = useState<string[]>([]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("almath_user");
@@ -33,12 +31,6 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
       }
     }
   }, []);
-
-  useEffect(() => {
-    if (teacherId) {
-      setTeacherUsername(teacherId);
-    }
-  }, [teacherId]);
 
   useEffect(() => {
     // Fetch group details to display the group name
@@ -74,47 +66,6 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
     fetchGroup();
   }, [groupId]);
 
-  useEffect(() => {
-    if (!username.trim()) {
-      setUsernameStatus('idle');
-      setSuggestedUsernames([]);
-      return;
-    }
-
-    const checkUsername = async () => {
-      setUsernameStatus('checking');
-      try {
-        const trimmedUsername = username.trim();
-        const studentsQuery = query(collection(db, "students"), where("username", "==", trimmedUsername));
-        const teachersQuery = query(collection(db, "teachers"), where("username", "==", trimmedUsername));
-        
-        const [studentsSnapshot, teachersSnapshot] = await Promise.all([
-          getDocs(studentsQuery),
-          getDocs(teachersQuery)
-        ]);
-        
-        if (!studentsSnapshot.empty || !teachersSnapshot.empty || trimmedUsername === 'admin' || trimmedUsername === 'teacher') {
-          setUsernameStatus('taken');
-          const suggestions = [
-            `${trimmedUsername}123`,
-            `${trimmedUsername}_2026`,
-            `${trimmedUsername}${Math.floor(Math.random() * 1000)}`
-          ];
-          setSuggestedUsernames(suggestions);
-        } else {
-          setUsernameStatus('available');
-          setSuggestedUsernames([]);
-        }
-      } catch (err) {
-        console.error("Error checking username", err);
-        setUsernameStatus('idle');
-      }
-    };
-
-    const timeoutId = setTimeout(checkUsername, 500);
-    return () => clearTimeout(timeoutId);
-  }, [username]);
-
   const handleJoinExisting = async () => {
     if (!existingUser || !existingUser.id) return;
     setIsLoading(true);
@@ -122,26 +73,17 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
     
     try {
       const studentRef = doc(db, "students", existingUser.id);
-      const targetGroup = groupName || groupId || '';
-      
-      const updates: any = {};
-      if (targetGroup) {
-        updates.groups = arrayUnion(targetGroup);
-      }
-      if (teacherUsername) {
-        updates.teacherUsername = teacherUsername;
-      }
+      const targetGroup = groupName || groupId;
       
       // Update in Firestore
-      if (Object.keys(updates).length > 0) {
-        await updateDoc(studentRef, updates);
-      }
+      await updateDoc(studentRef, {
+        groups: arrayUnion(targetGroup)
+      });
       
       // Update local storage
       const updatedUser = {
         ...existingUser,
-        groups: targetGroup ? [...(existingUser.groups || []), targetGroup] : existingUser.groups,
-        teacherUsername: teacherUsername || existingUser.teacherUsername
+        groups: [...(existingUser.groups || []), targetGroup]
       };
       
       localStorage.setItem("almath_user", JSON.stringify(updatedUser));
@@ -161,11 +103,6 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
       return;
     }
     
-    if (usernameStatus === 'taken') {
-      setError("Ushbu username band, iltimos boshqasini tanlang.");
-      return;
-    }
-    
     setIsLoading(true);
     setError('');
     
@@ -176,13 +113,10 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
         phone: phone.trim(),
         username: username.trim(),
         password: password.trim(),
+        group: groupName || groupId,
         role: 'student',
         createdAt: new Date().toISOString()
       };
-      
-      if (groupName || groupId) {
-        studentData.group = groupName || groupId;
-      }
       
       if (teacherUsername) {
         studentData.teacherUsername = teacherUsername;
@@ -217,7 +151,7 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
           </div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Ro'yxatdan o'tish</h1>
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
-            {groupName ? <><span className="font-semibold text-indigo-600 dark:text-indigo-400">{groupName}</span> guruhiga qo'shilmoqdasiz</> : teacherId ? "O'qituvchi bilan bog'lanish uchun ro'yxatdan o'ting" : "Platformaga kirish uchun ma'lumotlaringizni kiriting"}
+            {groupName ? <><span className="font-semibold text-indigo-600 dark:text-indigo-400">{groupName}</span> guruhiga qo'shilmoqdasiz</> : "Platformaga kirish uchun ma'lumotlaringizni kiriting"}
           </p>
         </div>
 
@@ -232,7 +166,7 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">Sizda allaqachon akkaunt mavjud:</p>
             <p className="font-bold text-lg text-slate-900 dark:text-white mb-4">{existingUser.firstName} {existingUser.lastName}</p>
             <p className="text-sm text-slate-700 dark:text-slate-300 mb-6">
-              Siz ushbu guruhga (<span className="font-semibold">{groupName || groupId || "ushbu o'qituvchiga"}</span>) ham qo'shilishni xohlaysizmi?
+              Siz ushbu guruhga (<span className="font-semibold">{groupName || groupId}</span>) ham qo'shilishni xohlaysizmi?
             </p>
             <div className="flex flex-col gap-3">
               <button
@@ -303,46 +237,15 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
             <label htmlFor="username" className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
               Foydalanuvchi nomi (Username)
             </label>
-            <div className="relative">
-              <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className={`w-full rounded-xl border bg-white dark:bg-slate-800 px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 pr-10 ${
-                  usernameStatus === 'taken' 
-                    ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-rose-500/20' 
-                    : usernameStatus === 'available'
-                      ? 'border-emerald-300 dark:border-emerald-700 focus:border-emerald-500 focus:ring-emerald-500/20'
-                      : 'border-slate-300 dark:border-slate-700 focus:border-indigo-500 focus:ring-indigo-500/20'
-                }`}
-                placeholder="Username kiriting"
-                disabled={isLoading}
-              />
-              <div className="absolute right-3 top-3.5">
-                {usernameStatus === 'checking' && <Loader2 className="h-5 w-5 animate-spin text-slate-400" />}
-                {usernameStatus === 'available' && <CheckCircle2 className="h-5 w-5 text-emerald-500" />}
-                {usernameStatus === 'taken' && <XCircle className="h-5 w-5 text-rose-500" />}
-              </div>
-            </div>
-            
-            {usernameStatus === 'taken' && (
-              <div className="mt-2 text-sm text-rose-600 dark:text-rose-400">
-                Ushbu username band. Boshqa variantlar:
-                <div className="mt-1 flex flex-wrap gap-2">
-                  {suggestedUsernames.map(suggestion => (
-                    <button
-                      key={suggestion}
-                      type="button"
-                      onClick={() => setUsername(suggestion)}
-                      className="rounded-md bg-rose-50 dark:bg-rose-900/20 px-2 py-1 text-xs font-medium text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/40"
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+            <input
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-slate-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              placeholder="Username kiriting"
+              disabled={isLoading}
+            />
           </div>
 
           <div>
@@ -362,7 +265,7 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
 
           <button
             type="submit"
-            disabled={isLoading || !firstName || !lastName || !phone || !username || !password || usernameStatus === 'taken'}
+            disabled={isLoading || !firstName || !lastName || !phone || !username || !password}
             className="mt-6 flex w-full items-center justify-center rounded-xl bg-indigo-600 dark:bg-indigo-500 px-6 py-4 text-base font-semibold text-white shadow-md transition-all hover:bg-indigo-700 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:shadow-none"
           >
             {isLoading ? (
