@@ -9,6 +9,7 @@ import { AdminPanel } from "./components/AdminPanel";
 import { Sidebar, ViewType } from "./components/Sidebar";
 import { AllStudentsView, CreateGroupView, CreateTaskView, AllGroupsView } from "./components/TeacherViews";
 import { StudentTasksView, StudentStatsView } from "./components/StudentViews";
+import { StudentRatingView } from "./components/StudentRatingView";
 import { AddStudentModal } from "./components/AddStudentModal";
 import { AddGroupModal } from "./components/AddGroupModal";
 import { GradingResult } from "./types";
@@ -647,6 +648,13 @@ function MainApp() {
           />
         )}
         {activeView === 'student-stats' && role === 'student' && <StudentStatsView tasks={tasks} history={userHistory} studentInfo={students.find(s => s.username === currentUser)} />}
+        {activeView === 'student-rating' && role === 'student' && (
+          <StudentRatingView 
+            students={students} 
+            history={history} 
+            studentInfo={students.find(s => s.username === currentUser)} 
+          />
+        )}
       </div>
       </div>
 
@@ -657,6 +665,7 @@ function MainApp() {
         isDarkMode={isDarkMode}
         toggleDarkMode={toggleDarkMode}
         username={currentUser || ''}
+        onUsernameChange={(newUsername) => setCurrentUser(newUsername)}
         onLogout={handleLogout}
         userRole={role}
         studentInfo={students.find(s => s.username === currentUser)}

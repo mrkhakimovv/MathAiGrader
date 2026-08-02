@@ -1,6 +1,8 @@
-import React from 'react';
-import { X, Moon, Sun, User, Settings, PieChart, Users, BookOpen } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Moon, Sun, User, Settings, PieChart, Users, BookOpen, Edit2, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { GradingResult } from '../types';
+import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -13,25 +15,84 @@ interface ProfileModalProps {
   userRole?: 'admin' | 'teacher' | 'student' | null;
   studentInfo?: any;
   tasks?: any[];
+  onUsernameChange?: (newUsername: string) => void;
 }
 
-export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkMode, username, onLogout, userRole, studentInfo, tasks = [] }: ProfileModalProps) {
+export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkMode, username, onLogout, userRole, studentInfo, tasks = [], onUsernameChange }: ProfileModalProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [firstName, setFirstName] = useState(studentInfo?.firstName || '');
+  const [lastName, setLastName] = useState(studentInfo?.lastName || '');
+  const [newUsername, setNewUsername] = useState(username || '');
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'available' | 'taken'>('idle');
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Reset form when opened or studentInfo changes
+  useEffect(() => {
+    if (isOpen) {
+      setFirstName(studentInfo?.firstName || '');
+      setLastName(studentInfo?.lastName || '');
+      setNewUsername(username || '');
+      setIsEditing(false);
+      setUsernameStatus('idle');
+    }
+  }, [isOpen, studentInfo, username]);
+
+  // Check username availability
+  useEffect(() => {
+    const checkUsername = async () => {
+      if (!newUsername || newUsername.trim() === username) {
+        setUsernameStatus('idle');
+        return;
+      }
+      
+      setIsCheckingUsername(true);
+      try {
+        const q = query(collection(db, "students"), where("username", "==", newUsername.trim()));
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) {
+          setUsernameStatus('available');
+        } else {
+          setUsernameStatus('taken');
+        }
+      } catch (err) {
+        console.error("Error checking username:", err);
+      } finally {
+        setIsCheckingUsername(false);
+      }
+    };
+
+    const timeoutId = setTimeout(checkUsername, 500);
+    return () => clearTimeout(timeoutId);
+  }, [newUsername, username]);
+
   if (!isOpen) return null;
 
-  const uniqueHistoryMap = new Map();
-  history.forEach(h => {
-    const key = h.taskId || h.createdAt || Math.random().toString();
-    if (!uniqueHistoryMap.has(key) || uniqueHistoryMap.get(key).score < h.score) {
-      uniqueHistoryMap.set(key, h);
+  const handleSave = async () => {
+    if (usernameStatus === 'taken') return;
+    
+    setIsSaving(true);
+    try {
+      if (studentInfo?.id) {
+        await updateDoc(doc(db, "students", studentInfo.id), {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          username: newUsername.trim()
+        });
+        
+        if (newUsername.trim() !== username && onUsernameChange) {
+          onUsernameChange(newUsername.trim());
+        }
+        
+        setIsEditing(false);
+      }
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      alert("Xatolik yuz berdi");
+    } finally {
+      setIsSaving(false);
     }
-  });
-  const uniqueHistory = Array.from(uniqueHistoryMap.values());
-
-  const total = uniqueHistory.length;
-  const avgScore = total > 0 ? (uniqueHistory.reduce((acc, curr) => acc + curr.score, 0) / total).toFixed(1) : "0.0";
-  const perfect = uniqueHistory.filter(h => h.isCorrect).length;
-  const incorrect = uniqueHistory.filter(h => !h.isCorrect && !h.isPartiallyCorrect).length;
-  const partial = total - perfect - incorrect;
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
@@ -67,6 +128,83 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
             </div>
           </div>
 
+          {userRole === 'student' && (
+            <div className="flex justify-center -mt-2">
+              <button
+                onClick={() => setIsEditing(!isEditing)}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 dark:text-indigo-400 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/40 rounded-lg transition-colors"
+              >
+                <Edit2 className="h-4 w-4" />
+                {isEditing ? "Tahrirlashni bekor qilish" : "Ma'lumotlarni tahrirlash"}
+              </button>
+            </div>
+          )}
+
+          {isEditing && (
+            <div className="space-y-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 animate-in slide-in-from-top-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Ism</label>
+                  <input
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Familiya</label>
+                  <input
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Username</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value.toLowerCase())}
+                    className={`w-full pl-3 pr-10 py-2 text-sm border rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                      usernameStatus === 'taken' ? 'border-rose-300 focus:ring-rose-500' : 
+                      usernameStatus === 'available' ? 'border-emerald-300 focus:ring-emerald-500' : 
+                      'border-slate-200 dark:border-slate-700'
+                    }`}
+                  />
+                  <div className="absolute inset-y-0 right-3 flex items-center">
+                    {isCheckingUsername ? (
+                      <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+                    ) : usernameStatus === 'available' ? (
+                      <CheckCircle className="h-4 w-4 text-emerald-500" />
+                    ) : usernameStatus === 'taken' ? (
+                      <XCircle className="h-4 w-4 text-rose-500" />
+                    ) : null}
+                  </div>
+                </div>
+                {usernameStatus === 'taken' && (
+                  <p className="mt-1 text-xs text-rose-500 font-medium">Bu username band. Boshqa tanlang.</p>
+                )}
+              </div>
+
+              <button
+                onClick={handleSave}
+                disabled={isSaving || usernameStatus === 'taken' || !firstName.trim() || !lastName.trim() || !newUsername.trim()}
+                className="w-full py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {isSaving ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> Saqlanmoqda...</>
+                ) : (
+                  "Saqlash"
+                )}
+              </button>
+            </div>
+          )}
+
           <hr className="border-slate-200 dark:border-slate-800" />
 
           {/* Student Specific Info */}
@@ -99,40 +237,6 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
               </div>
             </section>
           )}
-
-          {/* Stats */}
-          <section>
-            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2 mb-3">
-              <PieChart className="h-4 w-4" />
-              Your Statistics
-            </h4>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Problems Graded</p>
-                <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{total}</p>
-              </div>
-              <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700">
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Average Score</p>
-                <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{avgScore} / 100</p>
-              </div>
-            </div>
-            <div className="mt-3 flex gap-2 justify-between">
-               <div className="flex-1 text-center bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/30 p-2 rounded-lg">
-                  <div className="text-emerald-700 dark:text-emerald-400 font-bold">{perfect}</div>
-                  <div className="text-[10px] text-emerald-600 dark:text-emerald-500 uppercase tracking-wider">Perfect</div>
-               </div>
-               <div className="flex-1 text-center bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/30 p-2 rounded-lg">
-                  <div className="text-amber-700 dark:text-amber-400 font-bold">{partial}</div>
-                  <div className="text-[10px] text-amber-600 dark:text-amber-500 uppercase tracking-wider">Partial</div>
-               </div>
-               <div className="flex-1 text-center bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800/30 p-2 rounded-lg">
-                  <div className="text-rose-700 dark:text-rose-400 font-bold">{incorrect}</div>
-                  <div className="text-[10px] text-rose-600 dark:text-rose-500 uppercase tracking-wider">Incorrect</div>
-               </div>
-            </div>
-          </section>
-
-          <hr className="border-slate-200 dark:border-slate-800" />
 
           {/* Settings */}
           <section>
