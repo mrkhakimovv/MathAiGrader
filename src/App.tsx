@@ -116,6 +116,13 @@ function MainApp() {
   const teacherGroups = teacherGroupDetails.map(g => g.name);
   const teacherStudents = role === 'teacher' ? students.filter(s => s.teacherUsername === currentUser) : students;
   const teacherTasks = role === 'teacher' ? tasks.filter(t => t.teacherUsername === currentUser) : tasks;
+  
+  const userDisplayName = role === 'student' 
+    ? (() => {
+        const s = students.find(s => s.username === currentUser);
+        return s?.firstName ? `${s.firstName} ${s.lastName}` : currentUser;
+      })()
+    : currentUser;
 
     const handleLogin = async (username: string, pass: string) => {
     if (username === 'admin') {
@@ -399,12 +406,12 @@ function MainApp() {
 
         {activeView === 'home' && role !== 'student' && (
           <div className="space-y-8">
-            <HomeView role={role} username={currentUser} />
+            <HomeView role={role} username={userDisplayName} />
             <DashboardStats groupDetails={teacherGroupDetails} students={teacherStudents} tasks={teacherTasks} />
           </div>
         )}
         {activeView === 'home' && role === 'student' && (
-          <HomeView role={role} username={currentUser} />
+          <HomeView role={role} username={userDisplayName} />
         )}
 
         {activeView === 'grade-task' && (
