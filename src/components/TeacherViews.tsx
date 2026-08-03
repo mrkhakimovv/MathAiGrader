@@ -3,7 +3,7 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import React, { useState } from 'react';
-import { Users, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, ExternalLink, Search, Calendar, CheckCircle, XCircle, Loader2, FolderPlus, Edit2 } from 'lucide-react';
+import { Users, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, ExternalLink, Search, Calendar, CheckCircle, XCircle, Loader2, FolderPlus, Edit2, Clock } from 'lucide-react';
 import { GradingResult } from '../types';
 
 interface AllStudentsViewProps {
@@ -848,24 +848,64 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
             <div 
               key={index} 
               onClick={() => setSelectedGroup(group)}
-              className="cursor-pointer rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm hover:shadow-md transition-shadow relative group"
+              className="cursor-pointer rounded-[24px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-lg transition-all duration-300 relative group flex flex-col"
             >
-              <button
-                onClick={(e) => handleDelete(e, index, group.name)}
-                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors"
-                title="Guruhni o'chirish"
-              >
-                <Trash2 className="h-5 w-5" />
-              </button>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 pr-8">{group.name}</h3>
-              <div className="space-y-2 mt-4 text-slate-600 dark:text-slate-300">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-slate-500">Kunlari:</span>
-                  <span>{group.days}</span>
+              <div className="flex justify-between items-start mb-5">
+                {/* Badge */}
+                <div className="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-3 py-1.5 rounded-full flex items-center gap-1.5 text-xs sm:text-sm font-bold shadow-sm">
+                  <Users className="w-3.5 h-3.5" />
+                  {group.name.split(' ')[0]}
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-slate-500">Soati:</span>
-                  <span>{group.time}</span>
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // TODO: Add edit handler here if needed, for now just UI
+                    }}
+                    className="flex flex-col items-center justify-center w-10 h-10 sm:w-11 sm:h-11 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm transition-colors"
+                    title="Guruhni tahrirlash"
+                  >
+                    <Edit2 className="h-3.5 w-3.5 mb-0.5" />
+                    <span className="text-[8px] sm:text-[9px] font-medium leading-none">Tahrirlash</span>
+                  </button>
+                  <button
+                    onClick={(e) => handleDelete(e, index, group.name)}
+                    className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 bg-white dark:bg-slate-800 text-red-500 hover:text-white hover:bg-red-500 dark:hover:bg-red-600 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm transition-colors"
+                    title="Guruhni o'chirish"
+                  >
+                    <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                  </button>
+                </div>
+              </div>
+
+              <h3 className="text-2xl sm:text-3xl font-bold text-[#0a1629] dark:text-white mb-2 sm:mb-3 tracking-tight">
+                {group.name}
+              </h3>
+              <div className="w-12 h-1 bg-blue-600 rounded-full mb-6"></div>
+
+              <div className="space-y-4 sm:space-y-5 mt-auto">
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center shrink-0 border border-slate-100 dark:border-slate-700">
+                    <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="pt-0.5 sm:pt-1">
+                    <p className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1">Kunlari</p>
+                    <p className="text-[#0a1629] dark:text-slate-200 font-medium text-sm sm:text-base leading-tight max-w-[180px]">{group.days}</p>
+                  </div>
+                </div>
+                
+                <hr className="border-slate-100 dark:border-slate-800/60" />
+
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center shrink-0 border border-slate-100 dark:border-slate-700">
+                    <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div className="pt-0.5 sm:pt-1">
+                    <p className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400 mb-0.5 sm:mb-1">Soati</p>
+                    <p className="text-blue-600 dark:text-blue-400 font-bold text-base sm:text-lg">{group.time}</p>
+                  </div>
                 </div>
               </div>
             </div>
