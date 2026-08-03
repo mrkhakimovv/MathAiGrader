@@ -3,8 +3,9 @@ import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import React, { useState } from 'react';
-import { Users, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, ExternalLink, Search, Calendar, CheckCircle, XCircle, Loader2, FolderPlus, Edit2, Clock } from 'lucide-react';
+import { Users, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, ExternalLink, Search, Calendar, CheckCircle, XCircle, Loader2, FolderPlus, Edit2, Clock, Download } from 'lucide-react';
 import { GradingResult } from '../types';
+import * as XLSX from 'xlsx';
 
 interface AllStudentsViewProps {
   students: any[];
@@ -828,10 +829,43 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
         averageScore,
         tasksCompleted: studentHistory.length
       };
-    }).sort((a, b) => b.averageScore - a.averageScore);
+    }).sort((a, b) => {
+      if (b.tasksCompleted !== a.tasksCompleted) {
+        return b.tasksCompleted - a.tasksCompleted;
+      }
+      return b.averageScore - a.averageScore;
+    });
   };
 
   const groupStudents = getGroupStudents();
+
+  const handleDownloadExcel = () => {
+    if (!selectedGroup || !groupStudents || groupStudents.length === 0) return;
+
+    const excelData = groupStudents.map((student, index) => ({
+      'O\'rin': index + 1,
+      'Ism': student.firstName,
+      'Familiya': student.lastName,
+      'Bajarilgan vazifalar': student.tasksCompleted,
+      'O\'rtacha ball': student.averageScore > 0 ? Number(student.averageScore.toFixed(1)) : 0
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Reyting');
+
+    const wscols = [
+      { wch: 6 }, 
+      { wch: 15 }, 
+      { wch: 15 }, 
+      { wch: 20 }, 
+      { wch: 15 } 
+    ];
+    worksheet['!cols'] = wscols;
+
+    const fileName = `${selectedGroup.name.replace(/\s+/g, '_')}_reytingi.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+  };
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -980,12 +1014,22 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
       {selectedGroup && (
         <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-slate-900 animate-in slide-in-from-bottom-8 duration-300">
           <div className="relative flex-1 w-full max-w-5xl mx-auto overflow-y-auto flex flex-col p-6 sm:p-10">
-            <button
-              onClick={() => setSelectedGroup(null)}
-              className="absolute right-6 top-6 sm:right-10 sm:top-10 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors z-10"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <div className="absolute right-6 top-6 sm:right-10 sm:top-10 flex items-center gap-2 z-10">
+              <button
+                onClick={handleDownloadExcel}
+                className="flex items-center gap-2 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-500/20 dark:bg-emerald-500/20 dark:text-emerald-400 dark:hover:bg-emerald-500/30 transition-colors"
+                title="Reytingni excel formatda yuklash"
+              >
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Yuklash</span>
+              </button>
+              <button
+                onClick={() => setSelectedGroup(null)}
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
             
             <div className="mb-6 flex items-center gap-4 pr-10 shrink-0">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
@@ -997,8 +1041,8 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 shrink-0">
-              <div className="space-y-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4 border border-slate-100 dark:border-slate-800">
+            <div className="mb-8 shrink-0">
+              <div className="space-y-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4 border border-slate-100 dark:border-slate-800 max-w-sm">
                 <div className="grid grid-cols-3 gap-2">
                   <div className="text-sm font-semibold text-slate-500 dark:text-slate-400">Kunlari:</div>
                   <div className="col-span-2 text-sm font-medium text-slate-900 dark:text-slate-200">{selectedGroup.days}</div>
@@ -1010,26 +1054,6 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                 <div className="grid grid-cols-3 gap-2">
                   <div className="text-sm font-semibold text-slate-500 dark:text-slate-400">O'quvchilar:</div>
                   <div className="col-span-2 text-sm font-medium text-slate-900 dark:text-slate-200">{groupStudents.length} ta</div>
-                </div>
-              </div>
-              
-              <div className="col-span-1 md:col-span-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4 border border-slate-100 dark:border-slate-800">
-                <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-2">
-                  O'quvchilar uchun ro'yxatdan o'tish havolasi
-                </h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-3">
-                  Ushbu havolani yuborish orqali o'quvchilarni guruhga qo'shishingiz mumkin.
-                </p>
-                <div className="flex gap-2">
-                  <div className="flex-1 truncate rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-600 dark:text-slate-300 select-all font-mono">
-                    {getReferralLink(selectedGroup)}
-                  </div>
-                  <button
-                    onClick={handleCopyLink}
-                    className="flex items-center justify-center gap-2 rounded-lg bg-indigo-600 dark:bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors"
-                  >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </button>
                 </div>
               </div>
             </div>
