@@ -637,23 +637,12 @@ function MainApp() {
                 alert("Vazifani o'chirishda xatolik yuz berdi.");
               }
             }}
-            onDeleteGroup={async (index) => {
-              const updatedGroups = [...groupDetails];
-              const groupName = updatedGroups[index].name;
-              
-              // Also delete from firebase
+            onDeleteGroup={async (groupId) => {
               try {
-                const groupToDelete = groupDetails[index];
-                if (groupToDelete && groupToDelete.id) {
-                   await deleteDoc(doc(db, "groups", groupToDelete.id));
-                }
+                await deleteDoc(doc(db, "groups", groupId));
               } catch(e) {
-                 console.log(e);
+                 console.error(e);
               }
-              
-              updatedGroups.splice(index, 1);
-              setGroupDetails(updatedGroups);
-              setGroups(groups.filter(g => g !== groupName));
             }}
           />
         )}

@@ -754,7 +754,7 @@ export function CreateTaskView({ onCreateTask, groups, isSubmitting = false, upl
 
 interface AllGroupsViewProps {
   groups: any[];
-  onDeleteGroup: (index: number) => void;
+  onDeleteGroup: (groupId: string) => void;
   students?: any[];
   history?: GradingResult[];
   tasks?: any[];
@@ -764,20 +764,20 @@ interface AllGroupsViewProps {
 export function AllGroupsView({ groups, onDeleteGroup, students = [], history = [], tasks = [], onDeleteTask }: AllGroupsViewProps) {
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const [copied, setCopied] = useState(false);
-  const [groupToDelete, setGroupToDelete] = useState<{ index: number, name: string } | null>(null);
+  const [groupToDelete, setGroupToDelete] = useState<{ id: string, name: string } | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'students' | 'tasks' | 'all-students'>('students');
   const [selectedTaskAnalysis, setSelectedTaskAnalysis] = useState<any>(null);
   const [analysisTab, setAnalysisTab] = useState<'tahlil' | 'submissions'>('tahlil');
 
-  const handleDelete = (e: React.MouseEvent, index: number, groupName: string) => {
+  const handleDelete = (e: React.MouseEvent, id: string, groupName: string) => {
     e.stopPropagation();
-    setGroupToDelete({ index, name: groupName });
+    setGroupToDelete({ id, name: groupName });
   };
 
   const confirmDelete = () => {
     if (groupToDelete) {
-      onDeleteGroup(groupToDelete.index);
+      onDeleteGroup(groupToDelete.id);
       if (selectedGroup?.name === groupToDelete.name) {
         setSelectedGroup(null);
       }
@@ -871,7 +871,7 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                     <span className="text-[8px] sm:text-[9px] font-medium leading-none">Tahrirlash</span>
                   </button>
                   <button
-                    onClick={(e) => handleDelete(e, index, group.name)}
+                    onClick={(e) => handleDelete(e, group.id || index.toString(), group.name)}
                     className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 bg-white dark:bg-slate-800 text-red-500 hover:text-white hover:bg-red-500 dark:hover:bg-red-600 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm transition-colors"
                     title="Guruhni o'chirish"
                   >
