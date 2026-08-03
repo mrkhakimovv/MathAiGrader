@@ -104,47 +104,45 @@ export function AllStudentsView({ students, onDeleteStudent, history = [], group
             <div 
               key={index} 
               onClick={() => setSelectedStudent(student)}
-              className="cursor-pointer rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm hover:shadow-md transition-shadow group"
+              className="cursor-pointer rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm hover:shadow-md transition-shadow relative group"
             >
-              <div className="flex justify-between items-start mb-4 gap-4">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white break-words flex-1 leading-tight">
-                  {student.firstName} {student.lastName}
-                </h3>
-                <div className="flex gap-1 shrink-0 -mt-2 -mr-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setStudentToEdit(student);
-                      setEditFirstName(student.firstName || '');
-                      setEditLastName(student.lastName || '');
-                      setEditPhone(student.phone || '');
-                    }}
-                    className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors"
-                    title="O'quvchi ma'lumotlarini tahrirlash"
-                  >
-                    <Edit2 className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setStudentToAssign(student);
-                      setSelectedGroups(student.groups || (student.group ? [student.group] : []));
-                    }}
-                    className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded-lg transition-colors"
-                    title="Guruhga biriktirish"
-                  >
-                    <FolderPlus className="h-5 w-5" />
-                  </button>
-                  <button
-                    onClick={(e) => handleDelete(e, student)}
-                    className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors"
-                    title="O'quvchini o'chirish"
-                  >
-                    <Trash2 className="h-5 w-5" />
-                  </button>
-                </div>
+              <div className="absolute top-4 right-4 flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setStudentToEdit(student);
+                    setEditFirstName(student.firstName || '');
+                    setEditLastName(student.lastName || '');
+                    setEditPhone(student.phone || '');
+                  }}
+                  className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors"
+                  title="O'quvchi ma'lumotlarini tahrirlash"
+                >
+                  <Edit2 className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setStudentToAssign(student);
+                    setSelectedGroups(student.groups || (student.group ? [student.group] : []));
+                  }}
+                  className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded-lg transition-colors"
+                  title="Guruhga biriktirish"
+                >
+                  <FolderPlus className="h-5 w-5" />
+                </button>
+                <button
+                  onClick={(e) => handleDelete(e, student)}
+                  className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors"
+                  title="O'quvchini o'chirish"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </button>
               </div>
-              <div className="space-y-2 text-slate-600 dark:text-slate-300">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 pr-[110px] line-clamp-2 leading-tight">
+                {student.firstName} {student.lastName}
+              </h3>
+              <div className="space-y-2 mt-4 text-slate-600 dark:text-slate-300">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-slate-500">Telefon:</span>
                   <span>{student.phone}</span>
