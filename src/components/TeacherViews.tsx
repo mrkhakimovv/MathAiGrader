@@ -104,53 +104,98 @@ export function AllStudentsView({ students, onDeleteStudent, history = [], group
             <div 
               key={index} 
               onClick={() => setSelectedStudent(student)}
-              className="cursor-pointer rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm hover:shadow-md transition-shadow relative group"
+              className="cursor-pointer rounded-[24px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow relative group flex flex-col"
             >
-              <div className="absolute top-4 right-4 flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setStudentToEdit(student);
-                    setEditFirstName(student.firstName || '');
-                    setEditLastName(student.lastName || '');
-                    setEditPhone(student.phone || '');
-                  }}
-                  className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/50 rounded-lg transition-colors"
-                  title="O'quvchi ma'lumotlarini tahrirlash"
-                >
-                  <Edit2 className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setStudentToAssign(student);
-                    setSelectedGroups(student.groups || (student.group ? [student.group] : []));
-                  }}
-                  className="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 rounded-lg transition-colors"
-                  title="Guruhga biriktirish"
-                >
-                  <FolderPlus className="h-5 w-5" />
-                </button>
-                <button
-                  onClick={(e) => handleDelete(e, student)}
-                  className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-lg transition-colors"
-                  title="O'quvchini o'chirish"
-                >
-                  <Trash2 className="h-5 w-5" />
-                </button>
+              {/* Top part with avatar and actions */}
+              <div className="flex justify-between items-start mb-4">
+                <div className="relative">
+                  {/* Status Badge */}
+                  <span className="absolute -top-2 -left-2 z-10 bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 font-bold text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm border border-green-100 dark:border-green-500/20">
+                    FAOL
+                  </span>
+                  {/* Avatar */}
+                  <div className="h-16 w-16 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <img 
+                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${student.id || student.firstName}&backgroundColor=e2e8f0`} 
+                      alt="avatar" 
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                </div>
+                
+                {/* Actions */}
+                <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setStudentToEdit(student);
+                      setEditFirstName(student.firstName || '');
+                      setEditLastName(student.lastName || '');
+                      setEditPhone(student.phone || '');
+                    }}
+                    className="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                    title="O'quvchi ma'lumotlarini tahrirlash"
+                  >
+                    <Edit2 className="h-[18px] w-[18px]" />
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setStudentToAssign(student);
+                      setSelectedGroups(student.groups || (student.group ? [student.group] : []));
+                    }}
+                    className="p-1.5 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                    title="Guruhga biriktirish"
+                  >
+                    <FolderPlus className="h-[18px] w-[18px]" />
+                  </button>
+                  <button
+                    onClick={(e) => handleDelete(e, student)}
+                    className="p-1.5 text-slate-500 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                    title="O'quvchini o'chirish"
+                  >
+                    <Trash2 className="h-[18px] w-[18px]" />
+                  </button>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2 pr-[110px] line-clamp-2 leading-tight">
-                {student.firstName} {student.lastName}
-              </h3>
-              <div className="space-y-2 mt-4 text-slate-600 dark:text-slate-300">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-slate-500">Telefon:</span>
-                  <span>{student.phone}</span>
+
+              {/* Name & ID */}
+              <div className="mb-4">
+                <h3 className="text-xl font-semibold text-slate-900 dark:text-white leading-tight">
+                  {student.firstName} {student.lastName}
+                </h3>
+                <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mt-1">
+                  ID: #{student.id ? student.id.substring(0, 7).toUpperCase() : 'ST-2940'}
+                </p>
+              </div>
+              
+              <hr className="border-slate-100 dark:border-slate-800 mb-4" />
+
+              {/* Stats / Details */}
+              <div className="space-y-3 mb-6">
+                <div className="flex justify-between items-center text-[15px]">
+                  <span className="text-slate-500 dark:text-slate-400">Telefon:</span>
+                  <span className="font-medium text-blue-700 dark:text-blue-400">{student.phone}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold text-slate-500">Guruh:</span>
-                  <span>{student.groups ? student.groups.join(', ') : student.group}</span>
+                <div className="flex justify-between items-center text-[15px]">
+                  <span className="text-slate-500 dark:text-slate-400">Guruh:</span>
+                  <span className="font-medium text-slate-900 dark:text-white">{student.groups ? student.groups.join(', ') : student.group}</span>
                 </div>
+                <div className="flex justify-between items-center text-[15px]">
+                  <span className="text-slate-500 dark:text-slate-400">Username:</span>
+                  <span className="font-medium text-slate-900 dark:text-white">{student.username}</span>
+                </div>
+                <div className="flex justify-between items-center text-[15px]">
+                  <span className="text-slate-500 dark:text-slate-400">Parol:</span>
+                  <span className="font-medium text-slate-900 dark:text-white">{student.password || 'Kiritilmagan'}</span>
+                </div>
+              </div>
+
+              {/* Action button */}
+              <div className="mt-auto">
+                <button className="w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-blue-700 dark:text-blue-400 font-semibold text-sm hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  Batafsil ma'lumot
+                </button>
               </div>
             </div>
           ))}
