@@ -1317,52 +1317,134 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                     .filter(h => h.taskId === selectedTaskAnalysis.id)
                     .sort((a, b) => (b.score || 0) - (a.score || 0));
 
-                  // Group by studentUsername, keeping the highest score
                   const uniqueSubmissions = submissions.reduce((acc: any[], curr: any) => {
                     if (!acc.find(item => item.studentUsername === curr.studentUsername)) {
                       acc.push(curr);
                     }
                     return acc;
                   }, []);
+                  
+                  const taskGroup = selectedTaskAnalysis.group;
+                  const relevantStudents = (taskGroup && taskGroup !== 'Barcha guruhlar' && taskGroup !== '') 
+                    ? students.filter(s => s.group === taskGroup || (s.groups && s.groups.includes(taskGroup))) 
+                    : students;
 
-                  return uniqueSubmissions.length > 0 ? (
-                    <div className="space-y-3">
-                      {uniqueSubmissions.map((sub: any, idx: number) => {
-                        const student = students.find(s => s.username === sub.studentUsername) || { fullName: sub.studentUsername };
-                        return (
-                          <div key={idx} className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50">
-                            <div className="flex items-center gap-4">
-                              <div className={`flex h-10 w-10 items-center justify-center rounded-full font-bold text-sm ${
-                                idx === 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
-                                idx === 1 ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300' :
-                                idx === 2 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                                'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400'
-                              }`}>
-                                {idx + 1}
+                  const submittedStudents = uniqueSubmissions.map(sub => {
+                    const student = relevantStudents.find(s => s.username === sub.studentUsername) || students.find(s => s.username === sub.studentUsername);
+                    return {
+                      ...sub,
+                      studentInfo: student || { firstName: sub.studentUsername, lastName: '' },
+                      isSubmitted: true
+                    };
+                  });
+                  
+                  const submittedUsernames = uniqueSubmissions.map(sub => sub.studentUsername);
+                  const unsubmittedStudents = relevantStudents
+                    .filter(s => !submittedUsernames.includes(s.username))
+                    .map(s => ({
+                      studentInfo: s,
+                      score: 0,
+                      isSubmitted: false
+                    }));
+                  
+                  const allRanked = [...submittedStudents, ...unsubmittedStudents];
+
+                  const handleDownloadTaskExcel = () => {
+                    if (allRanked.length === 0) return;
+                    
+                    const excelData = allRanked.map((item, index) => ({
+                      'O\'rin': item.isSubmitted ? index + 1 : '-',
+                      'Ism': item.studentInfo.firstName || item.studentInfo.fullName,
+                      'Familiya': item.studentInfo.lastName || '',
+                      'Holati': item.isSubmitted ? 'Bajargan' : 'Bajarmagan',
+                      'Ball': item.isSubmitted ? item.score : 0,
+                      'Yuborilgan sana': item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000).toLocaleDateString() : '-'
+                    }));
+                    
+                    const worksheet = XLSX.utils.json_to_sheet(excelData);
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, 'Natijalar');
+                    
+                    const wscols = [
+                      { wch: 6 }, 
+                      { wch: 15 }, 
+                      { wch: 15 }, 
+                      { wch: 15 }, 
+                      { wch: 10 },
+                      { wch: 15 }
+                    ];
+                    worksheet['!cols'] = wscols;
+                    
+                    const fileName = `${selectedTaskAnalysis.title.replace(/\s+/g, '_')}_natijalari.xlsx`;
+                    XLSX.writeFile(workbook, fileName);
+                  };
+
+                  return (
+                    <div className="space-y-4">
+                      {allRanked.length > 0 && (
+                        <div className="flex justify-end">
+                          <button
+                            onClick={handleDownloadTaskExcel}
+                            className="flex items-center gap-2 rounded-lg bg-emerald-500/10 px-3 py-2 text-sm font-medium text-emerald-600 hover:bg-emerald-500/20 dark:bg-emerald-500/20 dark:text-emerald-400 dark:hover:bg-emerald-500/30 transition-colors"
+                            title="Natijalarni excel formatda yuklash"
+                          >
+                            <Download className="h-4 w-4" />
+                            <span className="hidden sm:inline">Yuklash</span>
+                          </button>
+                        </div>
+                      )}
+                      {allRanked.length > 0 ? (
+                        <div className="space-y-3">
+                          {allRanked.map((item: any, idx: number) => {
+                            const student = item.studentInfo;
+                            return (
+                              <div key={idx} className={`flex items-center justify-between p-4 rounded-xl border ${item.isSubmitted ? 'border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50' : 'border-rose-100 dark:border-rose-900/30 bg-rose-50/50 dark:bg-rose-900/10'} opacity-${item.isSubmitted ? '100' : '75'}`}>
+                                <div className="flex items-center gap-4">
+                                  <div className={`flex h-10 w-10 items-center justify-center rounded-full font-bold text-sm ${
+                                    !item.isSubmitted ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400' :
+                                    idx === 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
+                                    idx === 1 ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300' :
+                                    idx === 2 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
+                                    'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400'
+                                  }`}>
+                                    {item.isSubmitted ? idx + 1 : '-'}
+                                  </div>
+                                  <div>
+                                    <p className={`font-semibold ${item.isSubmitted ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300'}`}>
+                                      {student.firstName || student.fullName} {student.lastName}
+                                    </p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                                      {item.isSubmitted 
+                                        ? `Natija yuborilgan: ${item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000).toLocaleDateString() : ''}`
+                                        : "Vazifa bajarmagan"
+                                      }
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  {item.isSubmitted ? (
+                                    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-semibold ${
+                                      item.score >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
+                                      item.score >= 60 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
+                                      'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400'
+                                    }`}>
+                                      {item.score} ball
+                                    </span>
+                                  ) : (
+                                    <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                                      0 ball
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                              <div>
-                                <p className="font-semibold text-slate-900 dark:text-white">{student.fullName || sub.studentUsername}</p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400">
-                                  Natija yuborilgan: {sub.createdAt?.seconds ? new Date(sub.createdAt.seconds * 1000).toLocaleDateString() : ''}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-semibold ${
-                                sub.score >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
-                                sub.score >= 60 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
-                                'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400'
-                              }`}>
-                                {sub.score} ball
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="text-center py-10">
-                      <p className="text-slate-500 dark:text-slate-400">Ushbu vazifani hali hech kim bajarmagan.</p>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-center py-10">
+                          <p className="text-slate-500 dark:text-slate-400">Ushbu guruhda o'quvchilar mavjud emas yoki vazifani hech kim bajarmagan.</p>
+                        </div>
+                      )}
                     </div>
                   );
                 })()
