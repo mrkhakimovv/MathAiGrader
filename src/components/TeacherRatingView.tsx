@@ -11,16 +11,8 @@ interface TeacherRatingViewProps {
 export function TeacherRatingView({ students, history, groups }: TeacherRatingViewProps) {
   const [activeGroup, setActiveGroup] = React.useState<string>('Barchasi');
 
-  const groupLeaderboards = useMemo(() => {
-    const boards: Record<string, any[]> = {};
-    
-    // Initialize empty boards for all groups
-    groups.forEach(g => {
-      boards[g] = [];
-    });
-    
-    // Calculate scores for all students
-    const studentScores = students.map(student => {
+  const studentScores = useMemo(() => {
+    return students.map(student => {
       const studentHistory = history.filter(h => h.studentUsername === student.username);
       
       const uniqueHistoryMap = new Map();
@@ -42,6 +34,15 @@ export function TeacherRatingView({ students, history, groups }: TeacherRatingVi
         totalScore,
         averageScore: parseFloat(averageScore)
       };
+    });
+  }, [students, history]);
+
+  const groupLeaderboards = useMemo(() => {
+    const boards: Record<string, any[]> = {};
+    
+    // Initialize empty boards for all groups
+    groups.forEach(g => {
+      boards[g] = [];
     });
     
     // Assign students to their groups
@@ -69,10 +70,19 @@ export function TeacherRatingView({ students, history, groups }: TeacherRatingVi
     });
     
     return boards;
-  }, [students, history, groups]);
+  }, [studentScores, groups]);
 
-  const displayedGroups = activeGroup === 'Barchasi' 
-    ? Object.entries(groupLeaderboards)
+  const allStudentsLeaderboard = useMemo(() => {
+    return [...studentScores].sort((a, b) => {
+      if (b.totalTasks !== a.totalTasks) {
+        return b.totalTasks - a.totalTasks;
+      }
+      return b.averageScore - a.averageScore;
+    });
+  }, [studentScores]);
+
+  const displayedGroups: [string, any[]][] = activeGroup === 'Barchasi' 
+    ? [['Umumiy', allStudentsLeaderboard]]
     : Object.entries(groupLeaderboards).filter(([name]) => name === activeGroup);
 
   return (
@@ -119,7 +129,7 @@ export function TeacherRatingView({ students, history, groups }: TeacherRatingVi
             <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
               <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                 <Star className="h-5 w-5 text-amber-500" />
-                {groupName} guruhi reytingi
+                {groupName === 'Umumiy' ? 'Umumiy reyting' : `${groupName} guruhi reytingi`}
               </h3>
               <span className="text-sm text-slate-500 dark:text-slate-400 font-medium bg-slate-200/50 dark:bg-slate-800 px-3 py-1 rounded-full">
                 {leaderboard.length} ta o'quvchi
