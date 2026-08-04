@@ -1,7 +1,7 @@
 import React from 'react';
 import { Home, Users, UserPlus, FilePlus, Library, User, CheckSquare, BookOpen, BarChart2, Trophy } from 'lucide-react';
 
-export type ViewType = 'home' | 'all-students' | 'create-group' | 'create-task' | 'all-groups' | 'grade-task' | 'student-tasks' | 'student-stats' | 'student-rating';
+export type ViewType = 'home' | 'all-students' | 'create-group' | 'create-task' | 'all-groups' | 'grade-task' | 'student-tasks' | 'student-stats' | 'student-rating' | 'teacher-rating';
 
 interface SidebarProps {
   onProfileClick: () => void;
@@ -54,6 +54,14 @@ export function Sidebar({ onProfileClick, activeView, onChangeView, role, uncomp
             title="Tekshirish (Grade Task)"
           >
             <CheckSquare className="h-6 w-6 md:h-7 md:w-7" />
+          </button>
+          
+          <button 
+            onClick={() => onChangeView('teacher-rating')}
+            className={`${activeView === 'teacher-rating' ? 'text-white scale-110' : 'text-indigo-200'} hover:text-white hover:scale-110 transition-all`} 
+            title="Reyting (Rating)"
+          >
+            <Trophy className="h-6 w-6 md:h-7 md:w-7" />
           </button>
         </>
       )}

@@ -10,6 +10,7 @@ import { Sidebar, ViewType } from "./components/Sidebar";
 import { AllStudentsView, CreateGroupView, CreateTaskView, AllGroupsView } from "./components/TeacherViews";
 import { StudentTasksView, StudentStatsView } from "./components/StudentViews";
 import { StudentRatingView } from "./components/StudentRatingView";
+import { TeacherRatingView } from "./components/TeacherRatingView";
 import { AddStudentModal } from "./components/AddStudentModal";
 import { AddGroupModal } from "./components/AddGroupModal";
 import { GradingResult } from "./types";
@@ -658,6 +659,13 @@ function MainApp() {
           />
         )}
         {activeView === 'student-stats' && role === 'student' && <StudentStatsView tasks={tasks} history={userHistory} studentInfo={students.find(s => s.username === currentUser)} />}
+        {activeView === 'teacher-rating' && role === 'teacher' && (
+          <TeacherRatingView 
+            students={teacherStudents} 
+            history={userHistory} 
+            groups={teacherGroups} 
+          />
+        )}
         {activeView === 'student-rating' && role === 'student' && (
           <StudentRatingView 
             students={students} 
