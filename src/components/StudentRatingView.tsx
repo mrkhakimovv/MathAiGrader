@@ -46,12 +46,12 @@ export function StudentRatingView({ students, history, studentInfo }: StudentRat
       };
     });
 
-    // Sort by average score (descending), then by total tasks (descending)
+    // Sort by total tasks (descending), then by average score (descending)
     return studentScores.sort((a, b) => {
-      if (b.averageScore !== a.averageScore) {
-        return b.averageScore - a.averageScore;
+      if (b.totalTasks !== a.totalTasks) {
+        return b.totalTasks - a.totalTasks;
       }
-      return b.totalTasks - a.totalTasks;
+      return b.averageScore - a.averageScore;
     });
   }, [students, history, currentStudentGroups]);
 

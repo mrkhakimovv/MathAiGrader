@@ -1474,11 +1474,18 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
             <div className="flex flex-col border-b border-slate-100 dark:border-slate-800 shrink-0">
               <div className="flex items-center justify-between p-6">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    {selectedSubmission.studentInfo?.firstName || selectedSubmission.studentInfo?.fullName} {selectedSubmission.studentInfo?.lastName || ''}
-                  </h3>
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      {selectedSubmission.studentInfo?.firstName || selectedSubmission.studentInfo?.fullName} {selectedSubmission.studentInfo?.lastName || ''}
+                    </h3>
+                    {selectedTaskAnalysis && (
+                      <span className="px-2.5 py-1 rounded-md bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 text-xs font-semibold">
+                        {selectedTaskAnalysis.title}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                    Natija yuborilgan: {selectedSubmission.createdAt?.seconds ? new Date(selectedSubmission.createdAt.seconds * 1000).toLocaleDateString() : ''}
+                    Natija yuborilgan: {selectedSubmission.createdAt?.seconds ? new Date(selectedSubmission.createdAt.seconds * 1000).toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">
