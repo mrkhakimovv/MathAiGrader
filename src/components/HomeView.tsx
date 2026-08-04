@@ -1,8 +1,47 @@
-import React from 'react';
-import { Info, Newspaper, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Info, Newspaper, ArrowRight, Eye } from 'lucide-react';
 import { motion } from 'motion/react';
+import { doc, getDoc, updateDoc, setDoc, arrayUnion } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 export function HomeView({ role, username }: { role: string | null, username: string | null }) {
+  const [panjiViews, setPanjiViews] = useState<number>(0);
+  const [quvonchbekViews, setQuvonchbekViews] = useState<number>(0);
+
+  useEffect(() => {
+    const trackAndFetchViews = async (personId: string, setViews: React.Dispatch<React.SetStateAction<number>>) => {
+      try {
+        const docRef = doc(db, 'team_views', personId);
+        const docSnap = await getDoc(docRef);
+        
+        let viewers: string[] = [];
+        if (docSnap.exists()) {
+          viewers = docSnap.data().viewers || [];
+        }
+
+        if (username) {
+          if (!viewers.includes(username)) {
+            if (docSnap.exists()) {
+              await updateDoc(docRef, { viewers: arrayUnion(username) });
+            } else {
+              await setDoc(docRef, { viewers: [username] });
+            }
+            setViews(viewers.length + 1);
+          } else {
+            setViews(viewers.length);
+          }
+        } else {
+          setViews(viewers.length);
+        }
+      } catch (error) {
+        console.error("Error tracking views:", error);
+      }
+    };
+
+    trackAndFetchViews('panji', setPanjiViews);
+    trackAndFetchViews('quvonchbek', setQuvonchbekViews);
+  }, [username]);
+
   return (
     <div className="flex flex-col gap-8 max-w-4xl mx-auto pb-12">
       <header className="mb-4">
@@ -72,13 +111,19 @@ export function HomeView({ role, username }: { role: string | null, username: st
               <h4 className="text-xl mb-1 text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors font-bold">Panji Soatov</h4>
               <p className="text-blue-600 dark:text-blue-400 text-sm mb-4 uppercase tracking-wider font-semibold">Asoschi va CEO</p>
               <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">Ta'lim sohasida 8 yillik tajribaga ega. Almath platformasining g'oya muallifi va boshqaruvchisi.</p>
-              <div className="flex gap-3">
-                <a className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-[#0088cc] hover:text-white transition-all duration-300" href="https://t.me/panji_soatov" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
-                  <i className="bi bi-telegram text-lg"></i>
-                </a>
-                <a className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white transition-all duration-300" href="https://instagram.com/soatov_matematika" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                  <i className="bi bi-instagram text-lg"></i>
-                </a>
+              <div className="flex justify-between items-center mt-auto">
+                <div className="flex gap-3">
+                  <a className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-[#0088cc] hover:text-white transition-all duration-300" href="https://t.me/panji_soatov" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+                    <i className="bi bi-telegram text-lg"></i>
+                  </a>
+                  <a className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white transition-all duration-300" href="https://instagram.com/soatov_matematika" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                    <i className="bi bi-instagram text-lg"></i>
+                  </a>
+                </div>
+                <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-sm font-medium">
+                  <Eye className="w-4 h-4" />
+                  <span>{panjiViews}</span>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -102,13 +147,19 @@ export function HomeView({ role, username }: { role: string | null, username: st
               <h4 className="text-xl mb-1 text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors font-bold">Quvonchbek Hakimov</h4>
               <p className="text-indigo-600 dark:text-indigo-400 text-sm mb-4 uppercase tracking-wider font-semibold">Texnik rahbar (CTO)</p>
               <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">Sun'iy intellekt va zamonaviy web texnologiyalar bo'yicha mutaxassis. Tizim arxitekturasi muallifi.</p>
-              <div className="flex gap-3">
-                <a className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-[#0088cc] hover:text-white transition-all duration-300" href="https://t.me/quvonchbek_hakimov" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
-                  <i className="bi bi-telegram text-lg"></i>
-                </a>
-                <a className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white transition-all duration-300" href="https://instagram.com/hakimov_matematika" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                  <i className="bi bi-instagram text-lg"></i>
-                </a>
+              <div className="flex justify-between items-center mt-auto">
+                <div className="flex gap-3">
+                  <a className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-[#0088cc] hover:text-white transition-all duration-300" href="https://t.me/quvonchbek_hakimov" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+                    <i className="bi bi-telegram text-lg"></i>
+                  </a>
+                  <a className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white transition-all duration-300" href="https://instagram.com/hakimov_matematika" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                    <i className="bi bi-instagram text-lg"></i>
+                  </a>
+                </div>
+                <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-sm font-medium">
+                  <Eye className="w-4 h-4" />
+                  <span>{quvonchbekViews}</span>
+                </div>
               </div>
             </div>
           </motion.div>

@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
-import { Calculator, Moon, Sun, ArrowRight, Star, Check, Trophy, Users, Search, BookOpen, GraduationCap, Award, Book, Youtube, Instagram, Send, ChevronLeft, ChevronRight, ChevronDown, Target, Zap, Shield, MessageCircle } from 'lucide-react';
+import { Calculator, Moon, Sun, ArrowRight, Star, Check, Trophy, Users, Search, BookOpen, GraduationCap, Award, Book, Youtube, Instagram, Send, ChevronLeft, ChevronRight, ChevronDown, Target, Zap, Shield, MessageCircle, Eye } from 'lucide-react';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 
 interface WelcomeScreenProps {
   onLoginClick: () => void;
@@ -13,6 +15,26 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
   const heroRef = useRef<HTMLDivElement>(null);
   const [isContactFormSubmitted, setIsContactFormSubmitted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [panjiViews, setPanjiViews] = useState<number>(0);
+  const [quvonchbekViews, setQuvonchbekViews] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchViews = async (personId: string, setViews: React.Dispatch<React.SetStateAction<number>>) => {
+      try {
+        const docRef = doc(db, 'team_views', personId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const viewers = docSnap.data().viewers || [];
+          setViews(viewers.length);
+        }
+      } catch (error) {
+        console.error("Error fetching views:", error);
+      }
+    };
+    
+    fetchViews('panji', setPanjiViews);
+    fetchViews('quvonchbek', setQuvonchbekViews);
+  }, []);
 
   useEffect(() => {
     // Header shadow on scroll
@@ -565,13 +587,19 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
                   <h4 className="font-headline-lg text-2xl mb-2 text-on-background dark:text-inverse-on-surface group-hover:text-primary transition-colors font-bold">Panji Soatov</h4>
                   <p className="text-primary dark:text-primary-fixed-dim font-label-md text-label-md mb-6 uppercase tracking-wider">Asoschi va CEO</p>
                   <p className="text-on-surface-variant font-body-md mb-6">Ta'lim sohasida 8 yillik tajribaga ega. Almath platformasining g'oya muallifi va boshqaruvchisi.</p>
-                  <div className="flex gap-3">
-                    <a className="group/btn w-11 h-11 rounded-full bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-[#0088cc] dark:hover:bg-[#0088cc] hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-outline-variant/20 hover:border-transparent" href="https://t.me/panji_soatov" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
-                      <i className="bi bi-telegram text-xl group-hover/btn:scale-110 group-hover/btn:-rotate-6 transition-transform duration-300"></i>
-                    </a>
-                    <a className="group/btn w-11 h-11 rounded-full bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-outline-variant/20 hover:border-transparent" href="https://instagram.com/soatov_matematika" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                      <i className="bi bi-instagram text-xl group-hover/btn:scale-110 transition-transform duration-300"></i>
-                    </a>
+                  <div className="flex justify-between items-center mt-auto">
+                    <div className="flex gap-3">
+                      <a className="group/btn w-11 h-11 rounded-full bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-[#0088cc] dark:hover:bg-[#0088cc] hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-outline-variant/20 hover:border-transparent" href="https://t.me/panji_soatov" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+                        <i className="bi bi-telegram text-xl group-hover/btn:scale-110 group-hover/btn:-rotate-6 transition-transform duration-300"></i>
+                      </a>
+                      <a className="group/btn w-11 h-11 rounded-full bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-outline-variant/20 hover:border-transparent" href="https://instagram.com/soatov_matematika" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                        <i className="bi bi-instagram text-xl group-hover/btn:scale-110 transition-transform duration-300"></i>
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-on-surface-variant dark:text-surface-variant text-sm font-medium">
+                      <Eye className="w-4 h-4" />
+                      <span>{panjiViews}</span>
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -595,13 +623,19 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
                   <h4 className="font-headline-lg text-2xl mb-2 text-on-background dark:text-inverse-on-surface group-hover:text-secondary transition-colors font-bold">Quvonchbek Hakimov</h4>
                   <p className="text-secondary dark:text-secondary-fixed-dim font-label-md text-label-md mb-6 uppercase tracking-wider">Texnik rahbar (CTO)</p>
                   <p className="text-on-surface-variant font-body-md mb-6">Sun'iy intellekt va zamonaviy web texnologiyalar bo'yicha mutaxassis. Tizim arxitekturasi muallifi.</p>
-                  <div className="flex gap-3">
-                    <a className="group/btn w-11 h-11 rounded-full bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-[#0088cc] dark:hover:bg-[#0088cc] hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-outline-variant/20 hover:border-transparent" href="https://t.me/quvonchbek_hakimov" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
-                      <i className="bi bi-telegram text-xl group-hover/btn:scale-110 group-hover/btn:-rotate-6 transition-transform duration-300"></i>
-                    </a>
-                    <a className="group/btn w-11 h-11 rounded-full bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-outline-variant/20 hover:border-transparent" href="https://instagram.com/hakimov_matematika" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                      <i className="bi bi-instagram text-xl group-hover/btn:scale-110 transition-transform duration-300"></i>
-                    </a>
+                  <div className="flex justify-between items-center mt-auto">
+                    <div className="flex gap-3">
+                      <a className="group/btn w-11 h-11 rounded-full bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-[#0088cc] dark:hover:bg-[#0088cc] hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-outline-variant/20 hover:border-transparent" href="https://t.me/quvonchbek_hakimov" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
+                        <i className="bi bi-telegram text-xl group-hover/btn:scale-110 group-hover/btn:-rotate-6 transition-transform duration-300"></i>
+                      </a>
+                      <a className="group/btn w-11 h-11 rounded-full bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-outline-variant/20 hover:border-transparent" href="https://instagram.com/hakimov_matematika" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                        <i className="bi bi-instagram text-xl group-hover/btn:scale-110 transition-transform duration-300"></i>
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-on-surface-variant dark:text-surface-variant text-sm font-medium">
+                      <Eye className="w-4 h-4" />
+                      <span>{quvonchbekViews}</span>
+                    </div>
                   </div>
                 </div>
               </motion.div>
