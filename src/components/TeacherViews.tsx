@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { Users, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, ExternalLink, Search, Calendar, CheckCircle, XCircle, Loader2, FolderPlus, Edit2, Clock, Download } from 'lucide-react';
 import { GradingResult } from '../types';
 import * as XLSX from 'xlsx';
+import { EditGroupModal } from './EditGroupModal';
 
 interface AllStudentsViewProps {
   students: any[];
@@ -761,12 +762,14 @@ interface AllGroupsViewProps {
   history?: GradingResult[];
   tasks?: any[];
   onDeleteTask?: (task: any) => void;
+  onEditGroup?: (groupId: string, data: any) => Promise<void>;
 }
 
-export function AllGroupsView({ groups, onDeleteGroup, students = [], history = [], tasks = [], onDeleteTask }: AllGroupsViewProps) {
+export function AllGroupsView({ groups, onDeleteGroup, students = [], history = [], tasks = [], onDeleteTask, onEditGroup }: AllGroupsViewProps) {
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const [copied, setCopied] = useState(false);
   const [groupToDelete, setGroupToDelete] = useState<{ id: string, name: string } | null>(null);
+  const [editingGroup, setEditingGroup] = useState<any>(null);
   const [taskToDelete, setTaskToDelete] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'students' | 'tasks' | 'all-students'>('students');
   const [selectedTaskAnalysis, setSelectedTaskAnalysis] = useState<any>(null);
@@ -898,7 +901,7 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      // TODO: Add edit handler here if needed, for now just UI
+                      setEditingGroup(group);
                     }}
                     className="flex flex-col items-center justify-center w-10 h-10 sm:w-11 sm:h-11 bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-400 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm transition-colors"
                     title="Guruhni tahrirlash"
@@ -1563,6 +1566,15 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
             </div>
           </div>
         </div>
+      )}
+      
+      {editingGroup && onEditGroup && (
+        <EditGroupModal
+          isOpen={true}
+          onClose={() => setEditingGroup(null)}
+          group={editingGroup}
+          onEditGroup={onEditGroup}
+        />
       )}
 </div>
   );

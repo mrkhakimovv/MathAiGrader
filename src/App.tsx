@@ -645,6 +645,14 @@ function MainApp() {
                  console.error(e);
               }
             }}
+            onEditGroup={async (groupId, data) => {
+              try {
+                await updateDoc(doc(db, "groups", groupId), data);
+              } catch(e) {
+                console.error(e);
+                alert("Guruhni yangilashda xatolik yuz berdi.");
+              }
+            }}
           />
         )}
         {activeView === 'student-tasks' && (
