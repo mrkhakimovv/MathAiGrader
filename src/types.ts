@@ -1,4 +1,5 @@
 export interface GradingResult {
+  id?: string;
   transcription: string;
   isCorrect: boolean;
   isPartiallyCorrect: boolean;

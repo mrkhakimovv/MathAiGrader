@@ -312,25 +312,7 @@ export function ResultCard({ result, onReset }: ResultCardProps) {
           </div>
         )}
 
-        {/* Transcription */}
-        <div>
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            Transcription of Work
-          </h3>
-          <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 overflow-x-auto transition-colors">
-            {isRawMode ? (
-              <pre className="whitespace-pre-wrap font-mono text-sm text-slate-600 dark:text-slate-400">
-                {result.transcription}
-              </pre>
-            ) : (
-              <div className="markdown-body font-mono text-sm">
-                <Markdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>
-                  {result.transcription}
-                </Markdown>
-              </div>
-            )}
-          </div>
-        </div>
+
         </div>
       </div>
     </div>

@@ -28,7 +28,7 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
           setViews(viewers.length);
         }
       } catch (error) {
-        console.error("Error fetching views:", error);
+        console.warn("Could not fetch views:", error);
       }
     };
     

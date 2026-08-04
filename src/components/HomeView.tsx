@@ -34,7 +34,7 @@ export function HomeView({ role, username }: { role: string | null, username: st
           setViews(viewers.length);
         }
       } catch (error) {
-        console.error("Error tracking views:", error);
+        console.warn("Could not track views:", error);
       }
     };
 

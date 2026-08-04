@@ -41,7 +41,7 @@ export const saveResult = async (result: GradingResult & { studentUsername?: str
 export const subscribeToHistory = (callback: (history: GradingResult[]) => void) => {
   const q = query(collection(db, 'history'), orderBy('createdAt', 'asc'));
   return onSnapshot(q, (snapshot) => {
-    const history = snapshot.docs.map(doc => doc.data() as GradingResult);
+    const history = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as GradingResult));
     callback(history);
   }, (error) => {
     handleFirestoreError(error, "get", 'history');

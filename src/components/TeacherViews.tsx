@@ -763,9 +763,10 @@ interface AllGroupsViewProps {
   tasks?: any[];
   onDeleteTask?: (task: any) => void;
   onEditGroup?: (groupId: string, data: any) => Promise<void>;
+  onDeleteResult?: (taskId: string, studentUsername: string) => void;
 }
 
-export function AllGroupsView({ groups, onDeleteGroup, students = [], history = [], tasks = [], onDeleteTask, onEditGroup }: AllGroupsViewProps) {
+export function AllGroupsView({ groups, onDeleteGroup, students = [], history = [], tasks = [], onDeleteTask, onEditGroup, onDeleteResult }: AllGroupsViewProps) {
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const [copied, setCopied] = useState(false);
   const [groupToDelete, setGroupToDelete] = useState<{ id: string, name: string } | null>(null);
@@ -775,6 +776,7 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
   const [selectedTaskAnalysis, setSelectedTaskAnalysis] = useState<any>(null);
   const [analysisTab, setAnalysisTab] = useState<'tahlil' | 'submissions'>('tahlil');
   const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
+  const [resultToDelete, setResultToDelete] = useState<{ taskId: string, studentUsername: string, studentName: string } | null>(null);
 
   const handleDelete = (e: React.MouseEvent, id: string, groupName: string) => {
     e.stopPropagation();
@@ -795,6 +797,13 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
     if (taskToDelete && onDeleteTask) {
       onDeleteTask(taskToDelete);
       setTaskToDelete(null);
+    }
+  };
+
+  const confirmResultDelete = async () => {
+    if (resultToDelete && onDeleteResult) {
+      await onDeleteResult(resultToDelete.taskId, resultToDelete.studentUsername);
+      setResultToDelete(null);
     }
   };
 
@@ -1006,6 +1015,35 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
               </button>
               <button
                 onClick={confirmTaskDelete}
+                className="flex-1 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 transition-colors shadow-sm shadow-rose-600/20"
+              >
+                Ha, o'chirish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Result Confirmation Modal */}
+      {resultToDelete && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 p-6 shadow-xl border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-200">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-900/30 mb-4">
+              <Trash2 className="h-6 w-6 text-rose-600 dark:text-rose-400" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white text-center mb-2">Haqiqatdan ham o'chirishni xohlaysizmi?</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-center mb-6">
+              Siz "{resultToDelete.studentName}" ning vazifa natijasini butunlay o'chirib yuboryapsiz. O'quvchi vazifani qayta ishlashi mumkin bo'ladi.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setResultToDelete(null)}
+                className="flex-1 rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              >
+                Bekor qilish
+              </button>
+              <button
+                onClick={confirmResultDelete}
                 className="flex-1 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 transition-colors shadow-sm shadow-rose-600/20"
               >
                 Ha, o'chirish
@@ -1430,15 +1468,34 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                                     </p>
                                   </div>
                                 </div>
-                                <div className="text-right">
+                                <div className="flex items-center gap-3 text-right">
                                   {item.isSubmitted ? (
-                                    <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-semibold ${
-                                      item.score >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
-                                      item.score >= 60 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
-                                      'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400'
-                                    }`}>
-                                      {item.score} ball
-                                    </span>
+                                    <>
+                                      <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-semibold ${
+                                        item.score >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
+                                        item.score >= 60 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
+                                        'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400'
+                                      }`}>
+                                        {item.score} ball
+                                      </span>
+                                      <button 
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const tId = item.taskId || selectedTaskAnalysis?.id;
+                                          const sUser = item.studentUsername || item.studentInfo?.username;
+                                          const sName = `${item.studentInfo?.firstName || item.studentInfo?.fullName || sUser} ${item.studentInfo?.lastName || ''}`.trim();
+                                          if (tId && sUser) {
+                                            setResultToDelete({ taskId: tId, studentUsername: sUser, studentName: sName });
+                                          } else {
+                                            alert("Xatolik: Vazifa yoki o'quvchi ma'lumoti topilmadi.");
+                                          }
+                                        }}
+                                        className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors border border-transparent hover:border-rose-100 dark:hover:border-rose-800"
+                                        title="Natijani bekor qilish"
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </>
                                   ) : (
                                     <span className="inline-flex items-center justify-center px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                                       0 ball
@@ -1510,21 +1567,6 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
             </div>
             
             <div className="p-6 overflow-y-auto space-y-8 flex-1">
-              <div>
-                <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-3 uppercase tracking-wider flex items-center gap-2">
-                  <FilePlus className="h-4 w-4 text-indigo-500" />
-                  O'quvchi yechimi
-                </h4>
-                <div className="markdown-body text-sm font-mono p-5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                  <Markdown
-                    remarkPlugins={[remarkMath, remarkBreaks]}
-                    rehypePlugins={[rehypeKatex]}
-                  >
-                    {selectedSubmission.transcription || "Yechim mavjud emas."}
-                  </Markdown>
-                </div>
-              </div>
-
               <div>
                 <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-3 uppercase tracking-wider flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-emerald-500" />

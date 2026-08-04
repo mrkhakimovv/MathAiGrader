@@ -627,6 +627,22 @@ function MainApp() {
             students={teacherStudents}
             history={userHistory}
             tasks={teacherTasks}
+            onDeleteResult={async (taskId, studentUsername) => {
+              try {
+                const historyRef = collection(db, "history");
+                const snapshot = await getDocs(historyRef);
+                const resultsToDelete = snapshot.docs.filter(docSnap => {
+                  const data = docSnap.data();
+                  return data.taskId === taskId && data.studentUsername === studentUsername;
+                });
+                
+                const deletePromises = resultsToDelete.map(docSnap => deleteDoc(doc(db, "history", docSnap.id)));
+                await Promise.all(deletePromises);
+              } catch (err) {
+                console.error("Error deleting result:", err);
+                alert("Natijani o'chirishda xatolik yuz berdi.");
+              }
+            }}
             onDeleteTask={async (task) => {
               try {
                 if (task.id) {
@@ -647,7 +663,42 @@ function MainApp() {
             }}
             onEditGroup={async (groupId, data) => {
               try {
+                const oldGroup = teacherGroupDetails.find(g => g.id === groupId);
                 await updateDoc(doc(db, "groups", groupId), data);
+                
+                if (oldGroup && data.name && oldGroup.name !== data.name) {
+                  const oldName = oldGroup.name;
+                  const newName = data.name;
+                  
+                  // Update students
+                  for (const student of teacherStudents) {
+                    let needsUpdate = false;
+                    let newGroups = student.groups || [];
+                    if (student.group === oldName) {
+                      needsUpdate = true;
+                    }
+                    if (newGroups.includes(oldName)) {
+                      needsUpdate = true;
+                      newGroups = newGroups.map((g: string) => g === oldName ? newName : g);
+                    }
+                    if (needsUpdate) {
+                      const updateData: any = { groups: newGroups };
+                      if (student.group) {
+                        updateData.group = student.group === oldName ? newName : student.group;
+                      }
+                      await updateDoc(doc(db, "students", student.id), updateData);
+                    }
+                  }
+                  
+                  // Update tasks
+                  for (const task of teacherTasks) {
+                    if (task.group === oldName) {
+                      await updateDoc(doc(db, "tasks", task.id), {
+                        group: newName
+                      });
+                    }
+                  }
+                }
               } catch(e) {
                 console.error(e);
                 alert("Guruhni yangilashda xatolik yuz berdi.");

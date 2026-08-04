@@ -177,15 +177,6 @@ export function StudentTasksView({ tasks, history = [], studentInfo, onSolveTask
 
                 {isExpanded && latestResult && (
                   <div className="mt-6 flex flex-col gap-6 p-6 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 animate-in slide-in-from-top-2 duration-300">
-                    <div>
-                      <h4 className="font-semibold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wider text-xs">O'qilgan yechim</h4>
-                      <div className="markdown-body font-mono text-sm overflow-x-auto bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <Markdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>
-                          {latestResult.transcription || "Kiritilmagan"}
-                        </Markdown>
-                      </div>
-                    </div>
-                    
                     {latestResult.errorSteps && latestResult.errorSteps.length > 0 && (
                       <div>
                         <h4 className="font-semibold text-rose-500 dark:text-rose-400 mb-3 uppercase tracking-wider text-xs">Xatolar va kamchiliklar</h4>
@@ -225,15 +216,15 @@ export function StudentTasksView({ tasks, history = [], studentInfo, onSolveTask
                      </button>
                    )}
                    <button 
-                     disabled={expired}
-                     onClick={() => !expired && onSolveTask && onSolveTask(task)}
+                     disabled={expired || !!latestResult}
+                     onClick={() => !expired && !latestResult && onSolveTask && onSolveTask(task)}
                      className={`flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-                       expired 
+                       (expired || !!latestResult)
                          ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed'
                          : 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm hover:bg-indigo-700 dark:hover:bg-indigo-600'
                      }`}
                    >
-                     {expired ? "Vazifa muddati o'tgan" : "Vazifani ishlash va yuklash"}
+                     {!!latestResult ? "Vazifa topshirilgan" : expired ? "Vazifa muddati o'tgan" : "Vazifani ishlash va yuklash"}
                    </button>
                 </div>
               </div>
