@@ -1,5 +1,6 @@
 import Markdown from 'react-markdown';
 import remarkMath from 'remark-math';
+import remarkBreaks from 'remark-breaks';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import React, { useState } from 'react';
@@ -732,14 +733,14 @@ export function CreateTaskView({ onCreateTask, groups, isSubmitting = false, upl
                         {sol.problemNumber}-savol
                       </div>
                       <div className="text-sm text-slate-700 dark:text-slate-300 mb-2 markdown-body">
-                        <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.problemText}</Markdown>
+                        <Markdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>{sol.problemText}</Markdown>
                       </div>
                       <div className="text-sm font-medium text-emerald-600 dark:text-emerald-400 mb-1">Yechim:</div>
                       <div className="text-sm text-slate-600 dark:text-slate-400 mb-2 markdown-body">
-                        <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.solutionSteps}</Markdown>
+                        <Markdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>{sol.solutionSteps}</Markdown>
                       </div>
                       <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1">
-                        Javob: <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.finalAnswer}</Markdown>
+                        Javob: <Markdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>{sol.finalAnswer}</Markdown>
                       </div>
                     </div>
                   ))}
@@ -770,6 +771,7 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
   const [activeTab, setActiveTab] = useState<'students' | 'tasks' | 'all-students'>('students');
   const [selectedTaskAnalysis, setSelectedTaskAnalysis] = useState<any>(null);
   const [analysisTab, setAnalysisTab] = useState<'tahlil' | 'submissions'>('tahlil');
+  const [selectedSubmission, setSelectedSubmission] = useState<any>(null);
 
   const handleDelete = (e: React.MouseEvent, id: string, groupName: string) => {
     e.stopPropagation();
@@ -1291,14 +1293,14 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                             {sol.problemNumber}-savol
                           </div>
                           <div className="text-sm text-slate-700 dark:text-slate-300 mb-2 markdown-body">
-                            <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.problemText}</Markdown>
+                            <Markdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>{sol.problemText}</Markdown>
                           </div>
                           <div className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-1">Yechim:</div>
                           <div className="text-sm text-slate-600 dark:text-slate-400 mb-2 markdown-body">
-                            <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.solutionSteps}</Markdown>
+                            <Markdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>{sol.solutionSteps}</Markdown>
                           </div>
                           <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1">
-                            Javob: <Markdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>{sol.finalAnswer}</Markdown>
+                            Javob: <Markdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>{sol.finalAnswer}</Markdown>
                           </div>
                         </div>
                       ))}
@@ -1398,7 +1400,11 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                           {allRanked.map((item: any, idx: number) => {
                             const student = item.studentInfo;
                             return (
-                              <div key={idx} className={`flex items-center justify-between p-4 rounded-xl border ${item.isSubmitted ? 'border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50' : 'border-rose-100 dark:border-rose-900/30 bg-rose-50/50 dark:bg-rose-900/10'} opacity-${item.isSubmitted ? '100' : '75'}`}>
+                              <div 
+                                key={idx} 
+                                className={`flex items-center justify-between p-4 rounded-xl border ${item.isSubmitted ? 'border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-500/50 transition-colors' : 'border-rose-100 dark:border-rose-900/30 bg-rose-50/50 dark:bg-rose-900/10'} opacity-${item.isSubmitted ? '100' : '75'}`}
+                                onClick={() => { if (item.isSubmitted) setSelectedSubmission(item); }}
+                              >
                                 <div className="flex items-center gap-4">
                                   <div className={`flex h-10 w-10 items-center justify-center rounded-full font-bold text-sm ${
                                     !item.isSubmitted ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400' :
@@ -1457,6 +1463,96 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
               >
                 Yopish
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedSubmission && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="w-full max-w-3xl bg-white dark:bg-slate-900 rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+            <div className="flex flex-col border-b border-slate-100 dark:border-slate-800 shrink-0">
+              <div className="flex items-center justify-between p-6">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    {selectedSubmission.studentInfo?.firstName || selectedSubmission.studentInfo?.fullName} {selectedSubmission.studentInfo?.lastName || ''}
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    Natija yuborilgan: {selectedSubmission.createdAt?.seconds ? new Date(selectedSubmission.createdAt.seconds * 1000).toLocaleDateString() : ''}
+                  </p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <span className={`inline-flex items-center justify-center px-4 py-1.5 rounded-full text-sm font-bold ${
+                    selectedSubmission.score >= 80 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' :
+                    selectedSubmission.score >= 60 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
+                    'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400'
+                  }`}>
+                    {selectedSubmission.score} ball
+                  </span>
+                  <button 
+                    onClick={() => setSelectedSubmission(null)}
+                    className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-300 transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto space-y-8 flex-1">
+              <div>
+                <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-3 uppercase tracking-wider flex items-center gap-2">
+                  <FilePlus className="h-4 w-4 text-indigo-500" />
+                  O'quvchi yechimi
+                </h4>
+                <div className="markdown-body text-sm font-mono p-5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                  <Markdown
+                    remarkPlugins={[remarkMath, remarkBreaks]}
+                    rehypePlugins={[rehypeKatex]}
+                  >
+                    {selectedSubmission.transcription || "Yechim mavjud emas."}
+                  </Markdown>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-semibold text-slate-900 dark:text-white mb-3 uppercase tracking-wider flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-emerald-500" />
+                  Sun'iy intellekt xulosasi va tahlili
+                </h4>
+                <div className="markdown-body text-sm font-mono p-5 rounded-xl bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/50">
+                  <Markdown
+                    remarkPlugins={[remarkMath, remarkBreaks]}
+                    rehypePlugins={[rehypeKatex]}
+                  >
+                    {selectedSubmission.feedback || "Tahlil mavjud emas."}
+                  </Markdown>
+                </div>
+              </div>
+
+              {selectedSubmission.errorSteps && selectedSubmission.errorSteps.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+                    <XCircle className="h-4 w-4" />
+                    Xatolar
+                  </h4>
+                  <ul className="space-y-2">
+                    {selectedSubmission.errorSteps.map((error: string, idx: number) => (
+                      <li key={idx} className="flex gap-3 text-sm text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-900/20 p-4 rounded-xl border border-rose-100 dark:border-rose-800/50">
+                        <XCircle className="h-5 w-5 shrink-0 text-rose-500 mt-0.5" />
+                        <div className="markdown-body leading-relaxed overflow-x-auto w-full">
+                          <Markdown
+                            remarkPlugins={[remarkMath, remarkBreaks]}
+                            rehypePlugins={[rehypeKatex]}
+                          >
+                            {error}
+                          </Markdown>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
         </div>
