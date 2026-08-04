@@ -1,5 +1,6 @@
 import React from 'react';
 import { Home, Users, UserPlus, FilePlus, Library, User, CheckSquare, BookOpen, BarChart2, Trophy } from 'lucide-react';
+import { getAvatarUrl } from '../lib/utils';
 
 export type ViewType = 'home' | 'all-students' | 'create-group' | 'create-task' | 'all-groups' | 'grade-task' | 'student-tasks' | 'student-stats' | 'student-rating' | 'teacher-rating';
 
@@ -9,9 +10,10 @@ interface SidebarProps {
   onChangeView: (view: ViewType) => void;
   role: 'admin' | 'teacher' | 'student' | null;
   uncompletedTasksCount?: number;
+  userAvatar?: string;
 }
 
-export function Sidebar({ onProfileClick, activeView, onChangeView, role, uncompletedTasksCount = 0 }: SidebarProps) {
+export function Sidebar({ onProfileClick, activeView, onChangeView, role, uncompletedTasksCount = 0, userAvatar }: SidebarProps) {
   return (
     <div className="fixed md:sticky bottom-0 md:top-0 left-0 right-0 md:w-20 bg-indigo-600 dark:bg-indigo-500 flex md:flex-col items-center justify-around md:justify-start md:py-8 md:gap-8 rounded-t-3xl md:rounded-t-none md:rounded-r-3xl h-16 md:h-screen shadow-[0_-4px_20px_rgba(0,0,0,0.1)] md:shadow-lg z-50">
       <button 
@@ -103,10 +105,16 @@ export function Sidebar({ onProfileClick, activeView, onChangeView, role, uncomp
 
       <button 
         onClick={onProfileClick}
-        className="text-indigo-200 hover:text-white hover:scale-110 transition-all" 
+        className="text-indigo-200 hover:text-white hover:scale-110 transition-all flex items-center justify-center rounded-full" 
         title="Profile"
       >
-        <User className="h-6 w-6 md:h-7 md:w-7" />
+        {userAvatar ? (
+          <div className="h-8 w-8 md:h-10 md:w-10 rounded-full overflow-hidden border-2 border-indigo-300">
+            <img src={getAvatarUrl(userAvatar)} alt="Profile" className="w-full h-full object-cover bg-indigo-50" />
+          </div>
+        ) : (
+          <User className="h-6 w-6 md:h-7 md:w-7" />
+        )}
       </button>
     </div>
   );

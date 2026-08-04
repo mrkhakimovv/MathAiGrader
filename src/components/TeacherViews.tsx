@@ -4,10 +4,11 @@ import remarkBreaks from 'remark-breaks';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import React, { useState } from 'react';
-import { Users, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, ExternalLink, Search, Calendar, CheckCircle, XCircle, Loader2, FolderPlus, Edit2, Clock, Download } from 'lucide-react';
+import { Users, User, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, ExternalLink, Search, Calendar, CheckCircle, XCircle, Loader2, FolderPlus, Edit2, Clock, Download } from 'lucide-react';
 import { GradingResult } from '../types';
 import * as XLSX from 'xlsx';
 import { EditGroupModal } from './EditGroupModal';
+import { getAvatarUrl } from '../lib/utils';
 
 interface AllStudentsViewProps {
   students: any[];
@@ -119,7 +120,7 @@ export function AllStudentsView({ students, onDeleteStudent, history = [], group
                   {/* Avatar */}
                   <div className="h-16 w-16 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                     <img 
-                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${student.id || student.firstName}&backgroundColor=e2e8f0`} 
+                      src={getAvatarUrl(student.avatar, student.id || student.firstName)} 
                       alt="avatar" 
                       className="h-full w-full object-cover"
                     />
@@ -1145,13 +1146,20 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                           className="flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-800/50 hover:border-indigo-300 dark:hover:border-indigo-500/50 transition-colors"
                         >
                           <div className="flex items-center gap-4">
-                            <div className={`flex h-10 w-10 items-center justify-center rounded-full font-bold text-sm ${
+                            <div className={`flex h-10 w-10 items-center justify-center rounded-full font-bold text-sm shrink-0 ${
                               idx === 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
                               idx === 1 ? 'bg-slate-200 text-slate-700 dark:bg-slate-600/50 dark:text-slate-300' :
                               idx === 2 ? 'bg-orange-100 text-orange-800 dark:bg-orange-500/20 dark:text-orange-400' :
                               'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
                             }`}>
                               #{idx + 1}
+                            </div>
+                            <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 overflow-hidden">
+                              {student.avatar ? (
+                                <img src={getAvatarUrl(student.avatar)} alt="Avatar" className="w-full h-full object-cover bg-slate-100 dark:bg-slate-800" />
+                              ) : (
+                                <User className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+                              )}
                             </div>
                             <div>
                               <p className="font-bold text-slate-900 dark:text-white">{student.firstName} {student.lastName}</p>
@@ -1447,7 +1455,7 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                                 onClick={() => { if (item.isSubmitted) setSelectedSubmission(item); }}
                               >
                                 <div className="flex items-center gap-4">
-                                  <div className={`flex h-10 w-10 items-center justify-center rounded-full font-bold text-sm ${
+                                  <div className={`flex h-10 w-10 items-center justify-center rounded-full font-bold text-sm shrink-0 ${
                                     !item.isSubmitted ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-400' :
                                     idx === 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' :
                                     idx === 1 ? 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300' :
@@ -1455,6 +1463,13 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                                     'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400'
                                   }`}>
                                     {item.isSubmitted ? idx + 1 : '-'}
+                                  </div>
+                                  <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 overflow-hidden">
+                                    {student.avatar ? (
+                                      <img src={getAvatarUrl(student.avatar)} alt="Avatar" className="w-full h-full object-cover bg-slate-100 dark:bg-slate-800" />
+                                    ) : (
+                                      <User className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+                                    )}
                                   </div>
                                   <div>
                                     <p className={`font-semibold ${item.isSubmitted ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300'}`}>

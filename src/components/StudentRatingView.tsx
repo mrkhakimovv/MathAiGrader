@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Trophy, Medal, Star, User } from 'lucide-react';
 import { GradingResult } from '../types';
+import { getAvatarUrl } from '../lib/utils';
 
 interface StudentRatingViewProps {
   students: any[];
@@ -101,8 +102,12 @@ export function StudentRatingView({ students, history, studentInfo }: StudentRat
                     )}
                   </div>
                   
-                  <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0 border border-slate-200 dark:border-slate-700">
-                    <User className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+                  <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center flex-shrink-0 border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    {student.avatar ? (
+                      <img src={getAvatarUrl(student.avatar)} alt="Avatar" className="w-full h-full object-cover bg-slate-100 dark:bg-slate-800" />
+                    ) : (
+                      <User className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+                    )}
                   </div>
                   
                   <div className="flex-1 min-w-0">

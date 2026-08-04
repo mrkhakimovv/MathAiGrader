@@ -3,6 +3,7 @@ import { X, Moon, Sun, User, Settings, PieChart, Users, BookOpen, Edit2, CheckCi
 import { GradingResult } from '../types';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { getAvatarUrl, AVATAR_SEEDS } from '../lib/utils';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'available' | 'taken'>('idle');
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState(studentInfo?.avatar || '');
 
   // Reset form when opened or studentInfo changes
   useEffect(() => {
@@ -33,6 +35,7 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
       setFirstName(studentInfo?.firstName || '');
       setLastName(studentInfo?.lastName || '');
       setNewUsername(username || '');
+      setSelectedAvatar(studentInfo?.avatar || '');
       setIsEditing(false);
       setUsernameStatus('idle');
     }
@@ -77,7 +80,8 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
         await updateDoc(doc(db, "students", studentInfo.id), {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
-          username: newUsername.trim()
+          username: newUsername.trim(),
+          avatar: selectedAvatar
         });
         
         if (newUsername.trim() !== username && onUsernameChange) {
@@ -115,8 +119,12 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
         <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-6">
           {/* User Info */}
           <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center border-2 border-indigo-200 dark:border-indigo-800 shrink-0">
-              <User className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+            <div className="h-16 w-16 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center border-2 border-indigo-200 dark:border-indigo-800 shrink-0 overflow-hidden">
+              {studentInfo?.avatar ? (
+                <img src={getAvatarUrl(studentInfo.avatar)} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <User className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+              )}
             </div>
             <div>
               <h3 className="text-xl font-bold text-slate-900 dark:text-white">{studentInfo?.firstName ? `${studentInfo.firstName} ${studentInfo.lastName}` : username}</h3>
@@ -189,6 +197,23 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
                 {usernameStatus === 'taken' && (
                   <p className="mt-1 text-xs text-rose-500 font-medium">Bu username band. Boshqa tanlang.</p>
                 )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Avatar tanlang</label>
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                  {AVATAR_SEEDS.map((seed) => (
+                    <button
+                      key={seed}
+                      onClick={() => setSelectedAvatar(seed)}
+                      className={`relative w-12 h-12 rounded-full overflow-hidden border-2 transition-all hover:scale-110 ${
+                        selectedAvatar === seed ? 'border-indigo-600 scale-110 ring-2 ring-indigo-500/20' : 'border-transparent hover:border-indigo-300'
+                      }`}
+                    >
+                      <img src={getAvatarUrl(seed)} alt={`Avatar ${seed}`} className="w-full h-full bg-slate-100 dark:bg-slate-800 p-1 object-contain" />
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <button

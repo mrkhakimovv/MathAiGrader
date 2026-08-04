@@ -309,14 +309,12 @@ function MainApp() {
 
   // Calculate uncompleted tasks for student
   let uncompletedTasksCount = 0;
-  if (role === 'student' && currentUser) {
-    const studentInfo = students.find(s => s.username === currentUser);
-    if (studentInfo) {
-      const studentTasks = tasks.filter(t => !t.group || t.group === 'Barcha guruhlar' || t.group === studentInfo.group || (studentInfo.groups && studentInfo.groups.includes(t.group)));
-      uncompletedTasksCount = studentTasks.filter(task => {
-        return !userHistory.some(h => h.taskId === task.id);
-      }).length;
-    }
+  const currentStudentInfo = currentUser ? students.find(s => s.username === currentUser) : null;
+  if (role === 'student' && currentStudentInfo) {
+    const studentTasks = tasks.filter(t => !t.group || t.group === 'Barcha guruhlar' || t.group === currentStudentInfo.group || (currentStudentInfo.groups && currentStudentInfo.groups.includes(t.group)));
+    uncompletedTasksCount = studentTasks.filter(task => {
+      return !userHistory.some(h => h.taskId === task.id);
+    }).length;
   }
 
   return (
@@ -327,6 +325,7 @@ function MainApp() {
         onChangeView={setActiveView}
         role={role}
         uncompletedTasksCount={uncompletedTasksCount}
+        userAvatar={currentStudentInfo?.avatar}
       />
       
       <div className="flex-1 p-4 md:p-8 overflow-y-auto h-full md:h-screen">

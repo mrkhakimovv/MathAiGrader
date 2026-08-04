@@ -160,15 +160,57 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
       setError("Iltimos, barcha maydonlarni to'ldiring.");
       return;
     }
-    
-    if (usernameStatus === 'taken') {
-      setError("Ushbu username band, iltimos boshqasini tanlang.");
-      return;
-    }
-    
+
     setIsLoading(true);
     setError('');
-    
+
+    if (usernameStatus === 'taken') {
+      try {
+        const q = query(collection(db, "students"), where("username", "==", username.trim()), where("password", "==", password.trim()));
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          const studentDoc = snapshot.docs[0];
+          const studentData = studentDoc.data();
+          const studentRef = doc(db, "students", studentDoc.id);
+          
+          const targetGroup = groupName || groupId || '';
+          const updates: any = {};
+          if (targetGroup && (!studentData.groups || !studentData.groups.includes(targetGroup))) {
+            updates.groups = arrayUnion(targetGroup);
+          }
+          if (teacherUsername && studentData.teacherUsername !== teacherUsername) {
+            updates.teacherUsername = teacherUsername;
+          }
+          
+          if (Object.keys(updates).length > 0) {
+            await updateDoc(studentRef, updates);
+          }
+          
+          const userToStore = {
+            id: studentDoc.id,
+            username: studentData.username,
+            role: 'student',
+            ...studentData,
+            groups: targetGroup ? [...(studentData.groups || []), targetGroup] : studentData.groups,
+            teacherUsername: teacherUsername || studentData.teacherUsername
+          };
+          
+          localStorage.setItem("almath_user", JSON.stringify(userToStore));
+          onRegisterSuccess(userToStore);
+          navigate('/');
+          return;
+        } else {
+          setError("Ushbu username band yoki parol noto'g'ri. Agar bu sizning akkauntingiz bo'lsa, to'g'ri parolni kiritib kiring.");
+          setIsLoading(false);
+          return;
+        }
+      } catch (err: any) {
+        setError("Kirishda xatolik yuz berdi: " + err.message);
+        setIsLoading(false);
+        return;
+      }
+    }
+
     try {
       const studentData: any = {
         firstName: firstName.trim(),
@@ -311,7 +353,7 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
                 onChange={(e) => setUsername(e.target.value)}
                 className={`w-full rounded-xl border bg-white dark:bg-slate-800 px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 pr-10 ${
                   usernameStatus === 'taken' 
-                    ? 'border-rose-300 dark:border-rose-700 focus:border-rose-500 focus:ring-rose-500/20' 
+                    ? 'border-amber-300 dark:border-amber-700 focus:border-amber-500 focus:ring-amber-500/20' 
                     : usernameStatus === 'available'
                       ? 'border-emerald-300 dark:border-emerald-700 focus:border-emerald-500 focus:ring-emerald-500/20'
                       : 'border-slate-300 dark:border-slate-700 focus:border-indigo-500 focus:ring-indigo-500/20'
@@ -322,20 +364,20 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
               <div className="absolute right-3 top-3.5">
                 {usernameStatus === 'checking' && <Loader2 className="h-5 w-5 animate-spin text-slate-400" />}
                 {usernameStatus === 'available' && <CheckCircle2 className="h-5 w-5 text-emerald-500" />}
-                {usernameStatus === 'taken' && <XCircle className="h-5 w-5 text-rose-500" />}
+                {usernameStatus === 'taken' && <XCircle className="h-5 w-5 text-amber-500" />}
               </div>
             </div>
             
             {usernameStatus === 'taken' && (
-              <div className="mt-2 text-sm text-rose-600 dark:text-rose-400">
-                Ushbu username band. Boshqa variantlar:
+              <div className="mt-2 text-sm text-amber-600 dark:text-amber-400">
+                Ushbu username band. Agar bu sizning akkauntingiz bo'lsa, parolingizni kiritib kirishingiz mumkin. Boshqa variantlar:
                 <div className="mt-1 flex flex-wrap gap-2">
                   {suggestedUsernames.map(suggestion => (
                     <button
                       key={suggestion}
                       type="button"
                       onClick={() => setUsername(suggestion)}
-                      className="rounded-md bg-rose-50 dark:bg-rose-900/20 px-2 py-1 text-xs font-medium text-rose-700 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/40"
+                      className="rounded-md bg-amber-50 dark:bg-amber-900/20 px-2 py-1 text-xs font-medium text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/40"
                     >
                       {suggestion}
                     </button>
@@ -362,16 +404,16 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
 
           <button
             type="submit"
-            disabled={isLoading || !firstName || !lastName || !phone || !username || !password || usernameStatus === 'taken'}
+            disabled={isLoading || !firstName || !lastName || !phone || !username || !password}
             className="mt-6 flex w-full items-center justify-center rounded-xl bg-indigo-600 dark:bg-indigo-500 px-6 py-4 text-base font-semibold text-white shadow-md transition-all hover:bg-indigo-700 dark:hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:shadow-none"
           >
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                Ro'yxatdan o'tilmoqda...
+                Kutilmoqda...
               </>
             ) : (
-              "Ro'yxatdan o'tish"
+              usernameStatus === 'taken' ? "Akkauntga kirish" : "Ro'yxatdan o'tish"
             )}
           </button>
         </form>
