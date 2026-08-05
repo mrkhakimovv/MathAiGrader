@@ -9,26 +9,87 @@ const ai = new GoogleGenAI({
   },
 });
 
-// ============================================================
-// THINKING FIX: Gemini 2.5 Flash'da thinking standart YOQILGAN.
-// thinkingBudget: 0 uni butunlay o'chiradi.
-// Bu output tokenlarni ~50-70% kamaytiradi.
-// ============================================================
+// 1-TUZATISH: thinking o'chirish
 const THINKING_OFF = { thinkingBudget: 0 };
 
-// Token sarfini kuzatish uchun yordamchi.
-// thoughtsTokenCount 0 yoki undefined bo'lishi kerak — agar >0 chiqsa,
-// thinking hali ham yoqiq degani.
+// ============================================================
+// 4-TUZATISH: Output limitlari (himoya chegarasi)
+// Model faqat kerakli miqdorda yozadi - bu limitlar "runaway"
+// (nazoratsiz uzun javob) holatlarining oldini oladi.
+// analyze: o'qituvchi 10+ masalani yechadi - kengroq limit
+// evaluate: 3-tuzatishdan keyin javob qisqa - torroq limit
+// ============================================================
+const MAX_OUTPUT_ANALYZE = 8192;
+const MAX_OUTPUT_EVALUATE = 4096;
+
+// Token monitoring
 function logUsage(label: string, response: any) {
   const u = response?.usageMetadata;
   if (u) {
     console.log(
       `[TOKENS] ${label} | input: ${u.promptTokenCount ?? 0} | ` +
+      `cached: ${u.cachedContentTokenCount ?? 0} | ` +
       `output: ${u.candidatesTokenCount ?? 0} | ` +
       `thinking: ${u.thoughtsTokenCount ?? 0} | ` +
       `total: ${u.totalTokenCount ?? 0}`
     );
   }
+}
+
+// 2-TUZATISH: Reference siqish
+function compactReference(taskReference: any): string | null {
+  if (!taskReference) return null;
+
+  const compact = {
+    n: taskReference.questionCount ?? taskReference.solutions?.length ?? 0,
+    q: (taskReference.solutions ?? []).map((sol: any) => ({
+      i: sol.problemNumber,
+      p: sol.problemText,
+      a: sol.finalAnswer,
+      s: sol.solutionSteps,
+    })),
+  };
+
+  return JSON.stringify(compact);
+}
+
+// ============================================================
+// 3-TUZATISH: errorSteps'ni SERVERDA yig'ish
+// Model endi to'liq yechimni yozmaydi — faqat masala raqami va
+// qisqa xato izohini qaytaradi. To'liq yechim reference'dan
+// BEPUL olinadi (u allaqachon bizda bor!).
+// ============================================================
+function buildErrorSteps(
+  errors: Array<{ problemNumber: number; mistake: string }>,
+  taskReference?: any
+): string[] {
+  if (!errors || errors.length === 0) return [];
+
+  // Reference'dan masala raqami -> yechim xaritasi
+  const solutionMap = new Map<number, { steps: string; answer: string; text: string }>();
+  if (taskReference?.solutions) {
+    for (const sol of taskReference.solutions) {
+      solutionMap.set(sol.problemNumber, {
+        steps: sol.solutionSteps ?? "",
+        answer: sol.finalAnswer ?? "",
+        text: sol.problemText ?? "",
+      });
+    }
+  }
+
+  return errors.map((err) => {
+    const sol = solutionMap.get(err.problemNumber);
+    if (sol) {
+      // Model izohiga reference'dagi tayyor yechimni SERVER qo'shadi (0 token!)
+      return (
+        `**${err.problemNumber}-masala.** ${err.mistake}\n\n` +
+        `**To'g'ri yechim:**\n\n${sol.steps}\n\n` +
+        `**Javob:** ${sol.answer}`
+      );
+    }
+    // Reference'da bu raqam topilmasa — faqat model izohi
+    return `**${err.problemNumber}-masala.** ${err.mistake}`;
+  });
 }
 
 export async function analyzeTeacherExamples(images: { imageBase64: string, mimeType: string }[]) {
@@ -53,12 +114,13 @@ Output the result in JSON format matching the schema.`;
       model: "gemini-2.5-flash",
       contents: {
         parts: [
-          ...imageParts,
           { text: promptString },
+          ...imageParts,
         ],
       },
       config: {
-        thinkingConfig: THINKING_OFF, // ← YANGI: thinking o'chirildi
+        thinkingConfig: THINKING_OFF,
+        maxOutputTokens: MAX_OUTPUT_ANALYZE, // 4-TUZATISH
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -87,7 +149,7 @@ Output the result in JSON format matching the schema.`;
       },
     });
 
-    logUsage("analyzeTeacherExamples", response); // ← YANGI: token monitoring
+    logUsage("analyzeTeacherExamples", response);
 
     const responseText = response.text;
     if (!responseText) {
@@ -102,32 +164,55 @@ Output the result in JSON format matching the schema.`;
 }
 
 export async function evaluateHomework(images: { imageBase64: string, mimeType: string }[], taskReference?: any) {
-  let promptString = `You are an expert mathematics teacher evaluating a student's homework submission. Your native language is Uzbek, and you MUST provide all feedback, explanations, and evaluations exclusively in the Uzbek language.\nThe student submitted a math problem.\n`;
-  
-  if (taskReference) {
-    promptString += `\nHere is the reference material provided by the teacher for this specific homework task (including correct answers, expected question count, etc):\n${JSON.stringify(taskReference)}\n\nPlease ensure your grading strictly aligns with this reference material. 
-CRITICAL RULES:
-1. Compare the questions answered by the student with the problems in the reference material. If the student submitted completely different problems that are NOT part of the teacher's assignment, you MUST score it 0 and set the feedback exactly to: "Bu misollar uyga vazifada mavjud emas." Stop further grading if they are completely unrelated.
-2. Compare the number of questions answered by the student with the 'questionCount' in the reference. If the student missed any questions, state clearly in the 'feedback' that they did not answer all questions (mentioning how many they answered vs how many were expected) and reduce the score accordingly.
-3. If the student answered any question incorrectly, you MUST provide a detailed explanation of their mistake and the complete correct step-by-step solution (haqiqiy yechim) directly taken from the reference material. Place this detailed breakdown inside the 'errorSteps' array for each wrong question.\n`;
-  }
+  const hasReference = !!taskReference;
 
-  promptString += `Please analyze the provided file(s) or image(s) of the student's work. Follow these steps:
+  // STATIK QISM (caching prefiksi)
+  let promptString = `You are an expert mathematics teacher evaluating a student's homework submission. Your native language is Uzbek, and you MUST provide all feedback, explanations, and evaluations exclusively in the Uzbek language.
+The student submitted a math problem.
+Please analyze the provided image(s) of the student's work. Follow these steps:
 1. Carefully transcribe the student's entire solution, line by line. Use LaTeX enclosed in $ for inline math and $$ for block math (e.g. $x^2 + y^2 = z^2$).
    - CRITICAL: Write each separate equation, mathematical step, or distinct line of text from the file on a NEW LINE in your transcription. Use double newlines between each line to ensure they render as separate blocks in Markdown. Do not run multiple steps or equations together on the same line.
 2. Verify each step of the reasoning and calculation.
 3. Determine the final answer the student arrived at.
 4. Check if the final answer is correct and if all intermediate steps are logically and mathematically sound.
 5. Provide a percentage score out of 100.
-6. Provide constructive feedback entirely in Uzbek. If there are errors, explain precisely where the error occurred and how to fix it. Be encouraging but clear. If it is perfect, praise the student's work in Uzbek.
-7. IMPORTANT FOR MULTIPLE FILES: If multiple files/images are provided, you MUST structure your \`transcription\`, \`feedback\`, and \`errorSteps\` to address each one separately. Start the section for each file with its number, like "1-fayl.\\n\\n[content for file 1]\\n\\n2-fayl.\\n\\n[content for file 2]" and so on.
+6. Provide constructive feedback entirely in Uzbek. Be encouraging but clear. If it is perfect, praise the student's work in Uzbek.
+7. IMPORTANT FOR MULTIPLE FILES: If multiple files/images are provided, you MUST structure your \`transcription\` and \`feedback\` to address each one separately. Start the section for each file with its number, like "1-fayl.\\n\\n[content for file 1]\\n\\n2-fayl.\\n\\n[content for file 2]" and so on.
 
-IMPORTANT: 
-- ALL text in the \`feedback\` and \`errorSteps\` fields MUST be written strictly in the UZBEK LANGUAGE. Do not use English.
-- The \`transcription\` MUST use markdown formatting with LaTeX math enclosed in $ or $$. 
+IMPORTANT:
+- ALL text MUST be written strictly in the UZBEK LANGUAGE. Do not use English.
+- The \`transcription\` MUST use markdown formatting with LaTeX math enclosed in $ or $$.
 - Do not use bare LaTeX commands without enclosing them in $ or $$.
+`;
+
+  if (hasReference) {
+    // 3-TUZATISH: modeldan yechim KO'CHIRISHNI so'ramaymiz —
+    // faqat masala raqami va QISQA xato izohi
+    promptString += `
+Reference material from the teacher (compact JSON):
+- n = total expected question count
+- q = list of problems: i = problem number, p = problem text, a = correct final answer, s = correct solution steps
+
+${compactReference(taskReference)}
+
+Grading rules based on this reference:
+1. If the student's submitted problems are NOT part of this reference at all, score 0 and set feedback exactly to: "Bu misollar uyga vazifada mavjud emas." Stop further grading.
+2. If the student answered fewer questions than 'n', state in the feedback how many they answered vs expected, and reduce the score accordingly.
+3. For each incorrectly answered question, add an entry to the 'errors' array with:
+   - problemNumber: the problem number (matching 'i' in the reference)
+   - mistake: a SHORT explanation (2-4 sentences in Uzbek) of exactly WHERE and WHY the student went wrong. Do NOT copy the full correct solution — it will be attached automatically. Only explain the mistake itself.
 
 Output the result in JSON format matching the schema.`;
+  } else {
+    // Reference yo'q rejim: model o'zi yechimni bilishi kerak,
+    // shuning uchun bu rejimda izoh biroz kengroq bo'lishi mumkin
+    promptString += `
+For each incorrectly answered question, add an entry to the 'errors' array with:
+- problemNumber: the problem number
+- mistake: an explanation in Uzbek of where the student went wrong, including the correct approach briefly.
+
+Output the result in JSON format matching the schema.`;
+  }
 
   let response;
   let retries = 5;
@@ -146,14 +231,13 @@ Output the result in JSON format matching the schema.`;
         model: "gemini-2.5-flash",
         contents: {
           parts: [
+            { text: promptString },
             ...imageParts,
-            {
-              text: promptString,
-            },
           ],
         },
         config: {
-          thinkingConfig: THINKING_OFF, // ← YANGI: thinking o'chirildi
+          thinkingConfig: THINKING_OFF,
+          maxOutputTokens: MAX_OUTPUT_EVALUATE, // 4-TUZATISH
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
@@ -176,37 +260,50 @@ Output the result in JSON format matching the schema.`;
               },
               feedback: {
                 type: Type.STRING,
-                description: "Constructive feedback for the student in Markdown format. Address the student directly.",
+                description: "Constructive feedback for the student in Markdown format, in Uzbek. Address the student directly.",
               },
-              errorSteps: {
+              // 3-TUZATISH: errorSteps (uzun matnlar) o'rniga
+              // errors (qisqa strukturali obyektlar)
+              errors: {
                 type: Type.ARRAY,
                 items: {
-                  type: Type.STRING,
+                  type: Type.OBJECT,
+                  properties: {
+                    problemNumber: {
+                      type: Type.INTEGER,
+                      description: "The number of the problem where the mistake was made.",
+                    },
+                    mistake: {
+                      type: Type.STRING,
+                      description: "SHORT explanation (2-4 sentences, Uzbek, Markdown+LaTeX) of where and why the student went wrong. Do NOT include the full correct solution.",
+                    },
+                  },
+                  required: ["problemNumber", "mistake"],
                 },
-                description: "A list of specific errors the student made. For each error, clearly state the problem number, explain the mistake, and provide the complete correct step-by-step solution based on the teacher's reference. Use Markdown and LaTeX.",
+                description: "List of mistakes. Empty array if everything is correct.",
               },
             },
-            required: ["transcription", "isCorrect", "isPartiallyCorrect", "score", "feedback", "errorSteps"],
+            required: ["transcription", "isCorrect", "isPartiallyCorrect", "score", "feedback", "errors"],
           },
         },
       });
-      logUsage("evaluateHomework", response); // ← YANGI: token monitoring
+      logUsage("evaluateHomework", response);
       break; // Success, exit retry loop
     } catch (err: any) {
       const errorMsg = err.message || "";
-      
+
       if (errorMsg.includes("API_KEY_INVALID") || errorMsg.includes("API key not valid")) {
         throw new Error("API kaliti noto'g'ri. Iltimos, yaroqli Gemini API kalitini kiriting.");
       }
-      
+
       const isTransient = errorMsg.includes("503") || errorMsg.includes("UNAVAILABLE") || errorMsg.includes("429") || errorMsg.includes("RESOURCE_EXHAUSTED");
-      
+
       if (!isTransient) {
         throw err;
       }
-      
+
       retries--;
-      
+
       if (retries === 0) {
         if (errorMsg.includes("503") || errorMsg.includes("UNAVAILABLE")) {
           throw new Error("Sun'iy intellekt tizimi hozirda juda band (503). Iltimos, bir ozdan so'ng qayta urining.");
@@ -216,11 +313,17 @@ Output the result in JSON format matching the schema.`;
         }
         throw err;
       }
-      
+
       // Wait before retrying
       await new Promise((resolve) => setTimeout(resolve, delayMs));
       delayMs *= 2; // Exponential backoff
     }
+  }
+
+  // 4-TUZATISH: limit tufayli kesilgan javobni aniqlash
+  const finishReason = response?.candidates?.[0]?.finishReason;
+  if (finishReason === "MAX_TOKENS") {
+    console.warn("[WARN] Javob maxOutputTokens limitiga yetdi - JSON kesilgan bo'lishi mumkin");
   }
 
   const jsonStr = response?.text?.trim() || "{}";
@@ -228,10 +331,20 @@ Output the result in JSON format matching the schema.`;
   try {
     result = JSON.parse(jsonStr);
   } catch (e) {
+    if (finishReason === "MAX_TOKENS") {
+      throw new Error("Javob juda uzun bo'lib ketdi. Iltimos, rasmlarni kamroq qilib yoki bitta-bitta yuboring.");
+    }
     throw new Error("AI javobini o'qib bo'lmadi, iltimos qayta urining.");
   }
 
-  result.inputTokens = response?.usageMetadata?.promptTokenCount || 0;
-  result.outputTokens = response?.usageMetadata?.candidatesTokenCount || 0;
+  // ============================================================
+  // 3-TUZATISH (yakuniy qadam): errorSteps'ni serverda yig'amiz.
+  // Frontend eski formatni (errorSteps: string[]) kutadi —
+  // shuning uchun frontendni O'ZGARTIRISH SHART EMAS.
+  // ============================================================
+  const errors = Array.isArray(result.errors) ? result.errors : [];
+  result.errorSteps = buildErrorSteps(errors, taskReference);
+  delete result.errors; // ichki maydonni frontendga chiqarmaymiz
+
   return result;
 }
