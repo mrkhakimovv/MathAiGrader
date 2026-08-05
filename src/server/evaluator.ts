@@ -13,14 +13,15 @@ const ai = new GoogleGenAI({
 const THINKING_OFF = { thinkingBudget: 0 };
 
 // ============================================================
-// 4-TUZATISH: Output limitlari (himoya chegarasi)
-// Model faqat kerakli miqdorda yozadi - bu limitlar "runaway"
-// (nazoratsiz uzun javob) holatlarining oldini oladi.
-// analyze: o'qituvchi 10+ masalani yechadi - kengroq limit
-// evaluate: 3-tuzatishdan keyin javob qisqa - torroq limit
+// 4-TUZATISH: Output limitlari (faqat himoya chegarasi)
+// Limit maksimal (65536) - o'qituvchi/o'quvchining haqiqiy javobi
+// HECH QACHON kesilmaydi. Bu faqat model nazoratsiz loop'ga
+// tushib qolgan favqulodda holatlarda ishlaydigan "xavfsizlik
+// klapani". Amalda javoblar bundan ancha qisqa bo'ladi va
+// faqat kerakli miqdorda token sarflanadi.
 // ============================================================
-const MAX_OUTPUT_ANALYZE = 8192;
-const MAX_OUTPUT_EVALUATE = 4096;
+const MAX_OUTPUT_ANALYZE = 65536; // maksimal - haqiqiy javob hech qachon kesilmaydi
+const MAX_OUTPUT_EVALUATE = 65536; // maksimal - haqiqiy javob hech qachon kesilmaydi
 
 // Token monitoring
 function logUsage(label: string, response: any) {
@@ -151,12 +152,25 @@ Output the result in JSON format matching the schema.`;
 
     logUsage("analyzeTeacherExamples", response);
 
+    // Limit tufayli kesilgan JSON'ni aniqlash
+    const finishReason = response?.candidates?.[0]?.finishReason;
+    if (finishReason === "MAX_TOKENS") {
+      throw new Error("Misollar juda ko'p yoki uzun bo'lib ketdi. Iltimos, rasmlarni kamroq qilib (masalan 1 tadan) yoki soddaroq qilib yuboring.");
+    }
+
     const responseText = response.text;
     if (!responseText) {
       throw new Error("Failed to get response from Gemini");
     }
 
-    return JSON.parse(responseText);
+    try {
+      return JSON.parse(responseText);
+    } catch (parseErr) {
+      if (finishReason === "MAX_TOKENS") {
+        throw new Error("Misollar juda ko'p bo'lib ketdi. Iltimos, rasmlarni kamroq qilib yuboring.");
+      }
+      throw new Error("AI javobini o'qib bo'lmadi, iltimos qayta urining.");
+    }
   } catch (error: any) {
     console.error("Error analyzing teacher examples:", error);
     throw error;
@@ -345,6 +359,11 @@ Output the result in JSON format matching the schema.`;
   const errors = Array.isArray(result.errors) ? result.errors : [];
   result.errorSteps = buildErrorSteps(errors, taskReference);
   delete result.errors; // ichki maydonni frontendga chiqarmaymiz
+
+  // 6-QO'SHIMCHA: real token sonini natijaga qo'shamiz (statistika uchun)
+  const usage = response?.usageMetadata;
+  result.inputTokens = usage?.promptTokenCount ?? 0;
+  result.outputTokens = usage?.candidatesTokenCount ?? 0;
 
   return result;
 }
