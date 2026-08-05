@@ -9,4 +9,6 @@ export interface GradingResult {
   createdAt?: any;
   studentUsername?: string;
   taskId?: string;
+  inputTokens?: number;
+  outputTokens?: number;
 }

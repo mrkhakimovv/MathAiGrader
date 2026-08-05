@@ -1,8 +1,8 @@
 import React from 'react';
-import { Home, Users, UserPlus, FilePlus, Library, User, CheckSquare, BookOpen, BarChart2, Trophy } from 'lucide-react';
+import { Home, Users, UserPlus, FilePlus, Library, User, CheckSquare, BookOpen, BarChart2, Trophy, Megaphone, Coins } from 'lucide-react';
 import { getAvatarUrl } from '../lib/utils';
 
-export type ViewType = 'home' | 'all-students' | 'create-group' | 'create-task' | 'all-groups' | 'grade-task' | 'student-tasks' | 'student-stats' | 'student-rating' | 'teacher-rating';
+export type ViewType = 'home' | 'all-students' | 'create-group' | 'create-task' | 'all-groups' | 'grade-task' | 'student-tasks' | 'student-stats' | 'student-rating' | 'teacher-rating' | 'admin-create-teacher' | 'admin-ads' | 'admin-students' | 'admin-expenses';
 
 interface SidebarProps {
   onProfileClick: () => void;
@@ -16,13 +16,51 @@ interface SidebarProps {
 export function Sidebar({ onProfileClick, activeView, onChangeView, role, uncompletedTasksCount = 0, userAvatar }: SidebarProps) {
   return (
     <div className="fixed md:sticky bottom-0 md:top-0 left-0 right-0 md:w-20 bg-indigo-600 dark:bg-indigo-500 flex md:flex-col items-center justify-around md:justify-start md:py-8 md:gap-8 rounded-t-3xl md:rounded-t-none md:rounded-r-3xl h-16 md:h-screen shadow-[0_-4px_20px_rgba(0,0,0,0.1)] md:shadow-lg z-50">
-      <button 
-        onClick={() => onChangeView('home')}
-        className={`${activeView === 'home' ? 'text-white scale-110' : 'text-indigo-200'} hover:text-white hover:scale-110 transition-all`} 
-        title="Home"
-      >
-        <Home className="h-6 w-6 md:h-7 md:w-7" />
-      </button>
+      {role !== 'admin' && (
+        <button 
+          onClick={() => onChangeView('home')}
+          className={`${activeView === 'home' ? 'text-white scale-110' : 'text-indigo-200'} hover:text-white hover:scale-110 transition-all`} 
+          title="Home"
+        >
+          <Home className="h-6 w-6 md:h-7 md:w-7" />
+        </button>
+      )}
+
+      {role === 'admin' && (
+        <>
+          <button 
+            onClick={() => onChangeView('admin-create-teacher')}
+            className={`${activeView === 'admin-create-teacher' ? 'text-white scale-110' : 'text-indigo-200'} hover:text-white hover:scale-110 transition-all`} 
+            title="O'qituvchi yaratish (Create Teacher)"
+          >
+            <UserPlus className="h-6 w-6 md:h-7 md:w-7" />
+          </button>
+          
+          <button 
+            onClick={() => onChangeView('admin-ads')}
+            className={`${activeView === 'admin-ads' ? 'text-white scale-110' : 'text-indigo-200'} hover:text-white hover:scale-110 transition-all`} 
+            title="Reklama yaratish (Create Ads)"
+          >
+            <Megaphone className="h-6 w-6 md:h-7 md:w-7" />
+          </button>
+          
+          <button 
+            onClick={() => onChangeView('admin-students')}
+            className={`${activeView === 'admin-students' ? 'text-white scale-110' : 'text-indigo-200'} hover:text-white hover:scale-110 transition-all`} 
+            title="Barcha o'quvchilar (All Students)"
+          >
+            <Users className="h-6 w-6 md:h-7 md:w-7" />
+          </button>
+          
+          <button 
+            onClick={() => onChangeView('admin-expenses')}
+            className={`${activeView === 'admin-expenses' ? 'text-white scale-110' : 'text-indigo-200'} hover:text-white hover:scale-110 transition-all`} 
+            title="Xarajatlar (Expenses)"
+          >
+            <Coins className="h-6 w-6 md:h-7 md:w-7" />
+          </button>
+        </>
+      )}
 
       {role === 'teacher' && (
         <>

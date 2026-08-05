@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { Calculator, Moon, Sun, ArrowRight, Star, Check, Trophy, Users, Search, BookOpen, GraduationCap, Award, Book, Youtube, Instagram, Send, ChevronLeft, ChevronRight, ChevronDown, Target, Zap, Shield, MessageCircle, Eye } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
+import { subscribeToCollection } from '../lib/db';
+import { Newspaper } from 'lucide-react';
 import { db } from '../lib/firebase';
 
 interface WelcomeScreenProps {
@@ -17,6 +19,12 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [panjiViews, setPanjiViews] = useState<number>(0);
   const [quvonchbekViews, setQuvonchbekViews] = useState<number>(0);
+  const [news, setNews] = useState<any[]>([]);
+
+  useEffect(() => {
+    const unsub = subscribeToCollection("news", setNews);
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     const fetchViews = async (personId: string, setViews: React.Dispatch<React.SetStateAction<number>>) => {
@@ -194,6 +202,30 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
         </section>
         
       </main>
+
+      
+      {news.length > 0 && (
+        <section className="pt-24 pb-section-gap px-gutter max-w-container-max mx-auto bg-surface dark:bg-inverse-surface">
+          <div className="flex flex-col md:flex-row gap-12 items-start">
+            <div className="md:w-1/3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-semibold text-sm mb-6">
+                <Newspaper className="w-4 h-4" /> E'lonlar va Yangiliklar
+              </div>
+              <h2 className="text-3xl md:text-4xl font-bold text-on-surface dark:text-inverse-on-surface mb-4">So'nggi yangiliklardan xabardor bo'ling</h2>
+              <p className="text-on-surface-variant dark:text-inverse-on-surface-variant mb-6 text-lg">ALMATH platformasidagi eng so'nggi yangiliklar, o'zgarishlar va e'lonlar.</p>
+            </div>
+            <div className="md:w-2/3 grid gap-6">
+              {news.sort((a, b) => b.createdAt - a.createdAt).slice(0, 3).map((item) => (
+                <div key={item.id} className="bg-surface-container-low dark:bg-surface-container-highest p-6 rounded-2xl border border-outline-variant/20 shadow-sm hover:shadow-md transition-shadow">
+                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2 block">{item.date}</span>
+                  <h3 className="text-xl font-bold text-on-surface dark:text-inverse-on-surface mb-3">{item.title}</h3>
+                  <p className="text-on-surface-variant dark:text-inverse-on-surface-variant whitespace-pre-wrap">{item.content}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Sections for Navigation Links */}
       <section id="kurslar" className="pt-24 pb-section-gap px-gutter max-w-container-max mx-auto bg-surface dark:bg-inverse-surface">

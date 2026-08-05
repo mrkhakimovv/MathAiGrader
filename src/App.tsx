@@ -5,7 +5,7 @@ import { Uploader } from "./components/Uploader";
 import { ResultCard } from "./components/ResultCard";
 import { ProfileModal } from "./components/ProfileModal";
 import { LoginScreen } from "./components/LoginScreen";
-import { AdminPanel } from "./components/AdminPanel";
+import { AdminCreateTeacherView, AdminAdsView, AdminStudentsView, AdminExpensesView } from "./components/AdminViews";
 import { Sidebar, ViewType } from "./components/Sidebar";
 import { AllStudentsView, CreateGroupView, CreateTaskView, AllGroupsView } from "./components/TeacherViews";
 import { StudentTasksView, StudentStatsView } from "./components/StudentViews";
@@ -75,6 +75,9 @@ function MainApp() {
         if (user.username && user.role) {
           setCurrentUser(user.username);
           setRole(user.role);
+          if (user.role === 'admin') {
+            setActiveView('admin-create-teacher');
+          }
         }
       } catch (e) {
         console.error("Error parsing stored user:", e);
@@ -130,6 +133,7 @@ function MainApp() {
       if (pass === '7788') {
         setCurrentUser('admin');
         setRole('admin');
+        setActiveView('admin-create-teacher');
         localStorage.setItem("almath_user", JSON.stringify({ username: 'admin', role: 'admin' }));
         return true;
       }
@@ -279,33 +283,7 @@ function MainApp() {
     );
   }
 
-  if (role === 'admin') {
-    return (
-      <AdminPanel 
-        teachers={teachers}
-        onCreateTeacher={async (u, p) => {
-          try {
-            await saveToCollection("teachers", { username: u, password: p });
-            alert("O'qituvchi muvaffaqiyatli qo'shildi!");
-          } catch(err) {
-            console.error(err);
-            alert("Xatolik yuz berdi");
-          }
-        }}
-        onDeleteTeacher={async (id) => {
-          try {
-            await deleteDoc(doc(db, "teachers", id));
-          } catch(err) {
-            console.error(err);
-            alert("Xatolik yuz berdi");
-          }
-        }}
-        isDarkMode={isDarkMode}
-        toggleDarkMode={toggleDarkMode}
-        onLogout={handleLogout}
-      />
-    );
-  }
+
 
   // Calculate uncompleted tasks for student
   let uncompletedTasksCount = 0;
@@ -404,7 +382,33 @@ function MainApp() {
             </button>
           </div>
 
-        {activeView === 'home' && role !== 'student' && (
+        {activeView === 'admin-create-teacher' && role === 'admin' && (
+          <AdminCreateTeacherView 
+            teachers={teachers}
+            onCreateTeacher={async (u, p) => {
+              try {
+                await saveToCollection("teachers", { username: u, password: p });
+                alert("O'qituvchi muvaffaqiyatli qo'shildi!");
+              } catch(err) {
+                console.error(err);
+                alert("Xatolik yuz berdi");
+              }
+            }}
+            onDeleteTeacher={async (id) => {
+              try {
+                await deleteDoc(doc(db, "teachers", id));
+              } catch(err) {
+                console.error(err);
+                alert("Xatolik yuz berdi");
+              }
+            }}
+          />
+        )}
+        {activeView === 'admin-ads' && role === 'admin' && <AdminAdsView />}
+        {activeView === 'admin-students' && role === 'admin' && <AdminStudentsView students={students} />}
+        {activeView === 'admin-expenses' && role === 'admin' && <AdminExpensesView history={history} students={students} teachers={teachers} />}
+
+        {activeView === 'home' && role !== 'student' && role !== 'admin' && (
           <div className="space-y-8">
             <HomeView role={role} username={userDisplayName} />
             <DashboardStats groupDetails={teacherGroupDetails} students={teacherStudents} tasks={teacherTasks} />

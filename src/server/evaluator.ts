@@ -9,6 +9,28 @@ const ai = new GoogleGenAI({
   },
 });
 
+// ============================================================
+// THINKING FIX: Gemini 2.5 Flash'da thinking standart YOQILGAN.
+// thinkingBudget: 0 uni butunlay o'chiradi.
+// Bu output tokenlarni ~50-70% kamaytiradi.
+// ============================================================
+const THINKING_OFF = { thinkingBudget: 0 };
+
+// Token sarfini kuzatish uchun yordamchi.
+// thoughtsTokenCount 0 yoki undefined bo'lishi kerak — agar >0 chiqsa,
+// thinking hali ham yoqiq degani.
+function logUsage(label: string, response: any) {
+  const u = response?.usageMetadata;
+  if (u) {
+    console.log(
+      `[TOKENS] ${label} | input: ${u.promptTokenCount ?? 0} | ` +
+      `output: ${u.candidatesTokenCount ?? 0} | ` +
+      `thinking: ${u.thoughtsTokenCount ?? 0} | ` +
+      `total: ${u.totalTokenCount ?? 0}`
+    );
+  }
+}
+
 export async function analyzeTeacherExamples(images: { imageBase64: string, mimeType: string }[]) {
   const promptString = `You are an expert mathematics teacher analyzing a homework assignment from images provided by another teacher. Your native language is Uzbek, and you MUST provide all feedback and text exclusively in the Uzbek language.
 Please analyze the provided image(s) containing math problems. Follow these steps:
@@ -36,6 +58,7 @@ Output the result in JSON format matching the schema.`;
         ],
       },
       config: {
+        thinkingConfig: THINKING_OFF, // ← YANGI: thinking o'chirildi
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -63,6 +86,8 @@ Output the result in JSON format matching the schema.`;
         },
       },
     });
+
+    logUsage("analyzeTeacherExamples", response); // ← YANGI: token monitoring
 
     const responseText = response.text;
     if (!responseText) {
@@ -128,6 +153,7 @@ Output the result in JSON format matching the schema.`;
           ],
         },
         config: {
+          thinkingConfig: THINKING_OFF, // ← YANGI: thinking o'chirildi
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
@@ -164,6 +190,7 @@ Output the result in JSON format matching the schema.`;
           },
         },
       });
+      logUsage("evaluateHomework", response); // ← YANGI: token monitoring
       break; // Success, exit retry loop
     } catch (err: any) {
       const errorMsg = err.message || "";
@@ -204,5 +231,7 @@ Output the result in JSON format matching the schema.`;
     throw new Error("AI javobini o'qib bo'lmadi, iltimos qayta urining.");
   }
 
+  result.inputTokens = response?.usageMetadata?.promptTokenCount || 0;
+  result.outputTokens = response?.usageMetadata?.candidatesTokenCount || 0;
   return result;
 }

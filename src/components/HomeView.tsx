@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import { subscribeToCollection } from "../lib/db";
 import { Info, Newspaper, ArrowRight, Eye } from 'lucide-react';
 import { motion } from 'motion/react';
 import { doc, getDoc, updateDoc, setDoc, arrayUnion } from 'firebase/firestore';
@@ -7,6 +8,12 @@ import { db } from '../lib/firebase';
 export function HomeView({ role, username }: { role: string | null, username: string | null }) {
   const [panjiViews, setPanjiViews] = useState<number>(0);
   const [quvonchbekViews, setQuvonchbekViews] = useState<number>(0);
+  const [news, setNews] = useState<any[]>([]);
+
+  useEffect(() => {
+    const unsub = subscribeToCollection("news", setNews);
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     const trackAndFetchViews = async (personId: string, setViews: React.Dispatch<React.SetStateAction<number>>) => {
@@ -60,24 +67,18 @@ export function HomeView({ role, username }: { role: string | null, username: st
           </div>
           
           <div className="space-y-6">
-            <div className="group cursor-pointer bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-200 dark:border-red-800/50 font-serif">
-              <span className="text-xs font-bold text-red-600 dark:text-red-400 mb-1 block uppercase tracking-wider">Diqqat!</span>
-              <h3 className="text-lg font-bold text-red-900 dark:text-red-100">Texnik ishlar olib borilmoqda</h3>
-              <p className="text-sm text-red-800 dark:text-red-200 mt-2">Dasturga bir nechta o'zgarishlar kiritilayotganligi sababli dastur ishlashida ba'zi bir uzilishlar va to'xtalishlar kuzatilishi mumkin. Agar ushbu muammolarga duch kelsangiz, biroz kuting va biroz vaqt o'tib qaytadan urinib ko'ring.</p>
-            </div>
-            
-            <div className="group cursor-pointer">
-              <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1 block">31 Iyul, 2026</span>
-              <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">ALMATH yangi versiyasi ishga tushirildi!</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 line-clamp-2">Endilikda platformamiz orqali vazifalarni yanada oson tekshirishingiz va o'quvchilar o'zlashtirishini kuzatib borishingiz mumkin.</p>
-            </div>
-            <div className="w-full h-px bg-slate-100 dark:bg-slate-800"></div>
-            <div className="group cursor-pointer">
-              <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1 block">28 Iyul, 2026</span>
-              <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">Yangi vazifalar to'plami qo'shildi</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 line-clamp-2">O'quvchilar uchun matematika fanidan yangi va qiziqarli masalalar to'plami tizimga kiritildi. O'qituvchilar ulardan foydalanishlari mumkin.</p>
-            </div>
-            
+            {news.length === 0 ? (
+              <p className="text-slate-500 dark:text-slate-400">Hozircha yangiliklar yo'q.</p>
+            ) : (
+              news.sort((a, b) => b.createdAt - a.createdAt).slice(0, 3).map((item) => (
+                <div key={item.id} className="group cursor-pointer">
+                  <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1 block">{item.date}</span>
+                  <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{item.title}</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 line-clamp-2 whitespace-pre-wrap">{item.content}</p>
+                </div>
+              ))
+            )}
+                        
             <button className="flex items-center gap-2 text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 mt-4">
               Barcha yangiliklar <ArrowRight className="w-4 h-4" />
             </button>
