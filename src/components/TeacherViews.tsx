@@ -4,7 +4,7 @@ import remarkBreaks from 'remark-breaks';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import React, { useState } from 'react';
-import { Users, User, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, ExternalLink, Search, Calendar, CheckCircle, XCircle, Loader2, FolderPlus, Edit2, Clock, Download } from 'lucide-react';
+import { Users, User, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, ExternalLink, Search, Calendar, CheckCircle, XCircle, Loader2, FolderPlus, Edit2, Clock, Download, AlertCircle } from 'lucide-react';
 import { GradingResult } from '../types';
 import * as XLSX from 'xlsx';
 import { EditGroupModal } from './EditGroupModal';
@@ -1592,31 +1592,43 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                     remarkPlugins={[remarkMath, remarkBreaks]}
                     rehypePlugins={[rehypeKatex]}
                   >
-                    {selectedSubmission.feedback || "Tahlil mavjud emas."}
+                    {selectedSubmission.feedback || "Tahlil muddati o'tgan (1 hafta) yoki mavjud emas."}
                   </Markdown>
                 </div>
               </div>
 
               {selectedSubmission.errorSteps && selectedSubmission.errorSteps.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-rose-600 dark:text-rose-400 mb-3 uppercase tracking-wider flex items-center gap-2">
-                    <XCircle className="h-4 w-4" />
-                    Xatolar
+                  <h4 className="text-sm font-semibold text-slate-600 dark:text-slate-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+                    Izohlar va xatolar
                   </h4>
                   <ul className="space-y-2">
-                    {selectedSubmission.errorSteps.map((error: string, idx: number) => (
-                      <li key={idx} className="flex gap-3 text-sm text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-900/20 p-4 rounded-xl border border-rose-100 dark:border-rose-800/50">
-                        <XCircle className="h-5 w-5 shrink-0 text-rose-500 mt-0.5" />
-                        <div className="markdown-body leading-relaxed overflow-x-auto w-full">
-                          <Markdown
-                            remarkPlugins={[remarkMath, remarkBreaks]}
-                            rehypePlugins={[rehypeKatex]}
-                          >
-                            {error}
-                          </Markdown>
-                        </div>
-                      </li>
-                    ))}
+                    {selectedSubmission.errorSteps.map((error: string, idx: number) => {
+                      const isWarning = error.startsWith("[WARNING] ");
+                      const cleanStep = isWarning ? error.replace("[WARNING] ", "") : error;
+                      
+                      return (
+                        <li key={idx} className={`flex gap-3 text-sm p-4 rounded-xl border ${
+                          isWarning
+                            ? "text-amber-900 dark:text-amber-300 bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800/50"
+                            : "text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-900/20 border-rose-100 dark:border-rose-800/50"
+                        }`}>
+                          {isWarning ? (
+                            <AlertCircle className="h-5 w-5 shrink-0 text-amber-500 mt-0.5" />
+                          ) : (
+                            <XCircle className="h-5 w-5 shrink-0 text-rose-500 mt-0.5" />
+                          )}
+                          <div className="markdown-body leading-relaxed overflow-x-auto w-full">
+                            <Markdown
+                              remarkPlugins={[remarkMath, remarkBreaks]}
+                              rehypePlugins={[rehypeKatex]}
+                            >
+                              {cleanStep}
+                            </Markdown>
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               )}

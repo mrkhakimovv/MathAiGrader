@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
 import { db, auth } from './firebase';
 import { GradingResult } from '../types';
 
@@ -26,6 +26,40 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   };
   console.error('Firestore Error: ', JSON.stringify(errInfo));
 }
+
+export const cleanupOldAnalyses = async () => {
+  try {
+    const q = query(collection(db, 'history'));
+    const snapshot = await getDocs(q);
+    
+    const now = Date.now();
+    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+    
+    const updatePromises: Promise<void>[] = [];
+    
+    snapshot.docs.forEach((document) => {
+      const data = document.data();
+      if (data.createdAt && data.createdAt.seconds) {
+        const createdAtTime = data.createdAt.seconds * 1000;
+        if (now - createdAtTime > oneWeek) {
+          if (data.feedback !== null || data.errorSteps !== null || data.transcription !== null) {
+            updatePromises.push(
+              updateDoc(doc(db, 'history', document.id), {
+                feedback: null,
+                errorSteps: null,
+                transcription: null
+              })
+            );
+          }
+        }
+      }
+    });
+    
+    await Promise.all(updatePromises);
+  } catch (error) {
+    console.error("Failed to cleanup old analyses:", error);
+  }
+};
 
 export const saveResult = async (result: GradingResult & { studentUsername?: string, studentName?: string }) => {
   try {

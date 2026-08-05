@@ -78,6 +78,10 @@ function MainApp() {
           if (user.role === 'admin') {
             setActiveView('admin-create-teacher');
           }
+          
+          import('./lib/db').then(({ cleanupOldAnalyses }) => {
+            cleanupOldAnalyses();
+          });
         }
       } catch (e) {
         console.error("Error parsing stored user:", e);

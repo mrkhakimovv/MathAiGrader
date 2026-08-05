@@ -99,7 +99,7 @@ function compactReference(taskReference: any): string | null {
 // BEPUL olinadi (u allaqachon bizda bor!).
 // ============================================================
 function buildErrorSteps(
-  errors: Array<{ problemNumber: number; mistake: string }>,
+  errors: Array<{ problemNumber: number; mistake: string; isWarning?: boolean }>,
   taskReference?: any
 ): string[] {
   if (!errors || errors.length === 0) return [];
@@ -120,26 +120,29 @@ function buildErrorSteps(
 
   return errors.map((err) => {
     const sol = solutionMap.get(err.problemNumber);
+    const prefix = err.isWarning ? "[WARNING] " : "";
     if (sol) {
       // Model izohiga reference'dagi tayyor yechimni SERVER qo'shadi (0 token!)
-      return (
+      return prefix + (
         `**${err.problemNumber}-masala.** ${err.mistake}\n\n` +
         `**To'g'ri yechim:**\n\n${sol.steps}\n\n` +
         `**Javob:** ${sol.answer}`
       );
     }
     // Reference'da bu raqam topilmasa — faqat model izohi
-    return `**${err.problemNumber}-masala.** ${err.mistake}`;
+    return prefix + `**${err.problemNumber}-masala.** ${err.mistake}`;
   });
 }
 
 export async function analyzeTeacherExamples(images: { imageBase64: string, mimeType: string }[]) {
   const promptString = `You are an expert mathematics teacher analyzing a homework assignment from images provided by another teacher. Your native language is Uzbek, and you MUST provide all feedback and text exclusively in the Uzbek language.
-Please analyze the provided image(s) containing math problems. Follow these steps:
-1. Identify how many distinct math problems/questions are present in total across all images.
-2. Transcribe each problem clearly.
-3. Solve each problem step-by-step and provide the final correct answer. Use LaTeX enclosed in $ for inline math and $$ for block math (e.g. $x^2 + y^2 = z^2$).
-4. Format the output in JSON.
+Please analyze the provided image(s) containing math problems. Follow these steps carefully:
+
+1. CRITICAL IMAGE READING: Look VERY CAREFULLY at the handwriting or printed text. Pay close attention to every sign (+, -, *, /), every exponent, every decimal point, and every parenthesis. Do NOT assume a number is what you expect it to be; read exactly what is written.
+2. Identify how many distinct math problems/questions are present in total across all images.
+3. Transcribe each problem clearly.
+4. Solve each problem step-by-step and provide the final correct answer. Use LaTeX enclosed in $ for inline math and $$ for block math (e.g. $x^2 + y^2 = z^2$).
+5. Format the output in JSON.
 
 Output the result in JSON format matching the schema.`;
 
@@ -224,15 +227,17 @@ export async function evaluateHomework(images: { imageBase64: string, mimeType: 
   // STATIK QISM (caching prefiksi)
   let promptString = `You are an expert mathematics teacher evaluating a student's homework submission. Your native language is Uzbek, and you MUST provide all feedback, explanations, and evaluations exclusively in the Uzbek language.
 The student submitted a math problem.
-Please analyze the provided image(s) of the student's work. Follow these steps:
-1. Carefully transcribe the student's entire solution, line by line. Use LaTeX enclosed in $ for inline math and $$ for block math (e.g. $x^2 + y^2 = z^2$).
+Please analyze the provided image(s) of the student's work. Follow these steps carefully:
+
+1. CRITICAL IMAGE READING: Students often write by hand, which can be messy. Look VERY CAREFULLY at every sign (+, -, *, /), every exponent, every decimal point, and every parenthesis. Do NOT assume a number is what you expect it to be; read exactly what is written. Take your time to double-check ambiguities.
+2. Carefully transcribe the student's entire solution, line by line. Use LaTeX enclosed in $ for inline math and $$ for block math (e.g. $x^2 + y^2 = z^2$).
    - CRITICAL: Write each separate equation, mathematical step, or distinct line of text from the file on a NEW LINE in your transcription. Use double newlines between each line to ensure they render as separate blocks in Markdown. Do not run multiple steps or equations together on the same line.
-2. Verify each step of the reasoning and calculation.
-3. Determine the final answer the student arrived at.
-4. Check if the final answer is correct and if all intermediate steps are logically and mathematically sound.
-5. Provide a percentage score out of 100.
-6. Provide constructive feedback entirely in Uzbek. Be encouraging but clear. If it is perfect, praise the student's work in Uzbek.
-7. IMPORTANT FOR MULTIPLE FILES: If multiple files/images are provided, you MUST structure your \`transcription\` and \`feedback\` to address each one separately. Start the section for each file with its number, like "1-fayl.\\n\\n[content for file 1]\\n\\n2-fayl.\\n\\n[content for file 2]" and so on.
+3. Verify each step of the reasoning and calculation.
+4. Determine the final answer the student arrived at.
+5. Check if the final answer is correct and if all intermediate steps are logically and mathematically sound.
+6. Provide a percentage score out of 100.
+7. Provide constructive feedback entirely in Uzbek. Be encouraging but clear. If it is perfect, praise the student's work in Uzbek. DO NOT list the specific errors or mistakes in this feedback field. Keep this feedback general (e.g. praising effort, summarizing completeness). The specific errors will be collected in the 'errors' array and displayed separately.
+8. IMPORTANT FOR MULTIPLE FILES: If multiple files/images are provided, you MUST structure your \`transcription\` and \`feedback\` to address each one separately. Start the section for each file with its number, like "1-fayl.\\n\\n[content for file 1]\\n\\n2-fayl.\\n\\n[content for file 2]" and so on.
 
 IMPORTANT:
 - ALL text MUST be written strictly in the UZBEK LANGUAGE. Do not use English.
@@ -256,21 +261,24 @@ Grading rules based on this reference:
    - Count how many DISTINCT problems from the reference the student actually answered. Call this A.
    - The expected total is 'n'.
    - The score MUST be capped by completeness: max possible score = round(100 * A / n).
-     Example: if n=10 and the student answered only 4 problems, the score CANNOT exceed 40, even if all 4 are perfect.
    - In the feedback, ALWAYS state clearly in Uzbek: "Siz {n} ta masaladan {A} tasini yubordingiz." and list WHICH problem numbers are missing.
    - If problems are missing, the feedback MUST begin by pointing this out, before any praise.
-3. For each incorrectly answered question, add an entry to the 'errors' array with:
-   - problemNumber: the problem number (matching 'i' in the reference)
-   - mistake: a SHORT explanation (2-4 sentences in Uzbek) of exactly WHERE and WHY the student went wrong. Do NOT copy the full correct solution — it will be attached automatically. Only explain the mistake itself.
+3. For each evaluated question:
+   - If the FINAL answer is WRONG: add an entry to 'errors' with problemNumber, mistake explanation, and set isWarning=false. Score MUST be reduced for this.
+   - If the FINAL answer is CORRECT but there are minor logical flaws or steps missing: add an entry to 'errors' with problemNumber, explanation of the minor flaw, and set isWarning=true. DO NOT reduce the score for this question. It's just a warning.
+   - Do NOT copy the full correct solution in 'mistake'.
+4. Do NOT duplicate the specific errors or warnings in the 'feedback' field. The 'feedback' field should ONLY contain the completeness check and a general praise/encouragement.
 
 Output the result in JSON format matching the schema.`;
   } else {
     // Reference yo'q rejim: model o'zi yechimni bilishi kerak,
     // shuning uchun bu rejimda izoh biroz kengroq bo'lishi mumkin
     promptString += `
-For each incorrectly answered question, add an entry to the 'errors' array with:
-- problemNumber: the problem number
-- mistake: an explanation in Uzbek of where the student went wrong, including the correct approach briefly.
+For each evaluated question:
+- If the FINAL answer is WRONG: add an entry to the 'errors' array with problemNumber, explanation in Uzbek, and set isWarning=false. Score MUST be reduced.
+- If the FINAL answer is CORRECT but there are minor logical flaws: add an entry to the 'errors' array with problemNumber, explanation in Uzbek, and set isWarning=true. DO NOT reduce the score.
+
+Do NOT duplicate the specific errors or warnings in the 'feedback' field. The 'feedback' field should ONLY contain a general praise/encouragement and an overall summary.
 
 Output the result in JSON format matching the schema.`;
   }
@@ -321,7 +329,7 @@ Output the result in JSON format matching the schema.`;
               },
               feedback: {
                 type: Type.STRING,
-                description: "Constructive feedback for the student in Markdown format, in Uzbek. Address the student directly.",
+                description: "General constructive feedback for the student in Markdown format, in Uzbek. DO NOT list specific problem mistakes here. Just provide a general summary.",
               },
               // 3-TUZATISH: errorSteps (uzun matnlar) o'rniga
               // errors (qisqa strukturali obyektlar)
@@ -338,10 +346,14 @@ Output the result in JSON format matching the schema.`;
                       type: Type.STRING,
                       description: "SHORT explanation (2-4 sentences, Uzbek, Markdown+LaTeX) of where and why the student went wrong. Do NOT include the full correct solution.",
                     },
+                    isWarning: {
+                      type: Type.BOOLEAN,
+                      description: "True if the final answer is correct but there's a minor step flaw. False if the final answer is wrong.",
+                    },
                   },
                   required: ["problemNumber", "mistake"],
                 },
-                description: "List of mistakes. Empty array if everything is correct.",
+                description: "List of mistakes or warnings. Empty array if everything is perfect.",
               },
             },
             required: ["transcription", "isCorrect", "isPartiallyCorrect", "score", "feedback", "errors"],

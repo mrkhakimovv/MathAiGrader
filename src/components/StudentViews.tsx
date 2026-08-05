@@ -179,18 +179,27 @@ export function StudentTasksView({ tasks, history = [], studentInfo, onSolveTask
                   <div className="mt-6 flex flex-col gap-6 p-6 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 animate-in slide-in-from-top-2 duration-300">
                     {latestResult.errorSteps && latestResult.errorSteps.length > 0 && (
                       <div>
-                        <h4 className="font-semibold text-rose-500 dark:text-rose-400 mb-3 uppercase tracking-wider text-xs">Xatolar va kamchiliklar</h4>
+                        <h4 className="font-semibold text-slate-500 dark:text-slate-400 mb-3 uppercase tracking-wider text-xs">Izohlar va xatolar</h4>
                         <ul className="flex flex-col gap-2">
-                          {latestResult.errorSteps.map((step: string, index: number) => (
-                            <li key={index} className="flex items-start gap-3 rounded-lg bg-rose-50 dark:bg-rose-900/20 px-4 py-3 text-sm text-rose-800 dark:text-rose-300 border border-rose-100 dark:border-rose-800/30">
-                              <span className="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                              <div className="markdown-body flex-1 overflow-x-auto">
-                                <Markdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>
-                                  {step}
-                                </Markdown>
-                              </div>
-                            </li>
-                          ))}
+                          {latestResult.errorSteps.map((step: string, index: number) => {
+                            const isWarning = step.startsWith("[WARNING] ");
+                            const cleanStep = isWarning ? step.replace("[WARNING] ", "") : step;
+                            
+                            return (
+                              <li key={index} className={`flex items-start gap-3 rounded-lg px-4 py-3 text-sm border ${
+                                isWarning 
+                                  ? "bg-amber-50 dark:bg-amber-900/20 text-amber-900 dark:text-amber-300 border-amber-100 dark:border-amber-800/30"
+                                  : "bg-rose-50 dark:bg-rose-900/20 text-rose-800 dark:text-rose-300 border-rose-100 dark:border-rose-800/30"
+                              }`}>
+                                <span className={`mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full ${isWarning ? "bg-amber-500" : "bg-rose-500"}`}></span>
+                                <div className="markdown-body flex-1 overflow-x-auto">
+                                  <Markdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>
+                                    {cleanStep}
+                                  </Markdown>
+                                </div>
+                              </li>
+                            );
+                          })}
                         </ul>
                       </div>
                     )}
@@ -199,7 +208,7 @@ export function StudentTasksView({ tasks, history = [], studentInfo, onSolveTask
                       <h4 className="font-semibold text-indigo-500 dark:text-indigo-400 mb-3 uppercase tracking-wider text-xs">Tahlil va Xulosa</h4>
                       <div className="markdown-body text-sm text-slate-700 dark:text-slate-200 overflow-x-auto bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
                         <Markdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>
-                          {latestResult.feedback || "Kiritilmagan"}
+                          {latestResult.feedback || "Tahlil muddati o'tgan (1 hafta) yoki mavjud emas."}
                         </Markdown>
                       </div>
                     </div>
@@ -215,17 +224,23 @@ export function StudentTasksView({ tasks, history = [], studentInfo, onSolveTask
                        {isExpanded ? 'Xulosani yashirish' : 'Xulosani ko\'rish'}
                      </button>
                    )}
-                   <button 
-                     disabled={expired}
-                     onClick={() => !expired && onSolveTask && onSolveTask(task)}
-                     className={`flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-                       expired
-                         ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed'
-                         : 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm hover:bg-indigo-700 dark:hover:bg-indigo-600'
-                     }`}
-                   >
-                     {!!latestResult ? "Qayta yuklash" : expired ? "Vazifa muddati o'tgan" : "Vazifani ishlash va yuklash"}
-                   </button>
+                   {!!latestResult ? (
+                     <span className="flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800/50">
+                       Avval bajargansiz
+                     </span>
+                   ) : (
+                     <button 
+                       disabled={expired}
+                       onClick={() => !expired && onSolveTask && onSolveTask(task)}
+                       className={`flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
+                         expired
+                           ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed'
+                           : 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm hover:bg-indigo-700 dark:hover:bg-indigo-600'
+                       }`}
+                     >
+                       {expired ? "Vazifa muddati o'tgan" : "Vazifani ishlash va yuklash"}
+                     </button>
+                   )}
                 </div>
               </div>
             );

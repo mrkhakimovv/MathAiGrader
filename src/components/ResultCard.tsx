@@ -66,25 +66,38 @@ export function ResultCard({ result, onReset }: ResultCardProps) {
         {/* Error Steps (if any) */}
         {result.errorSteps && result.errorSteps.length > 0 && (
           <div>
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-rose-500 dark:text-rose-400">
-              Xatolar va kamchiliklar
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Izohlar va xatolar
             </h3>
             <ul className="flex flex-col gap-2">
-              {result.errorSteps.map((step, index) => (
-                <li
-                  key={index}
-                  className="flex items-start gap-2 rounded-lg bg-rose-50 dark:bg-rose-900/20 px-3 sm:px-4 py-3 text-sm text-rose-800 dark:text-rose-300 overflow-x-auto transition-colors"
-                >
-                  <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-500 dark:text-rose-400" />
-                  <span className="min-w-0">
-                    <div className="markdown-body inline-block align-top">
+              {result.errorSteps.map((step, index) => {
+                const isWarning = step.startsWith("[WARNING] ");
+                const cleanStep = isWarning ? step.replace("[WARNING] ", "") : step;
+                
+                return (
+                  <li
+                    key={index}
+                    className={`flex items-start gap-2 rounded-lg px-3 sm:px-4 py-3 text-sm overflow-x-auto transition-colors ${
+                      isWarning
+                        ? "bg-amber-50 dark:bg-amber-900/20 text-amber-900 dark:text-amber-300"
+                        : "bg-rose-50 dark:bg-rose-900/20 text-rose-800 dark:text-rose-300"
+                    }`}
+                  >
+                    {isWarning ? (
+                      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500 dark:text-amber-400" />
+                    ) : (
+                      <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-rose-500 dark:text-rose-400" />
+                    )}
+                    <span className="min-w-0">
+                      <div className="markdown-body inline-block align-top">
                         <Markdown remarkPlugins={[remarkMath, remarkBreaks]} rehypePlugins={[rehypeKatex]}>
-                          {step}
+                          {cleanStep}
                         </Markdown>
                       </div>
-                  </span>
-                </li>
-              ))}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
