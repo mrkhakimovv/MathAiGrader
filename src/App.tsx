@@ -716,6 +716,9 @@ function MainApp() {
             studentInfo={students.find(s => s.username === currentUser)} 
             onSolveTask={(task) => {
               setSelectedTaskForGrading(task);
+              setResult(null);
+              setSelectedFiles([]);
+              setError(null);
               setActiveView('grade-task');
             }}
           />

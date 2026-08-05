@@ -216,15 +216,15 @@ export function StudentTasksView({ tasks, history = [], studentInfo, onSolveTask
                      </button>
                    )}
                    <button 
-                     disabled={expired || !!latestResult}
-                     onClick={() => !expired && !latestResult && onSolveTask && onSolveTask(task)}
+                     disabled={expired}
+                     onClick={() => !expired && onSolveTask && onSolveTask(task)}
                      className={`flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${
-                       (expired || !!latestResult)
+                       expired
                          ? 'bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 cursor-not-allowed'
                          : 'bg-indigo-600 dark:bg-indigo-500 text-white shadow-sm hover:bg-indigo-700 dark:hover:bg-indigo-600'
                      }`}
                    >
-                     {!!latestResult ? "Vazifa topshirilgan" : expired ? "Vazifa muddati o'tgan" : "Vazifani ishlash va yuklash"}
+                     {!!latestResult ? "Qayta yuklash" : expired ? "Vazifa muddati o'tgan" : "Vazifani ishlash va yuklash"}
                    </button>
                 </div>
               </div>

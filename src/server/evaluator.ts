@@ -10,11 +10,15 @@ const ai = new GoogleGenAI({
 });
 
 // 1-TUZATISH: thinking sozlamalari
-// analyze: o'qituvchi misollarini yechish - thinking kam bo'lsa ham yetadi
-// evaluate: talaba ishini baholash - masala SANASH va TAQQOSLASH uchun
-//           thinking kerak (kam jo'natilgan masalalarni sezishi uchun)
+// analyze: o'qituvchi misollarini yechish - thinking o'chiq (tejamkorlik)
+// evaluate: talaba ishini baholash - thinking DINAMIK (cheklovsiz).
+//           thinkingBudget: -1 => model o'zi qancha kerak bo'lsa shuncha
+//           o'ylaydi. Oddiy ishda kam, murakkab ishda ko'p. Bu
+//           masalalarni to'liq sanash va chuqur tahlil qilishni
+//           kafolatlaydi. Xarajat faqat model REAL o'ylagan miqdorga
+//           qarab hisoblanadi.
 const THINKING_ANALYZE = { thinkingBudget: 0 };
-const THINKING_EVALUATE = { thinkingBudget: 2048 };
+const THINKING_EVALUATE = { thinkingBudget: -1 };
 
 // ============================================================
 // 4-TUZATISH: Output limitlari (faqat himoya chegarasi)
