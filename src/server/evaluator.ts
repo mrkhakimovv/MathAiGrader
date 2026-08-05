@@ -45,13 +45,43 @@ function logUsage(label: string, response: any) {
   }
 }
 
-// 2-TUZATISH: Reference siqish
-function compactReference(taskReference: any): string | null {
+// REFERENCE NORMALIZATSIYA:
+// Reference ma'lumoti turli joyda bo'lishi mumkin:
+//  - taskReference.solutions (to'g'ridan-to'g'ri)
+//  - taskReference.teacherAnalysis.solutions (vazifa yaratishda shu tarzda saqlanadi!)
+//  - taskReference.analysis.solutions (ehtimoliy variant)
+// Bu funksiya solutions/questionCount ni QAYERDA bo'lsa ham topadi.
+function normalizeReference(taskReference: any): { questionCount: number; solutions: any[] } | null {
   if (!taskReference) return null;
 
+  // Mumkin bo'lgan joylarni tartib bilan tekshiramiz
+  const candidates = [
+    taskReference,
+    taskReference.teacherAnalysis,
+    taskReference.analysis,
+    taskReference.reference,
+  ];
+
+  for (const cand of candidates) {
+    if (cand && Array.isArray(cand.solutions) && cand.solutions.length > 0) {
+      return {
+        questionCount: cand.questionCount ?? cand.solutions.length,
+        solutions: cand.solutions,
+      };
+    }
+  }
+
+  return null; // reference topilmadi (haqiqatan bo'sh)
+}
+
+// 2-TUZATISH: Reference siqish
+function compactReference(taskReference: any): string | null {
+  const ref = normalizeReference(taskReference);
+  if (!ref) return null;
+
   const compact = {
-    n: taskReference.questionCount ?? taskReference.solutions?.length ?? 0,
-    q: (taskReference.solutions ?? []).map((sol: any) => ({
+    n: ref.questionCount,
+    q: ref.solutions.map((sol: any) => ({
       i: sol.problemNumber,
       p: sol.problemText,
       a: sol.finalAnswer,
@@ -75,9 +105,11 @@ function buildErrorSteps(
   if (!errors || errors.length === 0) return [];
 
   // Reference'dan masala raqami -> yechim xaritasi
+  // normalizeReference orqali solutions'ni qayerda bo'lsa ham topamiz
+  const ref = normalizeReference(taskReference);
   const solutionMap = new Map<number, { steps: string; answer: string; text: string }>();
-  if (taskReference?.solutions) {
-    for (const sol of taskReference.solutions) {
+  if (ref?.solutions) {
+    for (const sol of ref.solutions) {
       solutionMap.set(sol.problemNumber, {
         steps: sol.solutionSteps ?? "",
         answer: sol.finalAnswer ?? "",
@@ -186,7 +218,8 @@ Output the result in JSON format matching the schema.`;
 }
 
 export async function evaluateHomework(images: { imageBase64: string, mimeType: string }[], taskReference?: any) {
-  const hasReference = !!taskReference;
+  const normalizedRef = normalizeReference(taskReference);
+  const hasReference = !!normalizedRef;
 
   // STATIK QISM (caching prefiksi)
   let promptString = `You are an expert mathematics teacher evaluating a student's homework submission. Your native language is Uzbek, and you MUST provide all feedback, explanations, and evaluations exclusively in the Uzbek language.
