@@ -9,8 +9,12 @@ const ai = new GoogleGenAI({
   },
 });
 
-// 1-TUZATISH: thinking o'chirish
-const THINKING_OFF = { thinkingBudget: 0 };
+// 1-TUZATISH: thinking sozlamalari
+// analyze: o'qituvchi misollarini yechish - thinking kam bo'lsa ham yetadi
+// evaluate: talaba ishini baholash - masala SANASH va TAQQOSLASH uchun
+//           thinking kerak (kam jo'natilgan masalalarni sezishi uchun)
+const THINKING_ANALYZE = { thinkingBudget: 0 };
+const THINKING_EVALUATE = { thinkingBudget: 2048 };
 
 // ============================================================
 // 4-TUZATISH: Output limitlari (faqat himoya chegarasi)
@@ -120,7 +124,7 @@ Output the result in JSON format matching the schema.`;
         ],
       },
       config: {
-        thinkingConfig: THINKING_OFF,
+        thinkingConfig: THINKING_ANALYZE,
         maxOutputTokens: MAX_OUTPUT_ANALYZE, // 4-TUZATISH
         responseMimeType: "application/json",
         responseSchema: {
@@ -211,7 +215,13 @@ ${compactReference(taskReference)}
 
 Grading rules based on this reference:
 1. If the student's submitted problems are NOT part of this reference at all, score 0 and set feedback exactly to: "Bu misollar uyga vazifada mavjud emas." Stop further grading.
-2. If the student answered fewer questions than 'n', state in the feedback how many they answered vs expected, and reduce the score accordingly.
+2. MANDATORY COMPLETENESS CHECK (do this FIRST, before grading correctness):
+   - Count how many DISTINCT problems from the reference the student actually answered. Call this A.
+   - The expected total is 'n'.
+   - The score MUST be capped by completeness: max possible score = round(100 * A / n).
+     Example: if n=10 and the student answered only 4 problems, the score CANNOT exceed 40, even if all 4 are perfect.
+   - In the feedback, ALWAYS state clearly in Uzbek: "Siz {n} ta masaladan {A} tasini yubordingiz." and list WHICH problem numbers are missing.
+   - If problems are missing, the feedback MUST begin by pointing this out, before any praise.
 3. For each incorrectly answered question, add an entry to the 'errors' array with:
    - problemNumber: the problem number (matching 'i' in the reference)
    - mistake: a SHORT explanation (2-4 sentences in Uzbek) of exactly WHERE and WHY the student went wrong. Do NOT copy the full correct solution — it will be attached automatically. Only explain the mistake itself.
@@ -250,7 +260,7 @@ Output the result in JSON format matching the schema.`;
           ],
         },
         config: {
-          thinkingConfig: THINKING_OFF,
+          thinkingConfig: THINKING_EVALUATE,
           maxOutputTokens: MAX_OUTPUT_EVALUATE, // 4-TUZATISH
           responseMimeType: "application/json",
           responseSchema: {
