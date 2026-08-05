@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserPlus, Users, Trash2, Key, Megaphone, Plus, Coins, TrendingUp, Filter, Calendar, ArrowDownUp } from 'lucide-react';
+import { UserPlus, Users, Trash2, Key, Megaphone, Plus, Coins, TrendingUp, Filter, Calendar, ArrowDownUp, Bell } from 'lucide-react';
 import { getAvatarUrl } from '../lib/utils';
 
 interface AdminCreateTeacherViewProps {
@@ -135,11 +135,44 @@ export function AdminAdsView() {
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isNotificationFormOpen, setIsNotificationFormOpen] = useState(false);
+  const [notificationText, setNotificationText] = useState('');
 
   useEffect(() => {
     const unsub = subscribeToCollection('news', setNews);
     return () => unsub();
   }, []);
+
+  const handleAddNotification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!notificationText.trim()) return;
+    setIsSubmitting(true);
+    try {
+      const date = new Date().toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      await saveToCollection('notifications', { content: notificationText.trim(), date, createdAt: Date.now() });
+      setNotificationText('');
+      setIsNotificationFormOpen(false);
+      alert("Xabar muvaffaqiyatli yuborildi!");
+    } catch(err) {
+      console.error(err);
+      alert("Xatolik yuz berdi");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSendNewsAsNotification = async (newsItem: any) => {
+    if (confirm("Ushbu e'lonni hammaga qo'ng'iroqcha orqali yubormoqchimisiz?")) {
+      try {
+        const date = new Date().toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        await saveToCollection('notifications', { content: `${newsItem.title}\n\n${newsItem.content}`, date, createdAt: Date.now() });
+        alert("Xabar muvaffaqiyatli yuborildi!");
+      } catch(err) {
+        console.error(err);
+        alert("Xatolik yuz berdi");
+      }
+    }
+  };
 
   const handleAddNews = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -224,8 +257,51 @@ export function AdminAdsView() {
             </div>
           </form>
         </div>
+      ) : isNotificationFormOpen ? (
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm mb-6">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+            <Bell className="h-5 w-5 text-indigo-500" />
+            Qo'ng'iroqchaga xabar yuborish
+          </h2>
+          <form onSubmit={handleAddNotification} className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Xabar matni</label>
+              <textarea
+                required
+                value={notificationText}
+                onChange={(e) => setNotificationText(e.target.value)}
+                rows={3}
+                className="block w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                placeholder="Foydalanuvchilarga yuboriladigan xabar..."
+              />
+            </div>
+            <div className="flex gap-3 pt-2">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1 flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all disabled:opacity-50"
+              >
+                {isSubmitting ? "Yuborilmoqda..." : "Yuborish"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsNotificationFormOpen(false)}
+                className="flex-1 flex justify-center py-2.5 px-4 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm text-sm font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-all"
+              >
+                Bekor qilish
+              </button>
+            </div>
+          </form>
+        </div>
       ) : (
-        <div className="mb-6 flex justify-end">
+        <div className="mb-6 flex flex-wrap justify-end gap-3">
+          <button 
+            onClick={() => setIsNotificationFormOpen(true)}
+            className="flex items-center justify-center gap-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
+          >
+            <Bell className="h-4 w-4" />
+            Xabar yuborish
+          </button>
           <button 
             onClick={() => setIsFormOpen(true)}
             className="flex items-center justify-center gap-2 rounded-lg bg-indigo-600 dark:bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors shadow-sm"
@@ -250,7 +326,14 @@ export function AdminAdsView() {
                   <h3 className="font-bold text-slate-900 dark:text-white mb-2">{item.title}</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{item.content}</p>
                 </div>
-                <div className="shrink-0">
+                <div className="shrink-0 flex items-center gap-2">
+                  <button
+                    onClick={() => handleSendNewsAsNotification(item)}
+                    className="p-2 text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors"
+                    title="Qo'ng'iroqchaga yuborish"
+                  >
+                    <Bell className="h-5 w-5" />
+                  </button>
                   <button
                     onClick={() => handleDelete(item.id)}
                     className="p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition-colors"

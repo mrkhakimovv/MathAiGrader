@@ -35,6 +35,16 @@ function MainApp() {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<GradingResult | null>(null);
   const [history, setHistory] = useState<GradingResult[]>([]);
+  const [systemNotifications, setSystemNotifications] = useState<any[]>([]);
+  const [readNotifications, setReadNotifications] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem('read_notifications');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [isNotificationsDropdownOpen, setIsNotificationsDropdownOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
@@ -107,12 +117,18 @@ function MainApp() {
     const unsubscribeTeachers = subscribeToCollection("teachers", (newTeachers) => {
       setTeachers(newTeachers);
     });
+    const unsubscribeNotifications = subscribeToCollection("notifications", (newNotifications) => {
+      // Show only last 7 days notifications
+      const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      setSystemNotifications(newNotifications.filter(n => n.createdAt > oneWeekAgo).sort((a, b) => b.createdAt - a.createdAt));
+    });
     return () => {
       unsubscribeHistory();
       unsubscribeStudents();
       unsubscribeGroups();
       unsubscribeTasks();
       unsubscribeTeachers();
+      unsubscribeNotifications();
     };
   }, [currentUser]);
 
@@ -366,17 +382,52 @@ function MainApp() {
                 </span>
               </button>
             )}
-            <button
-              className="relative flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
-              aria-label="Notifications"
-            >
-              <Bell className="h-4 w-4" />
-              {(role === 'student' ? uncompletedTasksCount : teacherTasks.length) > 0 && (
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-slate-50 dark:ring-slate-950">
-                  {role === 'student' ? uncompletedTasksCount : teacherTasks.length}
-                </span>
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setIsNotificationsDropdownOpen(!isNotificationsDropdownOpen);
+                  if (!isNotificationsDropdownOpen && systemNotifications.length > 0) {
+                    const newRead = [...new Set([...readNotifications, ...systemNotifications.map(n => n.id)])];
+                    setReadNotifications(newRead);
+                    localStorage.setItem('read_notifications', JSON.stringify(newRead));
+                  }
+                }}
+                className="relative flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
+                aria-label="Notifications"
+              >
+                <Bell className={`h-4 w-4 ${systemNotifications.filter(n => !readNotifications.includes(n.id)).length > 0 ? 'animate-shake text-rose-500' : ''}`} />
+                {systemNotifications.filter(n => !readNotifications.includes(n.id)).length > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[10px] font-bold text-white shadow-sm ring-2 ring-slate-50 dark:ring-slate-950">
+                    {systemNotifications.filter(n => !readNotifications.includes(n.id)).length}
+                  </span>
+                )}
+              </button>
+              
+              {isNotificationsDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 z-50 overflow-hidden">
+                  <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                    <h3 className="font-bold text-slate-900 dark:text-white">Xabarlar</h3>
+                    <button onClick={() => setIsNotificationsDropdownOpen(false)} className="text-slate-400 hover:text-slate-600">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="max-h-96 overflow-y-auto">
+                    {systemNotifications.length > 0 ? (
+                      systemNotifications.map(notification => (
+                        <div key={notification.id} className="p-4 border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                          <p className="text-xs text-indigo-500 dark:text-indigo-400 mb-1 font-semibold">{notification.date}</p>
+                          <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{notification.content}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-8 text-center text-slate-500 text-sm">
+                        Hozircha xabarlar yo'q
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
-            </button>
+            </div>
             <button
               onClick={toggleDarkMode}
               className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
