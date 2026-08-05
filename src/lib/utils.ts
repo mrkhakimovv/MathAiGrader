@@ -13,7 +13,9 @@ export const AVATAR_SEEDS = [
   "Badger", "Polar bear", "Front-facing baby chick", 
   "Hear-no-evil monkey", "See-no-evil monkey", "Speak-no-evil monkey",
   "Cat with tears of joy", "Cat with wry smile", "Grinning cat with smiling eyes",
-  "Smiling cat with heart-eyes"
+  "Smiling cat with heart-eyes", "Deer", "Camel", "Llama",
+  "Giraffe", "Elephant", "Rhinoceros", "Hippopotamus", "Sloth",
+  "Otter", "Beaver"
 ];
 
 const LEGACY_MAPPING: Record<string, string> = {

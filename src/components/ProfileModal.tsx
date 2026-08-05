@@ -150,6 +150,12 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
 
           {isEditing && (
             <div className="space-y-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 animate-in slide-in-from-top-2">
+              <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-200 dark:border-red-800/50 font-serif">
+                <span className="text-xs font-bold text-red-600 dark:text-red-400 mb-1 block uppercase tracking-wider">Diqqat!</span>
+                <p className="text-xs text-red-800 dark:text-red-200 leading-relaxed">
+                  Dasturga bir nechta o'zgarishlar kiritilayotganligi sababli dastur ishlashida ba'zi bir uzilishlar va to'xtalishlar kuzatilishi mumkin. Agar ushbu muammolarga duch kelsangiz, biroz kuting va biroz vaqt o'tib qaytadan urinib ko'ring.
+                </p>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Ism</label>

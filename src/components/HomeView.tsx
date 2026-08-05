@@ -60,6 +60,12 @@ export function HomeView({ role, username }: { role: string | null, username: st
           </div>
           
           <div className="space-y-6">
+            <div className="group cursor-pointer bg-red-50 dark:bg-red-900/20 p-4 rounded-xl border border-red-200 dark:border-red-800/50 font-serif">
+              <span className="text-xs font-bold text-red-600 dark:text-red-400 mb-1 block uppercase tracking-wider">Diqqat!</span>
+              <h3 className="text-lg font-bold text-red-900 dark:text-red-100">Texnik ishlar olib borilmoqda</h3>
+              <p className="text-sm text-red-800 dark:text-red-200 mt-2">Dasturga bir nechta o'zgarishlar kiritilayotganligi sababli dastur ishlashida ba'zi bir uzilishlar va to'xtalishlar kuzatilishi mumkin. Agar ushbu muammolarga duch kelsangiz, biroz kuting va biroz vaqt o'tib qaytadan urinib ko'ring.</p>
+            </div>
+            
             <div className="group cursor-pointer">
               <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1 block">31 Iyul, 2026</span>
               <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">ALMATH yangi versiyasi ishga tushirildi!</h3>
