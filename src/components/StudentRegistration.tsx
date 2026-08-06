@@ -154,6 +154,13 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
     }
   };
 
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.toLowerCase();
+    // Allow only english alphabet characters, numbers, dot, and underscore
+    value = value.replace(/[^a-z0-9._]/g, '');
+    setUsername(value);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!firstName.trim() || !lastName.trim() || !phone.trim() || !username.trim() || !password.trim()) {
@@ -350,7 +357,7 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
                 id="username"
                 type="text"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={handleUsernameChange}
                 className={`w-full rounded-xl border bg-white dark:bg-slate-800 px-4 py-3 text-slate-900 dark:text-white focus:outline-none focus:ring-2 pr-10 ${
                   usernameStatus === 'taken' 
                     ? 'border-amber-300 dark:border-amber-700 focus:border-amber-500 focus:ring-amber-500/20' 
@@ -367,6 +374,9 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
                 {usernameStatus === 'taken' && <XCircle className="h-5 w-5 text-amber-500" />}
               </div>
             </div>
+            <p className="mt-2 text-[13px] text-slate-500 dark:text-slate-400">
+              Faqat kichik lotin harflari, raqamlar, nuqta (.) va tagchiziqcha (_) dan foydalaning.
+            </p>
             
             {usernameStatus === 'taken' && (
               <div className="mt-2 text-sm text-amber-600 dark:text-amber-400">

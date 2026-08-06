@@ -12,6 +12,12 @@ export function AdminCreateTeacherView({ teachers, onCreateTeacher, onDeleteTeac
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
 
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.toLowerCase();
+    value = value.replace(/[^a-z0-9._]/g, '');
+    setNewUsername(value);
+  };
+
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
     if (newUsername.trim() && newPassword.trim()) {
@@ -44,7 +50,7 @@ export function AdminCreateTeacherView({ teachers, onCreateTeacher, onDeleteTeac
                 type="text"
                 required
                 value={newUsername}
-                onChange={(e) => setNewUsername(e.target.value)}
+                onChange={handleUsernameChange}
                 className="block w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
                 placeholder="teacher_name"
               />

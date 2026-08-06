@@ -3,12 +3,14 @@ import remarkMath from 'remark-math';
 import remarkBreaks from 'remark-breaks';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, User, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, ExternalLink, Search, Calendar, CheckCircle, XCircle, Loader2, FolderPlus, Edit2, Clock, Download, AlertCircle } from 'lucide-react';
 import { GradingResult } from '../types';
 import * as XLSX from 'xlsx';
 import { EditGroupModal } from './EditGroupModal';
 import { getAvatarUrl } from '../lib/utils';
+import { db } from '../lib/firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 interface AllStudentsViewProps {
   students: any[];
@@ -28,7 +30,46 @@ export function AllStudentsView({ students, onDeleteStudent, history = [], group
   const [editFirstName, setEditFirstName] = useState('');
   const [editLastName, setEditLastName] = useState('');
   const [editPhone, setEditPhone] = useState('');
+  const [editUsername, setEditUsername] = useState('');
+  const [editPassword, setEditPassword] = useState('');
+  const [editUsernameStatus, setEditUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!studentToEdit || !editUsername.trim() || editUsername.trim() === studentToEdit.username) {
+      setEditUsernameStatus('idle');
+      return;
+    }
+
+    const checkUsername = async () => {
+      setEditUsernameStatus('checking');
+      try {
+        const trimmedUsername = editUsername.trim();
+        const studentsQuery = query(collection(db, "students"), where("username", "==", trimmedUsername));
+        const teachersQuery = query(collection(db, "teachers"), where("username", "==", trimmedUsername));
+        
+        const [studentsSnapshot, teachersSnapshot] = await Promise.all([
+          getDocs(studentsQuery),
+          getDocs(teachersQuery)
+        ]);
+        
+        const isTakenByStudent = !studentsSnapshot.empty && studentsSnapshot.docs.some(d => d.id !== studentToEdit.id);
+        const isTakenByTeacher = !teachersSnapshot.empty;
+        
+        if (isTakenByStudent || isTakenByTeacher || trimmedUsername === 'admin' || trimmedUsername === 'teacher') {
+          setEditUsernameStatus('taken');
+        } else {
+          setEditUsernameStatus('available');
+        }
+      } catch (err) {
+        console.error("Error checking username", err);
+        setEditUsernameStatus('idle');
+      }
+    };
+
+    const timeoutId = setTimeout(checkUsername, 500);
+    return () => clearTimeout(timeoutId);
+  }, [editUsername, studentToEdit]);
 
   const handleDelete = (e: React.MouseEvent, student: any) => {
     e.stopPropagation();
@@ -150,6 +191,8 @@ export function AllStudentsView({ students, onDeleteStudent, history = [], group
                       setEditFirstName(student.firstName || '');
                       setEditLastName(student.lastName || '');
                       setEditPhone(student.phone || '');
+                      setEditUsername(student.username || '');
+                      setEditPassword(student.password || '');
                     }}
                     className="p-1.5 text-slate-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     title="O'quvchi ma'lumotlarini tahrirlash"
@@ -274,6 +317,53 @@ export function AllStudentsView({ students, onDeleteStudent, history = [], group
                   className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  Username
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={editUsername}
+                    onChange={(e) => {
+                      let val = e.target.value.toLowerCase();
+                      val = val.replace(/[^a-z0-9._]/g, '');
+                      setEditUsername(val);
+                    }}
+                    className={`w-full rounded-xl border bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 pr-10 transition-colors ${
+                      editUsernameStatus === 'taken' 
+                        ? 'border-amber-300 dark:border-amber-700 focus:ring-amber-500/20' 
+                        : editUsernameStatus === 'available'
+                          ? 'border-emerald-300 dark:border-emerald-700 focus:ring-emerald-500/20'
+                          : 'border-slate-300 dark:border-slate-700 focus:ring-indigo-500'
+                    }`}
+                  />
+                  <div className="absolute right-3 top-2.5">
+                    {editUsernameStatus === 'checking' && <Loader2 className="h-5 w-5 animate-spin text-slate-400" />}
+                    {editUsernameStatus === 'available' && <CheckCircle className="h-5 w-5 text-emerald-500" />}
+                    {editUsernameStatus === 'taken' && <XCircle className="h-5 w-5 text-amber-500" />}
+                  </div>
+                </div>
+                {editUsernameStatus === 'taken' && (
+                  <p className="mt-1.5 text-xs text-amber-600 dark:text-amber-400">
+                    Ushbu username band, iltimos boshqasini tanlang.
+                  </p>
+                )}
+                <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                  Faqat kichik lotin harflari, raqamlar, nuqta (.) va tagchiziqcha (_) dan foydalaning.
+                </p>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                  Parol
+                </label>
+                <input
+                  type="text"
+                  value={editPassword}
+                  onChange={(e) => setEditPassword(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors"
+                />
+              </div>
             </div>
 
             <div className="flex gap-3">
@@ -289,12 +379,15 @@ export function AllStudentsView({ students, onDeleteStudent, history = [], group
                     onEditStudentInfo(studentToEdit.id, {
                       firstName: editFirstName.trim(),
                       lastName: editLastName.trim(),
-                      phone: editPhone.trim()
+                      phone: editPhone.trim(),
+                      username: editUsername.trim(),
+                      password: editPassword.trim(),
+                      oldUsername: studentToEdit.username
                     });
                   }
                   setStudentToEdit(null);
                 }}
-                disabled={!editFirstName.trim() || !editLastName.trim() || !editPhone.trim()}
+                disabled={!editFirstName.trim() || !editLastName.trim() || !editPhone.trim() || !editUsername.trim() || !editPassword.trim() || editUsernameStatus === 'taken' || editUsernameStatus === 'checking'}
                 className="flex-1 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Saqlash

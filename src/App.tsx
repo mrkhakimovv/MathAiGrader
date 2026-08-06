@@ -566,10 +566,39 @@ function MainApp() {
             }}
             onEditStudentInfo={async (studentId, updates) => {
               try {
+                if (updates.username && updates.username !== updates.oldUsername) {
+                  const studentsQuery = query(collection(db, "students"), where("username", "==", updates.username));
+                  const teachersQuery = query(collection(db, "teachers"), where("username", "==", updates.username));
+                  const [studentsSnapshot, teachersSnapshot] = await Promise.all([
+                    getDocs(studentsQuery),
+                    getDocs(teachersQuery)
+                  ]);
+                  
+                  const isTakenByStudent = !studentsSnapshot.empty && studentsSnapshot.docs.some(d => d.id !== studentId);
+                  const isTakenByTeacher = !teachersSnapshot.empty;
+                  
+                  if (isTakenByStudent || isTakenByTeacher || updates.username === 'admin' || updates.username === 'teacher') {
+                    alert("Ushbu username band. Iltimos, boshqa username tanlang.");
+                    return;
+                  }
+                  
+                  // Update history documents associated with old username
+                  if (updates.oldUsername) {
+                    const historyQuery = query(collection(db, "history"), where("studentUsername", "==", updates.oldUsername));
+                    const historySnapshot = await getDocs(historyQuery);
+                    const updatePromises = historySnapshot.docs.map(historyDoc => 
+                      updateDoc(doc(db, "history", historyDoc.id), { studentUsername: updates.username })
+                    );
+                    await Promise.all(updatePromises);
+                  }
+                }
+
                 await updateDoc(doc(db, "students", studentId), {
                   firstName: updates.firstName,
                   lastName: updates.lastName,
-                  phone: updates.phone
+                  phone: updates.phone,
+                  username: updates.username,
+                  password: updates.password
                 });
                 alert("O'quvchi ma'lumotlari yangilandi!");
               } catch (err) {

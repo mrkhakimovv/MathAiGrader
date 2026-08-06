@@ -14,6 +14,12 @@ export function LoginScreen({ onLogin, isDarkMode, toggleDarkMode, onBack }: Log
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.toLowerCase();
+    value = value.replace(/[^a-z0-9._]/g, '');
+    setUsername(value);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     setIsLoading(true);
     e.preventDefault();
@@ -75,7 +81,7 @@ export function LoginScreen({ onLogin, isDarkMode, toggleDarkMode, onBack }: Log
                 type="text"
                 required
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={handleUsernameChange}
                 className="block w-full pl-11 pr-4 py-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                 placeholder="Enter your username"
               />
