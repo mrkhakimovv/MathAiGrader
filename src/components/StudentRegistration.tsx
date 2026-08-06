@@ -219,7 +219,7 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
         username: username.trim(),
         password: password.trim(),
         role: 'student',
-        createdAt: new Date().toISOString()
+        createdAt: Date.now()
       };
       
       if (groupName || groupId) {

@@ -47,6 +47,18 @@ export function AllStudentsView({ students, onDeleteStudent, history = [], group
     const fullName = `${student.firstName} ${student.lastName}`.toLowerCase();
     const groupString = (student.groups ? student.groups.join(', ') : (student.group || '')).toLowerCase();
     return fullName.includes(query) || groupString.includes(query);
+  }).sort((a, b) => {
+    const getTimestamp = (val: any) => {
+      if (!val) return 0;
+      if (typeof val === 'number') return val;
+      if (typeof val === 'string') return new Date(val).getTime();
+      if (val.toMillis) return val.toMillis();
+      if (val.seconds) return val.seconds * 1000;
+      return 0;
+    };
+    const timeA = getTimestamp(a.createdAt);
+    const timeB = getTimestamp(b.createdAt);
+    return timeB - timeA;
   });
 
   const getStudentStats = (student: any) => {
@@ -104,18 +116,20 @@ export function AllStudentsView({ students, onDeleteStudent, history = [], group
       
       {filteredStudents && filteredStudents.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredStudents.map((student, index) => (
+          {filteredStudents.map((student, index) => {
+            const hasGroup = student.groups?.length > 0 || student.group;
+            return (
             <div 
               key={index} 
               onClick={() => setSelectedStudent(student)}
-              className="cursor-pointer rounded-[24px] border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow relative group flex flex-col"
+              className={`cursor-pointer rounded-[24px] border ${hasGroup ? 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900' : 'border-2 border-rose-500 dark:border-rose-500 bg-rose-50/30 dark:bg-rose-900/10'} p-6 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow relative group flex flex-col`}
             >
               {/* Top part with avatar and actions */}
               <div className="flex justify-between items-start mb-4">
                 <div className="relative">
                   {/* Status Badge */}
-                  <span className="absolute -top-2 -left-2 z-10 bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 font-bold text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm border border-green-100 dark:border-green-500/20">
-                    FAOL
+                  <span className={`absolute -top-2 -left-2 z-10 font-bold text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm border ${hasGroup ? 'bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 border-green-100 dark:border-green-500/20' : 'bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-500/20'}`}>
+                    {hasGroup ? 'FAOL' : 'GURUHSIZ'}
                   </span>
                   {/* Avatar */}
                   <div className="h-16 w-16 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
@@ -202,7 +216,8 @@ export function AllStudentsView({ students, onDeleteStudent, history = [], group
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm text-center py-12">
