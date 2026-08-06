@@ -55,6 +55,9 @@ export function HomeView({ role, username }: { role: string | null, username: st
       <header className="mb-4">
         <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">Xush kelibsiz{username ? `, ${username}` : ''}!</h1>
         <p className="text-slate-600 dark:text-slate-400">ALMATH platformasining asosiy sahifasiga xush kelibsiz.</p>
+        <div className="mt-6 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 font-medium text-lg">
+          DIQQAT: Dasturda muammo borligi sababli vazifalar jo'natishga ulgurmaganlar uchun offline tekshiriladi.
+        </div>
       </header>
 
       <div className="w-full">
