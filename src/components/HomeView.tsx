@@ -4,6 +4,7 @@ import { Info, Newspaper, ArrowRight, Eye } from 'lucide-react';
 import { motion } from 'motion/react';
 import { doc, getDoc, updateDoc, setDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { formatDateUZ } from '../lib/utils';
 
 export function HomeView({ role, username }: { role: string | null, username: string | null }) {
   const [panjiViews, setPanjiViews] = useState<number>(0);
@@ -72,7 +73,7 @@ export function HomeView({ role, username }: { role: string | null, username: st
             ) : (
               news.sort((a, b) => b.createdAt - a.createdAt).slice(0, 3).map((item) => (
                 <div key={item.id} className="group cursor-pointer">
-                  <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1 block">{item.date}</span>
+                  <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-1 block">{item.createdAt ? formatDateUZ(item.createdAt) : item.date}</span>
                   <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{item.title}</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 line-clamp-2 whitespace-pre-wrap">{item.content}</p>
                 </div>

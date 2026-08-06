@@ -21,6 +21,7 @@ import { db, storage } from "./lib/firebase";
 import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 import { QRCodeSVG } from 'qrcode.react';
+import { getAvatarUrl, formatDateUZ } from "./lib/utils";
 import { DashboardStats } from "./components/DashboardStats";
 import { HomeView } from "./components/HomeView";
 import { WelcomeScreen } from "./components/WelcomeScreen";
@@ -415,7 +416,7 @@ function MainApp() {
                     {systemNotifications.length > 0 ? (
                       systemNotifications.map(notification => (
                         <div key={notification.id} className="p-4 border-b border-slate-100 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                          <p className="text-xs text-indigo-500 dark:text-indigo-400 mb-1 font-semibold">{notification.date}</p>
+                          <p className="text-xs text-indigo-500 dark:text-indigo-400 mb-1 font-semibold">{notification.createdAt ? formatDateUZ(notification.createdAt, true) : notification.date}</p>
                           <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{notification.content}</p>
                         </div>
                       ))

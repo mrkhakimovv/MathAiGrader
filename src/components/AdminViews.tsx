@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { UserPlus, Users, Trash2, Key, Megaphone, Plus, Coins, TrendingUp, Filter, Calendar, ArrowDownUp, Bell } from 'lucide-react';
-import { getAvatarUrl } from '../lib/utils';
+import { getAvatarUrl, formatDateUZ } from '../lib/utils';
 
 interface AdminCreateTeacherViewProps {
   teachers: any[];
@@ -154,7 +154,7 @@ export function AdminAdsView() {
     if (!notificationText.trim()) return;
     setIsSubmitting(true);
     try {
-      const date = new Date().toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const date = formatDateUZ(new Date(), true);
       await saveToCollection('notifications', { content: notificationText.trim(), date, createdAt: Date.now() });
       setNotificationText('');
       setIsNotificationFormOpen(false);
@@ -170,7 +170,7 @@ export function AdminAdsView() {
   const handleSendNewsAsNotification = async (newsItem: any) => {
     if (confirm("Ushbu e'lonni hammaga qo'ng'iroqcha orqali yubormoqchimisiz?")) {
       try {
-        const date = new Date().toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const date = formatDateUZ(new Date(), true);
         await saveToCollection('notifications', { content: `${newsItem.title}\n\n${newsItem.content}`, date, createdAt: Date.now() });
         alert("Xabar muvaffaqiyatli yuborildi!");
       } catch(err) {
@@ -185,7 +185,7 @@ export function AdminAdsView() {
     if (!title.trim() || !content.trim()) return;
     setIsSubmitting(true);
     try {
-      const date = new Date().toLocaleDateString('uz-UZ', { day: 'numeric', month: 'long', year: 'numeric' });
+      const date = formatDateUZ(new Date(), false);
       await saveToCollection('news', { title: title.trim(), content: content.trim(), date, createdAt: Date.now() });
       setTitle('');
       setContent('');
@@ -328,7 +328,7 @@ export function AdminAdsView() {
             {news.sort((a, b) => b.createdAt - a.createdAt).map(item => (
               <li key={item.id} className="p-6 flex flex-col sm:flex-row gap-4 justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                 <div>
-                  <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-1 block">{item.date}</span>
+                  <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-1 block">{item.createdAt ? formatDateUZ(item.createdAt) : item.date}</span>
                   <h3 className="font-bold text-slate-900 dark:text-white mb-2">{item.title}</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-400 whitespace-pre-wrap">{item.content}</p>
                 </div>

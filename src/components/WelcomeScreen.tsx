@@ -5,6 +5,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { subscribeToCollection } from '../lib/db';
 import { Newspaper } from 'lucide-react';
 import { db } from '../lib/firebase';
+import { formatDateUZ } from '../lib/utils';
 
 interface WelcomeScreenProps {
   onLoginClick: () => void;
@@ -217,7 +218,7 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
             <div className="md:w-2/3 grid gap-6">
               {news.sort((a, b) => b.createdAt - a.createdAt).slice(0, 3).map((item) => (
                 <div key={item.id} className="bg-surface-container-low dark:bg-surface-container-highest p-6 rounded-2xl border border-outline-variant/20 shadow-sm hover:shadow-md transition-shadow">
-                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2 block">{item.date}</span>
+                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2 block">{item.createdAt ? formatDateUZ(item.createdAt) : item.date}</span>
                   <h3 className="text-xl font-bold text-on-surface dark:text-inverse-on-surface mb-3">{item.title}</h3>
                   <p className="text-on-surface-variant dark:text-inverse-on-surface-variant whitespace-pre-wrap">{item.content}</p>
                 </div>

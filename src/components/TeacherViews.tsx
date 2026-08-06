@@ -8,7 +8,7 @@ import { Users, User, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, Exter
 import { GradingResult } from '../types';
 import * as XLSX from 'xlsx';
 import { EditGroupModal } from './EditGroupModal';
-import { getAvatarUrl } from '../lib/utils';
+import { getAvatarUrl, formatDateUZ } from '../lib/utils';
 import { db } from '../lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
@@ -543,7 +543,7 @@ export function AllStudentsView({ students, onDeleteStudent, history = [], group
                             )}
                             <div>
                               <div className="text-sm font-medium text-slate-900 dark:text-white">
-                                {task.createdAt && task.createdAt.toDate ? task.createdAt.toDate().toLocaleDateString('uz-UZ', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : new Date().toLocaleDateString('uz-UZ')}
+                                {task.createdAt && task.createdAt.toDate ? formatDateUZ(task.createdAt.toDate(), true) : formatDateUZ(new Date())}
                               </div>
                               <div className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[200px] sm:max-w-[300px]">
                                 {task.transcription || "Topshiriq..."}
@@ -1320,9 +1320,9 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                               <div>
                                 <p className="font-bold text-slate-900 dark:text-white">{task.title}</p>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
-                                  <span>Berilgan: {task.startDate ? new Date(task.startDate).toLocaleDateString() : '-'}</span>
+                                  <span>Berilgan: {task.startDate ? formatDateUZ(task.startDate) : '-'}</span>
                                   <span>•</span>
-                                  <span>Tugash: {task.endDate ? new Date(task.endDate).toLocaleDateString() : '-'}</span>
+                                  <span>Tugash: {task.endDate ? formatDateUZ(task.endDate) : '-'}</span>
                                 </p>
                               </div>
                             </div>
@@ -1517,7 +1517,7 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                       'Familiya': item.studentInfo.lastName || '',
                       'Holati': item.isSubmitted ? 'Bajargan' : 'Bajarmagan',
                       'Ball': item.isSubmitted ? item.score : 0,
-                      'Yuborilgan sana': item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000).toLocaleDateString() : '-'
+                      'Yuborilgan sana': item.createdAt?.seconds ? formatDateUZ(new Date(item.createdAt.seconds * 1000)) : '-'
                     }));
                     
                     const worksheet = XLSX.utils.json_to_sheet(excelData);
@@ -1585,7 +1585,7 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                                     </p>
                                     <p className="text-xs text-slate-500 dark:text-slate-400">
                                       {item.isSubmitted 
-                                        ? `Natija yuborilgan: ${item.createdAt?.seconds ? new Date(item.createdAt.seconds * 1000).toLocaleDateString() : ''}`
+                                        ? `Natija yuborilgan: ${item.createdAt?.seconds ? formatDateUZ(new Date(item.createdAt.seconds * 1000)) : ''}`
                                         : "Vazifa bajarmagan"
                                       }
                                     </p>
@@ -1668,7 +1668,7 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                     )}
                   </div>
                   <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                    Natija yuborilgan: {selectedSubmission.createdAt?.seconds ? new Date(selectedSubmission.createdAt.seconds * 1000).toLocaleDateString('uz-UZ', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
+                    Natija yuborilgan: {selectedSubmission.createdAt?.seconds ? formatDateUZ(new Date(selectedSubmission.createdAt.seconds * 1000), true) : ''}
                   </p>
                 </div>
                 <div className="flex items-center gap-4">

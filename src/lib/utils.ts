@@ -43,3 +43,29 @@ export function getAvatarUrl(seed?: string, fallbackSeed?: string) {
   
   return `https://api.dicebear.com/7.x/adventurer/svg?seed=${actualSeed}`;
 }
+
+export function formatDateUZ(date: Date | string | number | null | undefined, includeTime: boolean = false) {
+  if (!date) return '-';
+  
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '-';
+  
+  const months = [
+    "yanvar", "fevral", "mart", "aprel", "may", "iyun", 
+    "iyul", "avgust", "sentyabr", "oktyabr", "noyabr", "dekabr"
+  ];
+  
+  const day = d.getDate();
+  const month = months[d.getMonth()];
+  const year = d.getFullYear();
+  
+  let result = `${day}-${month} ${year}`;
+  
+  if (includeTime) {
+    const hours = d.getHours().toString().padStart(2, '0');
+    const minutes = d.getMinutes().toString().padStart(2, '0');
+    result += `, ${hours}:${minutes}`;
+  }
+  
+  return result;
+}

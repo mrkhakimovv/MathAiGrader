@@ -6,6 +6,7 @@ import remarkBreaks from "remark-breaks";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
 import { GradingResult } from '../types';
+import { formatDateUZ } from '../lib/utils';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 interface StudentTasksViewProps {
@@ -47,11 +48,7 @@ export function StudentTasksView({ tasks, history = [], studentInfo, onSolveTask
 
   const formatDate = (dateStr: string) => {
     if (!dateStr) return "";
-    const date = new Date(dateStr);
-    return date.toLocaleString('uz-UZ', { 
-      day: 'numeric', month: 'long', year: 'numeric', 
-      hour: '2-digit', minute: '2-digit'
-    });
+    return formatDateUZ(dateStr, true);
   };
 
   const studentGroups = studentInfo?.groups || (studentInfo?.group ? [studentInfo.group] : []);
@@ -284,7 +281,7 @@ export function StudentStatsView({ tasks, history, studentInfo }: StudentStatsVi
     // Reverse history to show oldest to newest left to right
     return [...uniqueHistory].reverse().map((item, index) => {
       const dateStr = item.createdAt?.toDate 
-        ? item.createdAt.toDate().toLocaleDateString('uz-UZ', { day: 'numeric', month: 'short' })
+        ? formatDateUZ(item.createdAt.toDate(), false)
         : `Vazifa ${index + 1}`;
       return {
         name: dateStr,
@@ -387,7 +384,7 @@ export function StudentStatsView({ tasks, history, studentInfo }: StudentStatsVi
                 <div>
                   <p className="font-semibold text-slate-900 dark:text-white">Vazifa yechimi</p>
                   <p className="text-sm text-slate-500 dark:text-slate-400">
-                    {result.createdAt?.toDate ? result.createdAt.toDate().toLocaleDateString('uz-UZ') : "Yaqinda"}
+                    {result.createdAt?.toDate ? formatDateUZ(result.createdAt.toDate(), false) : "Yaqinda"}
                   </p>
                 </div>
                 <div className={`px-4 py-1.5 text-center rounded-full text-sm font-bold w-fit ${
