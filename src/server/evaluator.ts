@@ -11,14 +11,27 @@ const ai = new GoogleGenAI({
 
 // 1-TUZATISH: thinking sozlamalari
 // analyze: o'qituvchi misollarini yechish - thinking o'chiq (tejamkorlik)
-// evaluate: talaba ishini baholash - thinking DINAMIK (cheklovsiz).
-//           thinkingBudget: -1 => model o'zi qancha kerak bo'lsa shuncha
-//           o'ylaydi. Oddiy ishda kam, murakkab ishda ko'p. Bu
-//           masalalarni to'liq sanash va chuqur tahlil qilishni
-//           kafolatlaydi. Xarajat faqat model REAL o'ylagan miqdorga
-//           qarab hisoblanadi.
+// evaluate: talaba ishini baholash - thinking CHEGARALANGAN.
+//
+//   ESKI QIYMAT: thinkingBudget: -1 (cheksiz/dynamic).
+//   MUAMMO (real loglardan aniqlangan): -1 bilan model ba'zi
+//   grading'larda 30,000-63,000 thinking token sarfladi. Bu:
+//     (a) xarajatning ASOSIY manbai edi (javobdan 5-20x ko'p),
+//     (b) gradingni BUZDI — thinking maxOutputTokens (65536) ichiga
+//         kirgani uchun, 62k+ thinking bo'lganda javobga joy qolmay
+//         JSON kesildi va "Javob juda uzun bo'lib ketdi" xatosi chiqdi.
+//         Ya'ni maksimal pul + natija YO'Q.
+//
+//   YECHIM: 8192 token chegara. Bu har masalani chuqur tekshirishga
+//   yetarli (aksar muvaffaqiyatli grading shundan kam ishlatgan),
+//   lekin cheksiz "loop"ning oldini oladi. Natija: ~65-75% arzon +
+//   ishonchli (grading doim tugaydi, xato bermaydi).
+//
+//   SOZLASH: Render loglaridagi [TOKENS] ... thinking: N qiymatlariga
+//   qarab moslang. Agar sifat tushsa 12288 ga oshiring; agar hali
+//   ham qimmat bo'lsa va sifat yaxshi bo'lsa 4096 ga tushiring.
 const THINKING_ANALYZE = { thinkingBudget: 0 };
-const THINKING_EVALUATE = { thinkingBudget: -1 };
+const THINKING_EVALUATE = { thinkingBudget: 8192 };
 
 // ============================================================
 // 4-TUZATISH: Output limitlari (faqat himoya chegarasi)
