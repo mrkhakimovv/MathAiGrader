@@ -11,4 +11,7 @@ export interface GradingResult {
   taskId?: string;
   inputTokens?: number;
   outputTokens?: number;
+  thinkingTokens?: number;
+  cachedTokens?: number;
+  totalTokens?: number;
 }

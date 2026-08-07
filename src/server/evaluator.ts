@@ -210,7 +210,7 @@ Output the result in JSON format matching the schema.`;
 
     // Limit tufayli kesilgan JSON'ni aniqlash
     const finishReason = response?.candidates?.[0]?.finishReason;
-    if (finishReason === "MAX_TOKENS") {
+    if (String(finishReason) === "MAX_TOKENS") {
       throw new Error("Misollar juda ko'p yoki uzun bo'lib ketdi. Iltimos, rasmlarni kamroq qilib (masalan 1 tadan) yoki soddaroq qilib yuboring.");
     }
 
@@ -222,7 +222,7 @@ Output the result in JSON format matching the schema.`;
     try {
       return JSON.parse(responseText);
     } catch (parseErr) {
-      if (finishReason === "MAX_TOKENS") {
+      if (String(finishReason) === "MAX_TOKENS") {
         throw new Error("Misollar juda ko'p bo'lib ketdi. Iltimos, rasmlarni kamroq qilib yuboring.");
       }
       throw new Error("AI javobini o'qib bo'lmadi, iltimos qayta urining.");
@@ -408,7 +408,7 @@ Output the result in JSON format matching the schema.`;
 
   // 4-TUZATISH: limit tufayli kesilgan javobni aniqlash
   const finishReason = response?.candidates?.[0]?.finishReason;
-  if (finishReason === "MAX_TOKENS") {
+  if (String(finishReason) === "MAX_TOKENS") {
     console.warn("[WARN] Javob maxOutputTokens limitiga yetdi - JSON kesilgan bo'lishi mumkin");
   }
 
@@ -417,7 +417,7 @@ Output the result in JSON format matching the schema.`;
   try {
     result = JSON.parse(jsonStr);
   } catch (e) {
-    if (finishReason === "MAX_TOKENS") {
+    if (String(finishReason) === "MAX_TOKENS") {
       throw new Error("Javob juda uzun bo'lib ketdi. Iltimos, rasmlarni kamroq qilib yoki bitta-bitta yuboring.");
     }
     throw new Error("AI javobini o'qib bo'lmadi, iltimos qayta urining.");
@@ -436,6 +436,12 @@ Output the result in JSON format matching the schema.`;
   const usage = response?.usageMetadata;
   result.inputTokens = usage?.promptTokenCount ?? 0;
   result.outputTokens = usage?.candidatesTokenCount ?? 0;
+  // MUHIM: thinking token'ni ham saqlaymiz — bu xarajatning ASOSIY manbai
+  // (biz ko'rgandek 15,000-62,000 gacha). Usiz admin oynada xarajat juda
+  // kam ko'rinadi. thinking output narxida hisoblanadi.
+  result.thinkingTokens = usage?.thoughtsTokenCount ?? 0;
+  result.cachedTokens = usage?.cachedContentTokenCount ?? 0;
+  result.totalTokens = usage?.totalTokenCount ?? 0;
 
   return result;
 }

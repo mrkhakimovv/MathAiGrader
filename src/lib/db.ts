@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc, getDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from './firebase';
 import { GradingResult } from '../types';
 
@@ -103,4 +103,40 @@ export const saveToCollection = async (collectionName: string, data: any) => {
     handleFirestoreError(error, "write", collectionName);
     throw error;
   }
+};
+
+// ============================================================
+// XARAJAT HISOBINI TOZALASH (soft-reset)
+// Grading yozuvlari O'CHIRILMAYDI (ular boshqa joyda ham kerak).
+// Faqat "reset nuqtasi" (vaqt) saqlanadi. Xarajat oynasi shu
+// vaqtdan KEYINGI grading'largagina hisob yuritadi. Ya'ni hisob
+// nol'dan boshlanadi, lekin hech qanday ma'lumot yo'qolmaydi.
+// ============================================================
+
+// Reset nuqtasini o'qish (millisekundda). 0 => hech qachon tozalanmagan.
+export const getExpensesResetAt = async (): Promise<number> => {
+  try {
+    const snap = await getDoc(doc(db, 'settings', 'expenses'));
+    if (!snap.exists()) return 0;
+    const v = snap.data()?.resetAtMs;
+    return typeof v === 'number' ? v : 0;
+  } catch (error) {
+    handleFirestoreError(error, 'get', 'settings/expenses');
+    return 0;
+  }
+};
+
+// Reset nuqtasini "hozir" ga o'rnatish. Qaytadi: yangi reset vaqti (ms).
+export const resetExpensesHistory = async (): Promise<number> => {
+  const nowMs = Date.now();
+  try {
+    await setDoc(
+      doc(db, 'settings', 'expenses'),
+      { resetAtMs: nowMs, resetAt: serverTimestamp(), resetBy: auth.currentUser?.email ?? null },
+      { merge: true }
+    );
+  } catch (error) {
+    handleFirestoreError(error, 'write', 'settings/expenses');
+  }
+  return nowMs;
 };

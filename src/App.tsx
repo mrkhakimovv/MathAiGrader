@@ -462,7 +462,7 @@ function MainApp() {
         )}
         {activeView === 'admin-ads' && role === 'admin' && <AdminAdsView />}
         {activeView === 'admin-students' && role === 'admin' && <AdminStudentsView students={students} />}
-        {activeView === 'admin-expenses' && role === 'admin' && <AdminExpensesView history={history} students={students} teachers={teachers} />}
+        {activeView === 'admin-expenses' && role === 'admin' && <AdminExpensesView history={history} />}
 
         {activeView === 'home' && role !== 'student' && role !== 'admin' && (
           <div className="space-y-8">

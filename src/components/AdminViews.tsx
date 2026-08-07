@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { UserPlus, Users, Trash2, Key, Megaphone, Plus, Coins, TrendingUp, Filter, Calendar, ArrowDownUp, Bell } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { UserPlus, Users, Trash2, Key, Megaphone, Plus, Coins, TrendingUp, Filter, Calendar, ArrowDownUp, Bell, Brain, Wallet, Zap } from 'lucide-react';
 import { getAvatarUrl, formatDateUZ } from '../lib/utils';
+import { getExpensesResetAt, resetExpensesHistory } from '../lib/db';
 
 interface AdminCreateTeacherViewProps {
   teachers: any[];
@@ -433,81 +434,374 @@ interface AdminExpensesViewProps {
   history: any[];
 }
 
+// ============================================================
+// NARX SOZLAMALARI — Gemini 2.5 Flash ($/million token).
+// Narx o'zgarsa (yoki modelni almashtirsangiz) FAQAT shu yerni yangilang.
+// Eslatma: thinking token OUTPUT narxida hisoblanadi.
+// ============================================================
+const PRICE_INPUT_PER_M = 0.30;    // input (million tokenga, $)
+const PRICE_OUTPUT_PER_M = 2.50;   // output + thinking (million tokenga, $)
+const PRICE_CACHED_PER_M = 0.075;  // cached input (arzon, $)
+const USD_TO_UZS = 12650;          // taxminiy kurs (o'zgarsa yangilang)
+
+function calcCostUSD(input: number, output: number, thinking: number, cached: number): number {
+  const billableInput = Math.max(0, input - cached);
+  return (
+    billableInput * PRICE_INPUT_PER_M +
+    cached * PRICE_CACHED_PER_M +
+    (output + thinking) * PRICE_OUTPUT_PER_M
+  ) / 1_000_000;
+}
+
+function fmtUSD(v: number): string {
+  return `$${v.toFixed(v < 1 ? 4 : 2)}`;
+}
+function fmtUZS(v: number): string {
+  return `${Math.round(v * USD_TO_UZS).toLocaleString()} so'm`;
+}
+
 export function AdminExpensesView({ history }: AdminExpensesViewProps) {
-  // Group history by student to calculate total tokens used
-  const expenses = history.reduce((acc, curr) => {
-    const student = curr.studentUsername;
-    if (!acc[student]) {
-      acc[student] = { 
-        inputTokens: 0, 
-        outputTokens: 0, 
-        requests: 0 
-      };
+  // Xarajat hisobini tozalash (reset) nuqtasi
+  const [resetAt, setResetAt] = useState<number>(0);
+  const [resetting, setResetting] = useState(false);
+
+  useEffect(() => {
+    getExpensesResetAt().then(setResetAt).catch(() => setResetAt(0));
+  }, []);
+
+  const handleReset = async () => {
+    const ok = window.confirm(
+      "Xarajat hisobini tozalamoqchimisiz?\n\n" +
+      "Grading tarixi O'CHIRILMAYDI — faqat hisob shu vaqtdan qayta boshlanadi. " +
+      "Shundan keyingi o'quvchilar uchun xarajat nol'dan sanaladi."
+    );
+    if (!ok) return;
+    setResetting(true);
+    try {
+      const now = await resetExpensesHistory();
+      setResetAt(now);
+    } finally {
+      setResetting(false);
     }
-    // Simulate token usage based on grading result length or mock data if not available
-    // Assuming each grading request takes roughly 1500 input tokens and 500 output tokens on average if not recorded
-    acc[student].inputTokens += curr.inputTokens || 1500;
-    acc[student].outputTokens += curr.outputTokens || 500;
+  };
+
+  const recMs = (r: any) => (r?.createdAt?.seconds ?? r?.createdAt?._seconds ?? 0) * 1000;
+
+  // Faqat token ma'lumoti bor VA reset nuqtasidan keyingi yozuvlar
+  const records = (history || []).filter(
+    (h) =>
+      h &&
+      (h.inputTokens != null || h.outputTokens != null || h.thinkingTokens != null) &&
+      (resetAt === 0 || recMs(h) >= resetAt)
+  );
+
+  // Oxirgi grading'ni topamiz (createdAt bo'yicha eng yangi)
+  const sortedByTime = [...records].sort((a, b) => recMs(b) - recMs(a));
+  const latest = sortedByTime[0];
+  const latestInput = latest?.inputTokens || 0;
+  const latestOutput = latest?.outputTokens || 0;
+  const latestThinking = latest?.thinkingTokens || 0;
+  const latestCached = latest?.cachedTokens || 0;
+  const latestCost = latest ? calcCostUSD(latestInput, latestOutput, latestThinking, latestCached) : 0;
+
+  // O'quvchi bo'yicha guruhlash — REAL token ma'lumoti (soxta emas)
+  const expenses = records.reduce((acc: any, curr: any) => {
+    const student = curr.studentUsername || 'unknown';
+    if (!acc[student]) {
+      acc[student] = { inputTokens: 0, outputTokens: 0, thinkingTokens: 0, cachedTokens: 0, requests: 0 };
+    }
+    acc[student].inputTokens += curr.inputTokens || 0;
+    acc[student].outputTokens += curr.outputTokens || 0;
+    acc[student].thinkingTokens += curr.thinkingTokens || 0;
+    acc[student].cachedTokens += curr.cachedTokens || 0;
     acc[student].requests += 1;
     return acc;
   }, {});
 
-  const expensesArray = Object.keys(expenses).map(student => ({
-    student,
-    ...expenses[student]
-  })).sort((a, b) => (b.inputTokens + b.outputTokens) - (a.inputTokens + a.outputTokens));
+  const expensesArray = Object.keys(expenses).map((student) => {
+    const e = expenses[student];
+    const cost = calcCostUSD(e.inputTokens, e.outputTokens, e.thinkingTokens, e.cachedTokens);
+    return { student, ...e, cost };
+  }).sort((a, b) => b.cost - a.cost);
 
-  const totalInput = expensesArray.reduce((sum, item) => sum + item.inputTokens, 0);
-  const totalOutput = expensesArray.reduce((sum, item) => sum + item.outputTokens, 0);
+  const totalInput = expensesArray.reduce((s, i) => s + i.inputTokens, 0);
+  const totalOutput = expensesArray.reduce((s, i) => s + i.outputTokens, 0);
+  const totalThinking = expensesArray.reduce((s, i) => s + i.thinkingTokens, 0);
+  const totalCost = expensesArray.reduce((s, i) => s + i.cost, 0);
+
+  // ============================================================
+  // SANMA-SANA (kunlik) guruhlash
+  // ============================================================
+  const dailyMap = records.reduce((acc: any, curr: any) => {
+    const ms = recMs(curr);
+    if (!ms) return acc;
+    const d = new Date(ms);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const label = `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+    if (!acc[key]) {
+      acc[key] = { key, label, requests: 0, inputTokens: 0, outputTokens: 0, thinkingTokens: 0, cachedTokens: 0 };
+    }
+    acc[key].requests += 1;
+    acc[key].inputTokens += curr.inputTokens || 0;
+    acc[key].outputTokens += curr.outputTokens || 0;
+    acc[key].thinkingTokens += curr.thinkingTokens || 0;
+    acc[key].cachedTokens += curr.cachedTokens || 0;
+    return acc;
+  }, {});
+
+  const dailyArray = Object.values(dailyMap).map((d: any) => ({
+    ...d,
+    cost: calcCostUSD(d.inputTokens, d.outputTokens, d.thinkingTokens, d.cachedTokens),
+  })).sort((a: any, b: any) => (a.key < b.key ? 1 : -1)); // eng yangi kun birinchi
+
+  // ============================================================
+  // OXIRGI TEKSHIRILGAN VAZIFALAR (eng yangisi yuqorida)
+  // ============================================================
+  const recentList = sortedByTime.slice(0, 50).map((r: any) => {
+    const ms = recMs(r);
+    const input = r.inputTokens || 0;
+    const output = r.outputTokens || 0;
+    const thinking = r.thinkingTokens || 0;
+    const cost = calcCostUSD(input, output, thinking, r.cachedTokens || 0);
+    let status: { label: string; cls: string };
+    if (r.isCorrect) status = { label: "To'g'ri", cls: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' };
+    else if (r.isPartiallyCorrect) status = { label: 'Qisman', cls: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' };
+    else status = { label: 'Xato', cls: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400' };
+    return {
+      id: r.id || `${r.studentUsername}-${ms}`,
+      student: r.studentUsername || 'noma\'lum',
+      dateLabel: ms ? formatDateUZ(ms, true) : '—',
+      score: r.score,
+      status,
+      input,
+      output,
+      thinking,
+      cost,
+    };
+  });
 
   return (
     <div className="space-y-6">
-      <header className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl flex items-center gap-2">
-          <Coins className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
-          Xarajatlar (Token sarfi)
-        </h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1">O'quvchilar tomonidan AI orqali tekshirishga sarflangan tokenlar statistikasi.</p>
+      <header className="mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl flex items-center gap-2">
+            <Coins className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+            Xarajatlar (Token sarfi)
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">O'quvchilar tomonidan AI orqali tekshirishga sarflangan tokenlar va real xarajat.</p>
+          {resetAt > 0 && (
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+              Hisob {new Date(resetAt).toLocaleString('ru-RU')} dan boshlab yuritilmoqda.
+            </p>
+          )}
+        </div>
+        <button
+          onClick={handleReset}
+          disabled={resetting}
+          className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-900/20 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200 dark:border-rose-800 transition-colors disabled:opacity-50 shrink-0"
+        >
+          <Trash2 className="h-4 w-4" />
+          {resetting ? 'Tozalanmoqda...' : 'Hisobni tozalash'}
+        </button>
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Jami Input Tokenlar</p>
-            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{totalInput.toLocaleString()}</p>
-          </div>
-          <div className="h-12 w-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-            <TrendingUp className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+      {/* OXIRGI GRADING — yuqorida, ajralib turadi */}
+      {latest && (
+        <div className="rounded-2xl p-6 shadow-sm bg-gradient-to-br from-indigo-600 to-violet-600 text-white">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-medium text-indigo-100 flex items-center gap-1.5">
+                <Zap className="h-4 w-4" /> Oxirgi grading xarajati
+              </p>
+              <p className="text-4xl font-extrabold mt-1">{fmtUSD(latestCost)}</p>
+              <p className="text-indigo-200 text-sm mt-0.5">{fmtUZS(latestCost)}</p>
+              <p className="text-indigo-100 text-sm mt-2">
+                O'quvchi: <span className="font-semibold text-white">{latest.studentUsername || 'noma\'lum'}</span>
+                {latest.createdAt && (
+                  <span className="text-indigo-200"> · {formatDateUZ(latest.createdAt)}</span>
+                )}
+              </p>
+            </div>
+            <div className="hidden sm:grid grid-cols-3 gap-3 text-center">
+              <div className="bg-white/10 rounded-xl px-4 py-3">
+                <p className="text-xs text-indigo-100">Input</p>
+                <p className="text-lg font-bold">{latestInput.toLocaleString()}</p>
+              </div>
+              <div className="bg-white/10 rounded-xl px-4 py-3">
+                <p className="text-xs text-indigo-100">Output</p>
+                <p className="text-lg font-bold">{latestOutput.toLocaleString()}</p>
+              </div>
+              <div className="bg-white/10 rounded-xl px-4 py-3">
+                <p className="text-xs text-indigo-100">Thinking</p>
+                <p className="text-lg font-bold">{latestThinking.toLocaleString()}</p>
+              </div>
+            </div>
           </div>
         </div>
-        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex items-center justify-between">
+      )}
+
+      {/* JAMI KARTALAR */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Jami Output Tokenlar</p>
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Jami Input</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{totalInput.toLocaleString()}</p>
+          </div>
+          <div className="h-11 w-11 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+            <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+          </div>
+        </div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Jami Output</p>
             <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{totalOutput.toLocaleString()}</p>
           </div>
-          <div className="h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-            <Coins className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+          <div className="h-11 w-11 rounded-full bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
+            <Coins className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+          </div>
+        </div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Jami Thinking</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{totalThinking.toLocaleString()}</p>
+          </div>
+          <div className="h-11 w-11 rounded-full bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
+            <Brain className="h-5 w-5 text-violet-600 dark:text-violet-400" />
+          </div>
+        </div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Jami Xarajat</p>
+            <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{fmtUSD(totalCost)}</p>
+            <p className="text-xs text-slate-400 mt-0.5">{fmtUZS(totalCost)}</p>
+          </div>
+          <div className="h-11 w-11 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+            <Wallet className="h-5 w-5 text-amber-600 dark:text-amber-400" />
           </div>
         </div>
       </div>
 
+      {/* OXIRGI TEKSHIRILGAN VAZIFALAR */}
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
+          <Zap className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+          <h2 className="font-semibold text-slate-900 dark:text-white">Oxirgi tekshirilgan vazifalar</h2>
+          {recentList.length > 0 && (
+            <span className="text-xs text-slate-400 ml-auto">Eng yangisi yuqorida · {recentList.length} ta</span>
+          )}
+        </div>
+        <div className="overflow-x-auto max-h-[560px] overflow-y-auto">
+          <table className="w-full text-left text-sm text-slate-500 dark:text-slate-400">
+            <thead className="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase text-slate-700 dark:text-slate-300 sticky top-0 z-10">
+              <tr>
+                <th className="px-6 py-3.5 font-semibold">O'quvchi</th>
+                <th className="px-4 py-3.5 font-semibold">Sana</th>
+                <th className="px-4 py-3.5 font-semibold text-center">Holat</th>
+                <th className="px-4 py-3.5 font-semibold text-right">Ball</th>
+                <th className="px-4 py-3.5 font-semibold text-right">Input</th>
+                <th className="px-4 py-3.5 font-semibold text-right">Output</th>
+                <th className="px-4 py-3.5 font-semibold text-right">Thinking</th>
+                <th className="px-6 py-3.5 font-semibold text-right">Xarajat</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+              {recentList.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-6 py-8 text-center text-slate-500">Hozircha tekshirilgan vazifa yo'q.</td>
+                </tr>
+              ) : (
+                recentList.map((r: any) => (
+                  <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <td className="px-6 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <img src={getAvatarUrl(r.student)} alt="" className="h-8 w-8 rounded-full object-cover shrink-0 bg-slate-100 dark:bg-slate-800" />
+                        <span className="font-semibold text-slate-900 dark:text-white truncate">{r.student}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3.5 whitespace-nowrap text-slate-500 dark:text-slate-400">{r.dateLabel}</td>
+                    <td className="px-4 py-3.5 text-center">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${r.status.cls}`}>{r.status.label}</span>
+                    </td>
+                    <td className="px-4 py-3.5 text-right font-semibold text-slate-700 dark:text-slate-300">
+                      {typeof r.score === 'number' ? r.score : '—'}
+                    </td>
+                    <td className="px-4 py-3.5 text-right font-medium text-emerald-600 dark:text-emerald-400">{r.input.toLocaleString()}</td>
+                    <td className="px-4 py-3.5 text-right font-medium text-indigo-600 dark:text-indigo-400">{r.output.toLocaleString()}</td>
+                    <td className="px-4 py-3.5 text-right font-medium text-violet-600 dark:text-violet-400">{r.thinking.toLocaleString()}</td>
+                    <td className="px-6 py-3.5 text-right font-bold text-amber-600 dark:text-amber-400">{fmtUSD(r.cost)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* SANMA-SANA (KUNLIK) JADVAL */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
+          <Calendar className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+          <h2 className="font-semibold text-slate-900 dark:text-white">Kunlik xarajat (sanma-sana)</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-slate-500 dark:text-slate-400">
+            <thead className="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase text-slate-700 dark:text-slate-300">
+              <tr>
+                <th className="px-6 py-4 font-semibold">Sana</th>
+                <th className="px-6 py-4 font-semibold text-right">Grading</th>
+                <th className="px-6 py-4 font-semibold text-right">Input</th>
+                <th className="px-6 py-4 font-semibold text-right">Output</th>
+                <th className="px-6 py-4 font-semibold text-right">Thinking</th>
+                <th className="px-6 py-4 font-semibold text-right">Xarajat</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+              {dailyArray.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                    Hozircha ma'lumot yo'q.
+                  </td>
+                </tr>
+              ) : (
+                dailyArray.map((d: any) => (
+                  <tr key={d.key} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                    <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">{d.label}</td>
+                    <td className="px-6 py-4 text-right">{d.requests}</td>
+                    <td className="px-6 py-4 text-right font-medium text-emerald-600 dark:text-emerald-400">{d.inputTokens.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-right font-medium text-indigo-600 dark:text-indigo-400">{d.outputTokens.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-right font-medium text-violet-600 dark:text-violet-400">{d.thinkingTokens.toLocaleString()}</td>
+                    <td className="px-6 py-4 text-right font-bold text-amber-600 dark:text-amber-400">{fmtUSD(d.cost)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* JADVAL */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center gap-2">
+          <Users className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+          <h2 className="font-semibold text-slate-900 dark:text-white">O'quvchilar bo'yicha</h2>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-500 dark:text-slate-400">
             <thead className="bg-slate-50 dark:bg-slate-800/50 text-xs uppercase text-slate-700 dark:text-slate-300">
               <tr>
                 <th className="px-6 py-4 font-semibold">O'quvchi Login</th>
                 <th className="px-6 py-4 font-semibold text-right">So'rovlar</th>
-                <th className="px-6 py-4 font-semibold text-right">Input Token</th>
-                <th className="px-6 py-4 font-semibold text-right">Output Token</th>
-                <th className="px-6 py-4 font-semibold text-right">Jami Token</th>
+                <th className="px-6 py-4 font-semibold text-right">Input</th>
+                <th className="px-6 py-4 font-semibold text-right">Output</th>
+                <th className="px-6 py-4 font-semibold text-right">Thinking</th>
+                <th className="px-6 py-4 font-semibold text-right">Xarajat</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
               {expensesArray.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
-                    Hozircha tekshirishlar amalga oshirilmagan.
+                  <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
+                    Hozircha token ma'lumoti bor tekshirish yo'q.
                   </td>
                 </tr>
               ) : (
@@ -516,17 +810,18 @@ export function AdminExpensesView({ history }: AdminExpensesViewProps) {
                     <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white">
                       {item.student}
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      {item.requests}
-                    </td>
+                    <td className="px-6 py-4 text-right">{item.requests}</td>
                     <td className="px-6 py-4 text-right font-medium text-emerald-600 dark:text-emerald-400">
                       {item.inputTokens.toLocaleString()}
                     </td>
                     <td className="px-6 py-4 text-right font-medium text-indigo-600 dark:text-indigo-400">
                       {item.outputTokens.toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 text-right font-bold text-slate-700 dark:text-slate-300">
-                      {(item.inputTokens + item.outputTokens).toLocaleString()}
+                    <td className="px-6 py-4 text-right font-medium text-violet-600 dark:text-violet-400">
+                      {item.thinkingTokens.toLocaleString()}
+                    </td>
+                    <td className="px-6 py-4 text-right font-bold text-amber-600 dark:text-amber-400">
+                      {fmtUSD(item.cost)}
                     </td>
                   </tr>
                 ))
@@ -535,6 +830,11 @@ export function AdminExpensesView({ history }: AdminExpensesViewProps) {
           </table>
         </div>
       </div>
+
+      <p className="text-xs text-slate-400 dark:text-slate-500">
+        * Xarajat Gemini 2.5 Flash narxi bo'yicha taxminiy hisoblangan (thinking = output narxida).
+        Eski tekshirishlarda thinking ma'lumoti bo'lmasligi mumkin — faqat yangi grading'lar to'liq aniq.
+      </p>
     </div>
   );
 }
