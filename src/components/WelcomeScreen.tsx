@@ -655,7 +655,7 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
                   </div>
                   <h4 className="font-headline-lg text-2xl mb-2 text-on-background dark:text-inverse-on-surface group-hover:text-secondary transition-colors font-bold">Quvonchbek Hakimov</h4>
                   <p className="text-secondary dark:text-secondary-fixed-dim font-label-md text-label-md mb-6 uppercase tracking-wider">Texnik rahbar (CTO)</p>
-                  <p className="text-on-surface-variant font-body-md mb-6">Sun'iy intellekt va zamonaviy web texnologiyalar bo'yicha mutaxassis. Tizim arxitekturasi muallifi.</p>
+                  <p className="text-on-surface-variant font-body-md mb-6">Ta'lim sohasida 4 yillik tajribaga ega ustoz. Sun'iy intellekt va zamonaviy web texnologiyalar bo'yicha mutaxassis. Tizim arxitekturasi muallifi.</p>
                   <div className="flex justify-between items-center mt-auto">
                     <div className="flex gap-3">
                       <a className="group/btn w-11 h-11 rounded-full bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-[#0088cc] dark:hover:bg-[#0088cc] hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-outline-variant/20 hover:border-transparent" href="https://t.me/quvonchbek_hakimov" target="_blank" rel="noopener noreferrer" aria-label="Telegram">

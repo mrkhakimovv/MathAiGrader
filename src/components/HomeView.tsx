@@ -157,7 +157,7 @@ export function HomeView({ role, username }: { role: string | null, username: st
               </div>
               <h4 className="text-xl mb-1 text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors font-bold">Quvonchbek Hakimov</h4>
               <p className="text-indigo-600 dark:text-indigo-400 text-sm mb-4 uppercase tracking-wider font-semibold">Texnik rahbar (CTO)</p>
-              <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">Sun'iy intellekt va zamonaviy web texnologiyalar bo'yicha mutaxassis. Tizim arxitekturasi muallifi.</p>
+              <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">Ta'lim sohasida 4 yillik tajribaga ega ustoz. Sun'iy intellekt va zamonaviy web texnologiyalar bo'yicha mutaxassis. Tizim arxitekturasi muallifi.</p>
               <div className="flex justify-between items-center mt-auto">
                 <div className="flex gap-3">
                   <a className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-[#0088cc] hover:text-white transition-all duration-300" href="https://t.me/quvonchbek_hakimov" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
