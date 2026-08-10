@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { X, Moon, Sun, User, Settings, PieChart, Users, BookOpen, Edit2, CheckCircle, XCircle, Loader2 } from 'lucide-react';
-import { GradingResult } from '../types';
+import { X, Moon, Sun, User, Settings, PieChart, Users, BookOpen, Edit2, CheckCircle, XCircle, Loader2, LogOut } from 'lucide-react';
+import { GradingResult } from '../../types';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { getAvatarUrl, AVATAR_SEEDS } from '../lib/utils';
+import { db } from '../../lib/firebase';
+import { getAvatarUrl, AVATAR_SEEDS } from '../../lib/utils';
+import { AccountSwitcher } from '../AccountSwitcher';
+import { StoredAccount, patchAccount, encodeSecret } from '../../lib/accounts';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -17,9 +19,16 @@ interface ProfileModalProps {
   studentInfo?: any;
   tasks?: any[];
   onUsernameChange?: (newUsername: string) => void;
+  onProfileUpdate?: () => void;
+  accounts?: StoredAccount[];
+  activeAccountId?: string | null;
+  switchingId?: string | null;
+  onSwitchAccount?: (id: string) => void;
+  onAddAccount?: () => void;
+  onRemoveAccount?: (id: string) => void;
 }
 
-export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkMode, username, onLogout, userRole, studentInfo, tasks = [], onUsernameChange }: ProfileModalProps) {
+export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkMode, username, onLogout, userRole, studentInfo, tasks = [], onUsernameChange, onProfileUpdate, accounts = [], activeAccountId, switchingId, onSwitchAccount, onAddAccount, onRemoveAccount }: ProfileModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [firstName, setFirstName] = useState(studentInfo?.firstName || '');
   const [lastName, setLastName] = useState(studentInfo?.lastName || '');
@@ -28,6 +37,7 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'available' | 'taken'>('idle');
   const [isSaving, setIsSaving] = useState(false);
   const [selectedAvatar, setSelectedAvatar] = useState(studentInfo?.avatar || '');
+  const [newPassword, setNewPassword] = useState('');
 
   // Reset form when opened or studentInfo changes
   useEffect(() => {
@@ -36,6 +46,7 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
       setLastName(studentInfo?.lastName || '');
       setNewUsername(username || '');
       setSelectedAvatar(studentInfo?.avatar || '');
+      setNewPassword('');
       setIsEditing(false);
       setUsernameStatus('idle');
     }
@@ -77,13 +88,35 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
     setIsSaving(true);
     try {
       if (studentInfo?.id) {
-        await updateDoc(doc(db, "students", studentInfo.id), {
+        const updateData: any = {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           username: newUsername.trim(),
           avatar: selectedAvatar
-        });
+        };
+
+        if (newPassword.trim()) {
+          updateData.password = newPassword.trim();
+        }
+
+        await updateDoc(doc(db, "students", studentInfo.id), updateData);
         
+        if (activeAccountId) {
+          const patch: Partial<StoredAccount> = {
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            username: newUsername.trim(),
+            avatar: selectedAvatar
+          };
+          
+          if (newPassword.trim()) {
+            patch.secret = encodeSecret(newPassword.trim());
+          }
+          
+          patchAccount(activeAccountId, patch);
+          if (onProfileUpdate) onProfileUpdate();
+        }
+
         if (newUsername.trim() !== username && onUsernameChange) {
           onUsernameChange(newUsername.trim());
         }
@@ -126,7 +159,7 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
                 <User className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
               )}
             </div>
-            <div>
+            <div className="flex-1">
               <h3 className="text-xl font-bold text-slate-900 dark:text-white">{studentInfo?.firstName ? `${studentInfo.firstName} ${studentInfo.lastName}` : username}</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400">
                 {userRole === 'admin' ? 'Administrator' : 
@@ -134,6 +167,16 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
                  userRole === 'student' ? 'O\'quvchi' : 'Foydalanuvchi'}
               </p>
             </div>
+            <button
+              onClick={() => {
+                onClose();
+                onLogout();
+              }}
+              className="p-2.5 rounded-xl border border-rose-200 dark:border-rose-800/50 shadow-sm text-rose-600 bg-rose-50 hover:bg-rose-100 dark:text-rose-400 dark:bg-rose-900/20 dark:hover:bg-rose-900/40 transition-colors"
+              title="Tizimdan chiqish"
+            >
+              <LogOut className="h-5 w-5" />
+            </button>
           </div>
 
           {userRole === 'student' && (
@@ -150,12 +193,6 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
 
           {isEditing && (
             <div className="space-y-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 animate-in slide-in-from-top-2">
-              <div className="bg-red-50 dark:bg-red-900/20 p-3 rounded-lg border border-red-200 dark:border-red-800/50 font-serif">
-                <span className="text-xs font-bold text-red-600 dark:text-red-400 mb-1 block uppercase tracking-wider">Diqqat!</span>
-                <p className="text-xs text-red-800 dark:text-red-200 leading-relaxed">
-                  Dasturga bir nechta o'zgarishlar kiritilayotganligi sababli dastur ishlashida ba'zi bir uzilishlar va to'xtalishlar kuzatilishi mumkin. Agar ushbu muammolarga duch kelsangiz, biroz kuting va biroz vaqt o'tib qaytadan urinib ko'ring.
-                </p>
-              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Ism</label>
@@ -206,6 +243,17 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
               </div>
 
               <div>
+                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Yangi parol (ixtiyoriy)</label>
+                <input
+                  type="text"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Bo'sh qoldirilsa, o'zgarmaydi"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 placeholder:text-slate-400"
+                />
+              </div>
+
+              <div>
                 <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-2">Avatar tanlang</label>
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                   {AVATAR_SEEDS.map((seed) => (
@@ -236,73 +284,16 @@ export function ProfileModal({ isOpen, onClose, history, isDarkMode, toggleDarkM
             </div>
           )}
 
-          <hr className="border-slate-200 dark:border-slate-800" />
-
-          {/* Student Specific Info */}
-          {userRole === 'student' && studentInfo && (
-            <section className="space-y-4">
-              <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/30 flex items-center gap-4">
-                <div className="p-2 bg-indigo-100 dark:bg-indigo-800/50 rounded-lg text-indigo-600 dark:text-indigo-400">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-0.5">Guruh</p>
-                  <p className="font-bold text-slate-900 dark:text-white">
-                    {studentInfo.groups && studentInfo.groups.length > 0 
-                      ? studentInfo.groups.join(', ') 
-                      : (studentInfo.group || 'Guruhsiz')}
-                  </p>
-                </div>
-              </div>
-              
-              <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 flex items-center gap-4">
-                <div className="p-2 bg-slate-200 dark:bg-slate-700 rounded-lg text-slate-600 dark:text-slate-300">
-                  <BookOpen className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-0.5">Vazifalar</p>
-                  <p className="font-bold text-slate-900 dark:text-white">
-                    {tasks.filter(t => !t.group || t.group === 'Barcha guruhlar' || t.group === studentInfo.group || (studentInfo.groups && studentInfo.groups.includes(t.group))).length} ta mavjud
-                  </p>
-                </div>
-              </div>
-            </section>
+          {accounts && accounts.length > 0 && onSwitchAccount && onAddAccount && onRemoveAccount && (
+            <AccountSwitcher
+              accounts={accounts}
+              activeAccountId={activeAccountId ?? null}
+              switchingId={switchingId}
+              onSwitch={onSwitchAccount}
+              onAdd={onAddAccount}
+              onRemove={onRemoveAccount}
+            />
           )}
-
-          {/* Settings */}
-          <section>
-            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2 mb-3">
-              <Settings className="h-4 w-4" />
-              Settings
-            </h4>
-            <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700">
-              <div className="flex flex-col">
-                <span className="text-sm font-medium text-slate-900 dark:text-white">Dark Mode</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400">Toggle application appearance</span>
-              </div>
-              <button
-                onClick={toggleDarkMode}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  isDarkMode ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    isDarkMode ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-            <button
-              onClick={() => {
-                onClose();
-                onLogout();
-              }}
-              className="mt-4 w-full flex justify-center items-center py-2.5 px-4 border border-rose-200 dark:border-rose-800/50 rounded-xl shadow-sm text-sm font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/20 dark:hover:bg-rose-900/40 focus:outline-none transition-colors"
-            >
-              Sign Out
-            </button>
-          </section>
         </div>
       </div>
     </div>

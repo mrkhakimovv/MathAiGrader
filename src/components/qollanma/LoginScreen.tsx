@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
 import { Calculator, Lock, User as UserIcon, Moon, Sun, ArrowLeft } from 'lucide-react';
+import { AccountSwitcher } from '../AccountSwitcher';
+import { StoredAccount } from '../../lib/accounts';
 
 interface LoginScreenProps {
   onLogin: (username: string, password: string) => Promise<boolean> | boolean;
   isDarkMode: boolean;
   toggleDarkMode: () => void;
   onBack?: () => void;
+  accounts?: StoredAccount[];
+  activeAccountId?: string | null;
+  switchingId?: string | null;
+  onSwitchAccount?: (id: string) => void;
+  onRemoveAccount?: (id: string) => void;
 }
 
-export function LoginScreen({ onLogin, isDarkMode, toggleDarkMode, onBack }: LoginScreenProps) {
+export function LoginScreen({ onLogin, isDarkMode, toggleDarkMode, onBack, accounts = [], activeAccountId, switchingId, onSwitchAccount, onRemoveAccount }: LoginScreenProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +64,22 @@ export function LoginScreen({ onLogin, isDarkMode, toggleDarkMode, onBack }: Log
       </div>
 
       <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 p-8 sm:p-10 animate-in fade-in zoom-in-95 duration-500">
+        
+        {accounts.length > 0 && onSwitchAccount && onRemoveAccount && (
+          <div className="mt-8">
+            <AccountSwitcher
+              accounts={accounts}
+              activeAccountId={activeAccountId ?? null}
+              switchingId={switchingId}
+              onSwitch={onSwitchAccount}
+              onRemove={onRemoveAccount}
+            />
+            <div className="my-6 flex items-center before:mt-0.5 before:flex-1 before:border-t before:border-slate-200 dark:before:border-slate-700 after:mt-0.5 after:flex-1 after:border-t after:border-slate-200 dark:after:border-slate-700">
+              <p className="mx-4 mb-0 text-center text-sm font-semibold text-slate-500 dark:text-slate-400">YOKI</p>
+            </div>
+          </div>
+        )}
+
         <div className="text-center mb-8">
           <div className="mx-auto flex h-20 w-20 justify-center mb-5">
             <img src="/logo.png" alt="ALMATH Logo" className="h-full w-full rounded-2xl object-cover" />

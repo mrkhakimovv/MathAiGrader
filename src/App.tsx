@@ -3,8 +3,8 @@ import { StudentRegistration } from "./components/StudentRegistration";
 import React, { useState, useEffect } from "react";
 import { Uploader } from "./components/Uploader";
 import { ResultCard } from "./components/ResultCard";
-import { ProfileModal } from "./components/ProfileModal";
-import { LoginScreen } from "./components/LoginScreen";
+import { ProfileModal } from "./components/qollanma/ProfileModal";
+import { LoginScreen } from "./components/qollanma/LoginScreen";
 import { AdminCreateTeacherView, AdminAdsView, AdminStudentsView, AdminExpensesView } from "./components/AdminViews";
 import { Sidebar, ViewType } from "./components/Sidebar";
 import { AllStudentsView, CreateGroupView, CreateTaskView, AllGroupsView } from "./components/TeacherViews";
@@ -25,9 +25,13 @@ import { getAvatarUrl, formatDateUZ } from "./lib/utils";
 import { DashboardStats } from "./components/DashboardStats";
 import { HomeView } from "./components/HomeView";
 import { WelcomeScreen } from "./components/WelcomeScreen";
+import { getAccounts, migrateLegacyUser, getActiveAccountId, getAccount, setActiveAccountId, removeAccount, StoredAccount, upsertAccount, decodeSecret } from "./lib/accounts";
+import { AccountSwitcher } from "./components/AccountSwitcher";
 
 function MainApp() {
   const [showLogin, setShowLogin] = useState(false);
+  const [accounts, setAccounts] = useState<StoredAccount[]>([]);
+  const [switchingId, setSwitchingId] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [role, setRole] = useState<'admin' | 'teacher' | 'student' | null>(null);
   const [activeView, setActiveView] = useState<ViewType>('home');
@@ -79,26 +83,25 @@ function MainApp() {
   }, [isDarkMode]);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("almath_user");
-    if (storedUser) {
-      try {
-        const user = JSON.parse(storedUser);
-        if (user.username && user.role) {
-          setCurrentUser(user.username);
-          setRole(user.role);
-          if (user.role === 'admin') {
-            setActiveView('admin-create-teacher');
-          }
-          
-          import('./lib/db').then(({ cleanupOldAnalyses }) => {
-            cleanupOldAnalyses();
-          });
+    // Migrate and load accounts
+    migrateLegacyUser();
+    setAccounts(getAccounts());
+
+    const activeId = getActiveAccountId();
+    if (activeId) {
+      const acc = getAccount(activeId);
+      if (acc) {
+        setCurrentUser(acc.username);
+        setRole(acc.role);
+        if (acc.role === 'admin') {
+          setActiveView('admin-create-teacher');
         }
-      } catch (e) {
-        console.error("Error parsing stored user:", e);
+        import('./lib/db').then(({ cleanupOldAnalyses }) => {
+          cleanupOldAnalyses();
+        });
       }
     }
-      }, []);
+  }, []);
 
   useEffect(() => {
     if (!currentUser) return; // Only fetch data if logged in
@@ -150,59 +153,102 @@ function MainApp() {
     : currentUser;
 
     const handleLogin = async (username: string, pass: string) => {
+    let success = false;
+    let loggedInRole: any = null;
+    let docId = undefined;
+    let firstName = undefined;
+    let lastName = undefined;
+    let avatar = undefined;
+
     if (username === 'admin') {
       if (pass === '7788') {
-        setCurrentUser('admin');
-        setRole('admin');
+        success = true;
+        loggedInRole = 'admin';
         setActiveView('admin-create-teacher');
-        localStorage.setItem("almath_user", JSON.stringify({ username: 'admin', role: 'admin' }));
-        return true;
       }
-      return false;
+    } else if (username === 'teacher' && pass === '7744') {
+      success = true;
+      loggedInRole = 'teacher';
+    } else {
+      try {
+        const qTeacher = query(collection(db, "teachers"), where("username", "==", username), where("password", "==", pass));
+        const snapshotTeacher = await getDocs(qTeacher);
+        if (!snapshotTeacher.empty) {
+          success = true;
+          loggedInRole = 'teacher';
+          docId = snapshotTeacher.docs[0].id;
+        } else {
+          const q = query(collection(db, "students"), where("username", "==", username), where("password", "==", pass));
+          const snapshot = await getDocs(q);
+          if (!snapshot.empty) {
+            success = true;
+            loggedInRole = 'student';
+            const data = snapshot.docs[0].data();
+            docId = snapshot.docs[0].id;
+            firstName = data.firstName;
+            lastName = data.lastName;
+            avatar = data.avatar;
+          }
+        }
+      } catch(e: any) { 
+        console.error(e);
+        if (e.message && e.message.includes('offline')) {
+           alert("Internetga ulanishda muammo bor. Iltimos tarmog'ingizni tekshiring.");
+        }
+      }
     }
-    
-    if (username === 'teacher' && pass === '7744') {
-      setCurrentUser('teacher');
-      setRole('teacher');
-      localStorage.setItem("almath_user", JSON.stringify({ username: 'teacher', role: 'teacher' }));
+
+    if (success) {
+      const acc = upsertAccount({
+        username,
+        role: loggedInRole,
+        password: pass,
+        docId,
+        firstName,
+        lastName,
+        avatar
+      });
+      setActiveAccountId(acc.id);
+      setAccounts(getAccounts());
+      setCurrentUser(username);
+      setRole(loggedInRole);
+      setShowLogin(false);
       return true;
     }
-    
-        try {
-      const qTeacher = query(collection(db, "teachers"), where("username", "==", username), where("password", "==", pass));
-      const snapshotTeacher = await getDocs(qTeacher);
-      if (!snapshotTeacher.empty) {
-        setCurrentUser(username);
-        setRole('teacher');
-        localStorage.setItem("almath_user", JSON.stringify({ username, role: 'teacher' }));
-        return true;
-      }
-    } catch(e) { console.error(e); }
-
-    // Check if it's a student
-    try {
-      const q = query(collection(db, "students"), where("username", "==", username), where("password", "==", pass));
-      const snapshot = await getDocs(q);
-      if (!snapshot.empty) {
-        const studentDoc = snapshot.docs[0];
-        const studentData = studentDoc.data();
-        const userToStore = {
-          id: studentDoc.id,
-          username: studentData.username,
-          role: 'student',
-          ...studentData
-        };
-        localStorage.setItem("almath_user", JSON.stringify(userToStore));
-        setCurrentUser(studentData.username);
-        setRole('student');
-        return true;
-      }
-    } catch (err) {
-      console.error("Login error:", err);
-    }
-
     return false;
   };
+
+  const handleSwitchAccount = async (id: string) => {
+    const acc = getAccount(id);
+    if (!acc) return;
+    
+    if (acc.secret) {
+      setSwitchingId(id);
+      
+      // Instant switch using stored credentials
+      setActiveAccountId(id);
+      setAccounts(getAccounts());
+      setCurrentUser(acc.username);
+      setRole(acc.role);
+      setShowLogin(false);
+      setIsProfileModalOpen(false);
+      
+      // Small delay to let the UI update before removing spinner
+      setTimeout(() => {
+        setSwitchingId(null);
+      }, 50);
+    } else {
+      // Need password
+      handleLogout();
+      setShowLogin(true);
+      setIsProfileModalOpen(false);
+    }
+  };
+
+  const handleRemoveAccount = (id: string) => {
+    setAccounts(removeAccount(id));
+  };
+
 
   const handleLogout = () => {
     setCurrentUser(null);
@@ -284,17 +330,23 @@ function MainApp() {
     }
   };
 
+  if (showLogin) {
+    return (
+      <LoginScreen
+        onLogin={handleLogin}
+        isDarkMode={isDarkMode}
+        toggleDarkMode={toggleDarkMode}
+        onBack={() => setShowLogin(false)}
+        accounts={accounts}
+        activeAccountId={getActiveAccountId()}
+        switchingId={switchingId}
+        onSwitchAccount={handleSwitchAccount}
+        onRemoveAccount={handleRemoveAccount}
+      />
+    );
+  }
+
   if (!currentUser) {
-    if (showLogin) {
-      return (
-        <LoginScreen
-          onLogin={handleLogin}
-          isDarkMode={isDarkMode}
-          toggleDarkMode={toggleDarkMode}
-          onBack={() => setShowLogin(false)}
-        />
-      );
-    }
     return (
       <WelcomeScreen
         onLoginClick={() => setShowLogin(true)}
@@ -832,12 +884,25 @@ function MainApp() {
         history={userHistory}
         isDarkMode={isDarkMode}
         toggleDarkMode={toggleDarkMode}
-        username={currentUser || ''}
-        onUsernameChange={(newUsername) => setCurrentUser(newUsername)}
+        username={currentUser}
         onLogout={handleLogout}
         userRole={role}
-        studentInfo={students.find(s => s.username === currentUser)}
+        studentInfo={currentStudentInfo}
         tasks={tasks}
+        onUsernameChange={(newUsername) => {
+          setCurrentUser(newUsername);
+          // Assuming upsert/patch is handled inside ProfileModal or needs reload
+        }}
+        onProfileUpdate={() => setAccounts(getAccounts())}
+        accounts={accounts}
+        activeAccountId={getActiveAccountId()}
+        switchingId={switchingId}
+        onSwitchAccount={handleSwitchAccount}
+        onAddAccount={() => {
+          setIsProfileModalOpen(false);
+          setShowLogin(true);
+        }}
+        onRemoveAccount={handleRemoveAccount}
       />
 
       <AddStudentModal

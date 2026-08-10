@@ -134,7 +134,6 @@ export function AdminCreateTeacherView({ teachers, onCreateTeacher, onDeleteTeac
 import { subscribeToCollection, saveToCollection } from '../lib/db';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { useEffect } from 'react';
 
 export function AdminAdsView() {
   const [news, setNews] = useState<any[]>([]);
