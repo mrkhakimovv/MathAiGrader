@@ -5,7 +5,7 @@ interface AddStudentModalProps {
   isOpen: boolean;
   onClose: () => void;
   groups: string[];
-  onAddStudent: (student: { firstName: string; lastName: string; phone: string; group: string }) => void;
+  onAddStudent: (student: { firstName: string; lastName: string; phone: string; group: string; initialFee?: number }) => void;
 }
 
 export function AddStudentModal({ isOpen, onClose, groups, onAddStudent }: AddStudentModalProps) {
@@ -13,22 +13,26 @@ export function AddStudentModal({ isOpen, onClose, groups, onAddStudent }: AddSt
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
   const [group, setGroup] = useState('');
+  const [initialFee, setInitialFee] = useState<string>('');
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (firstName.trim() && lastName.trim() && phone.trim() && group) {
+      const parsedInitial = initialFee.trim() ? Number(initialFee.replace(/\s+/g, '')) : undefined;
       onAddStudent({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         phone: phone.trim(),
-        group
+        group,
+        initialFee: parsedInitial !== undefined && !isNaN(parsedInitial) ? parsedInitial : undefined
       });
       setFirstName('');
       setLastName('');
       setPhone('');
       setGroup('');
+      setInitialFee('');
       onClose();
     }
   };
@@ -102,6 +106,29 @@ export function AddStudentModal({ isOpen, onClose, groups, onAddStudent }: AddSt
             {groups.length === 0 && (
               <p className="text-xs text-rose-500 mt-1">Hech qanday guruh mavjud emas. Oldin guruh yarating.</p>
             )}
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              Birinchi oy to'lovi <span className="text-xs font-normal text-slate-400 dark:text-slate-500">(ixtiyoriy)</span>
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                min="0"
+                step="5000"
+                value={initialFee}
+                onChange={(e) => setInitialFee(e.target.value)}
+                className="block w-full px-3 py-2 pr-14 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+                placeholder="Masalan: 200 000"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400">
+                so'm
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+              Faqat dasturga yangi qo'shilgan oy uchun oylik to'lov bo'lib chiqadi. Keyingi oylardan guruh to'lovi hisoblanadi.
+            </p>
           </div>
 
           <button

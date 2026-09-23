@@ -1,19 +1,38 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Users, BookOpen, CheckCircle, GraduationCap, TrendingUp, Award, BarChart3 } from 'lucide-react';
+import { Users, BookOpen, CheckCircle, GraduationCap, TrendingUp, Award, BarChart3, Wallet, CalendarCheck } from 'lucide-react';
+import { Payment, AttendanceRecord } from '../types';
+import { formatSom, monthKey } from '../lib/finance';
 
 interface Props {
   groupDetails: any[];
   students: any[];
   tasks: any[];
+  payments?: Payment[];
+  attendance?: AttendanceRecord[];
 }
 
-export function DashboardStats({ groupDetails, students, tasks }: Props) {
+export function DashboardStats({ groupDetails, students, tasks, payments, attendance }: Props) {
   const totalGroups = groupDetails.length;
   const totalStudents = students.length;
   const totalTasks = tasks.length;
   
-  // Calculate average score if possible, etc.
+  const curMonth = monthKey(new Date());
+  const currentMonthIncome = (payments || [])
+    .filter((p) => p.month === curMonth)
+    .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+
+  let totalPresent = 0;
+  let totalRecords = 0;
+  (attendance || []).forEach((a) => {
+    if (a.records) {
+      Object.values(a.records).forEach((st) => {
+        totalRecords++;
+        if (st === 'keldi' || st === 'kechikdi') totalPresent++;
+      });
+    }
+  });
+  const avgAttendance = totalRecords > 0 ? Math.round((totalPresent / totalRecords) * 100) : 100;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -22,19 +41,34 @@ export function DashboardStats({ groupDetails, students, tasks }: Props) {
         <p className="mt-2 text-slate-600 dark:text-slate-400">Umumiy ko'rsatkichlar va statistikalar.</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
-          className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm flex items-center gap-4"
+          className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm flex items-center gap-4"
         >
-          <div className="p-4 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl text-indigo-600 dark:text-indigo-400">
-            <Users className="w-8 h-8" />
+          <div className="p-3.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl text-indigo-600 dark:text-indigo-400 shrink-0">
+            <Users className="w-7 h-7" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Umumiy guruhlar</p>
-            <h3 className="text-3xl font-bold text-slate-900 dark:text-white">{totalGroups}</h3>
+            <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">Guruhlar</p>
+            <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">{totalGroups}</h3>
+          </div>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+          className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm flex items-center gap-4"
+        >
+          <div className="p-3.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl text-emerald-600 dark:text-emerald-400 shrink-0">
+            <GraduationCap className="w-7 h-7" />
+          </div>
+          <div>
+            <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">O'quvchilar</p>
+            <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">{totalStudents}</h3>
           </div>
         </motion.div>
 
@@ -42,14 +76,31 @@ export function DashboardStats({ groupDetails, students, tasks }: Props) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
-          className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm flex items-center gap-4"
+          className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm flex items-center gap-4"
         >
-          <div className="p-4 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl text-emerald-600 dark:text-emerald-400">
-            <GraduationCap className="w-8 h-8" />
+          <div className="p-3.5 bg-amber-100 dark:bg-amber-900/30 rounded-xl text-amber-600 dark:text-amber-400 shrink-0">
+            <BookOpen className="w-7 h-7" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">O'quvchilar soni</p>
-            <h3 className="text-3xl font-bold text-slate-900 dark:text-white">{totalStudents}</h3>
+            <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">Vazifalar</p>
+            <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">{totalTasks}</h3>
+          </div>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.25 }}
+          className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm flex items-center gap-4"
+        >
+          <div className="p-3.5 bg-violet-100 dark:bg-violet-900/30 rounded-xl text-violet-600 dark:text-violet-400 shrink-0">
+            <Wallet className="w-7 h-7" />
+          </div>
+          <div>
+            <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">Oy tushumi</p>
+            <h3 className="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white truncate">
+              {formatSom(currentMonthIncome)}
+            </h3>
           </div>
         </motion.div>
 
@@ -57,14 +108,16 @@ export function DashboardStats({ groupDetails, students, tasks }: Props) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.3 }}
-          className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm flex items-center gap-4"
+          className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm flex items-center gap-4"
         >
-          <div className="p-4 bg-amber-100 dark:bg-amber-900/30 rounded-xl text-amber-600 dark:text-amber-400">
-            <BookOpen className="w-8 h-8" />
+          <div className="p-3.5 bg-teal-100 dark:bg-teal-900/30 rounded-xl text-teal-600 dark:text-teal-400 shrink-0">
+            <CalendarCheck className="w-7 h-7" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Vazifalar</p>
-            <h3 className="text-3xl font-bold text-slate-900 dark:text-white">{totalTasks}</h3>
+            <p className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">Davomat</p>
+            <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
+              {avgAttendance}%
+            </h3>
           </div>
         </motion.div>
       </div>

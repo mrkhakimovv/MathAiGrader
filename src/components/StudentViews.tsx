@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { BookOpen, Calendar, Clock, BarChart2 } from 'lucide-react';
+import { BookOpen, Calendar, Clock, BarChart2, Wallet, CalendarCheck, CheckCircle2, AlertCircle } from 'lucide-react';
 import Markdown from "react-markdown";
 import remarkMath from "remark-math";
 import remarkBreaks from "remark-breaks";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
-import { GradingResult } from '../types';
+import { GradingResult, Payment, AttendanceRecord } from '../types';
 import { formatDateUZ } from '../lib/utils';
+import { formatSom, monthLabelUZ, monthKey } from '../lib/finance';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 interface StudentTasksViewProps {
@@ -252,9 +253,11 @@ interface StudentStatsViewProps {
   tasks: any[];
   history: GradingResult[];
   studentInfo?: any;
+  payments?: Payment[];
+  attendance?: AttendanceRecord[];
 }
 
-export function StudentStatsView({ tasks, history, studentInfo }: StudentStatsViewProps) {
+export function StudentStatsView({ tasks, history, studentInfo, payments = [], attendance = [] }: StudentStatsViewProps) {
   const uniqueHistoryMap = new Map();
   history.forEach(h => {
     const key = h.taskId || h.createdAt || Math.random().toString();
@@ -277,6 +280,38 @@ export function StudentStatsView({ tasks, history, studentInfo }: StudentStatsVi
 
   const studentTasks = tasks.filter(t => !t.group || t.group === 'Barcha guruhlar' || t.group === studentInfo?.group || (studentInfo?.groups && studentInfo.groups.includes(t.group)));
 
+  // Payments for this student
+  const myPayments = useMemo(() => {
+    if (!studentInfo?.id) return [];
+    return payments
+      .filter((p) => p.studentId === studentInfo.id)
+      .sort((a, b) => (b.paidAt || 0) - (a.paidAt || 0));
+  }, [payments, studentInfo?.id]);
+
+  const totalPaidSum = useMemo(() => {
+    return myPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  }, [myPayments]);
+
+  // Attendance stats for this student
+  const attendanceStats = useMemo(() => {
+    if (!studentInfo?.id) return { total: 0, keldi: 0, kelmadi: 0, rate: 100 };
+    let total = 0;
+    let keldi = 0;
+    let kelmadi = 0;
+
+    attendance.forEach((rec) => {
+      const st = rec.records?.[studentInfo.id];
+      if (st) {
+        total++;
+        if (st === 'keldi' || st === 'kechikdi') keldi++;
+        else if (st === 'kelmadi') kelmadi++;
+      }
+    });
+
+    const rate = total > 0 ? Math.round((keldi / total) * 100) : 100;
+    return { total, keldi, kelmadi, rate };
+  }, [attendance, studentInfo?.id]);
+
   const chartData = useMemo(() => {
     // Reverse history to show oldest to newest left to right
     return [...uniqueHistory].reverse().map((item, index) => {
@@ -296,31 +331,44 @@ export function StudentStatsView({ tasks, history, studentInfo }: StudentStatsVi
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-600 dark:bg-indigo-500 text-white shadow-lg">
           <BarChart2 className="h-6 w-6" />
         </div>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">To'liq Statistika</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">To'liq Statistika</h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400">O'zlashtirish, davomat va to'lov hisobotlari</p>
+        </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
-          <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">O'rtacha ball</h3>
-          <div className="text-3xl font-bold text-slate-900 dark:text-white">{averageScore} / 100</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+          <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">O'rtacha ball</h3>
+          <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">{averageScore} / 100</div>
           {history.length > 0 && (
-            <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+            <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold">
               <span>A'lo natija!</span>
             </p>
           )}
         </div>
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
-          <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Bajarilgan vazifalar</h3>
-          <div className="text-3xl font-bold text-slate-900 dark:text-white">{completedTasks} / {Math.max(studentTasks.length, completedTasks)}</div>
+
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+          <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Vazifalar</h3>
+          <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">{completedTasks} / {Math.max(studentTasks.length, completedTasks)}</div>
           <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-            Joriy chorak bo'yicha
+            Bajarilgan vazifalar soni
           </p>
         </div>
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
-          <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Guruhdagi o'rni</h3>
-          <div className="text-3xl font-bold text-slate-900 dark:text-white">1 - o'rin</div>
+
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+          <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Davomat ko'rsatkichi</h3>
+          <div className="text-2xl sm:text-3xl font-bold text-teal-600 dark:text-teal-400">{attendanceStats.rate}%</div>
           <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-            A'lochi o'quvchilar qatorida
+            {attendanceStats.keldi} ta darsda qatnashgan
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+          <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Jami to'lovlar</h3>
+          <div className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 truncate">{formatSom(totalPaidSum)}</div>
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+            {myPayments.length} ta to'lov amalga oshirilgan
           </p>
         </div>
       </div>

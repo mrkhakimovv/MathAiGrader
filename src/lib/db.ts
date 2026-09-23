@@ -1,6 +1,6 @@
-import { collection, addDoc, getDocs, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, onSnapshot, serverTimestamp, updateDoc, doc, getDoc, setDoc, where, deleteDoc } from 'firebase/firestore';
 import { db, auth } from './firebase';
-import { GradingResult } from '../types';
+import { GradingResult, Payment, AttendanceRecord } from '../types';
 
 type OperationType = 'create' | 'update' | 'delete' | 'list' | 'get' | 'write';
 
@@ -25,6 +25,35 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
     path
   };
   console.error('Firestore Error: ', JSON.stringify(errInfo));
+}
+
+/**
+ * Strips all undefined fields from objects before sending to Firestore.
+ * Firestore strictly rejects undefined in any document field.
+ */
+export function cleanForFirestore<T>(obj: T): T {
+  if (obj === null || obj === undefined) {
+    return null as any;
+  }
+  if (Array.isArray(obj)) {
+    return obj
+      .filter((item) => item !== undefined)
+      .map((item) => cleanForFirestore(item)) as any;
+  }
+  if (typeof obj === 'object') {
+    // Preserve special Firestore objects like FieldValue, Timestamp, Date
+    if (obj.constructor && obj.constructor.name !== 'Object') {
+      return obj;
+    }
+    const cleaned: Record<string, any> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        cleaned[key] = cleanForFirestore(value);
+      }
+    }
+    return cleaned as T;
+  }
+  return obj;
 }
 
 export const cleanupOldAnalyses = async () => {
@@ -63,10 +92,11 @@ export const cleanupOldAnalyses = async () => {
 
 export const saveResult = async (result: GradingResult & { studentUsername?: string, studentName?: string }) => {
   try {
-    await addDoc(collection(db, 'history'), {
+    const payload = cleanForFirestore({
       ...result,
       createdAt: serverTimestamp(),
     });
+    await addDoc(collection(db, 'history'), payload);
   } catch (error) {
     handleFirestoreError(error, "write", 'history');
   }
@@ -94,10 +124,11 @@ export const subscribeToCollection = (collectionName: string, callback: (data: a
 
 export const saveToCollection = async (collectionName: string, data: any) => {
   try {
-    const docRef = await addDoc(collection(db, collectionName), {
+    const payload = cleanForFirestore({
       ...data,
       createdAt: serverTimestamp(),
     });
+    const docRef = await addDoc(collection(db, collectionName), payload);
     return docRef.id;
   } catch (error) {
     handleFirestoreError(error, "write", collectionName);
@@ -139,4 +170,152 @@ export const resetExpensesHistory = async (): Promise<number> => {
     handleFirestoreError(error, 'write', 'settings/expenses');
   }
   return nowMs;
+};
+
+// ============================================================
+// TO'LOVLAR VA DAVOMAT (Payments & Attendance)
+// ============================================================
+
+export const subscribeToTeacherCollection = (
+  collectionName: string,
+  teacherUsername: string,
+  callback: (data: any[]) => void
+) => {
+  const q = query(
+    collection(db, collectionName),
+    where('teacherUsername', '==', teacherUsername)
+  );
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      callback(data);
+    },
+    (error) => {
+      handleFirestoreError(error, 'list', collectionName);
+    }
+  );
+};
+
+export const addPayment = async (
+  payment: Omit<Payment, 'id' | 'createdAt'>
+) => {
+  try {
+    const payload = cleanForFirestore({
+      ...payment,
+      createdAt: serverTimestamp(),
+    });
+    const docRef = await addDoc(collection(db, 'payments'), payload);
+    return docRef.id;
+  } catch (error) {
+    handleFirestoreError(error, 'create', 'payments');
+    throw error;
+  }
+};
+
+export const deletePayment = async (id: string) => {
+  try {
+    await deleteDoc(doc(db, 'payments', id));
+  } catch (error) {
+    handleFirestoreError(error, 'delete', `payments/${id}`);
+    throw error;
+  }
+};
+
+export const updatePayment = async (id: string, data: Partial<Payment>) => {
+  try {
+    const payload = cleanForFirestore(data);
+    await updateDoc(doc(db, 'payments', id), payload);
+  } catch (error) {
+    handleFirestoreError(error, 'update', `payments/${id}`);
+    throw error;
+  }
+};
+
+export const saveAttendance = async (
+  groupId: string,
+  date: string,
+  data: Omit<AttendanceRecord, 'id'>
+) => {
+  const docId = `${groupId}_${date}`;
+  try {
+    const payload = cleanForFirestore({
+      ...data,
+      updatedAt: Date.now(),
+    });
+    await setDoc(doc(db, 'attendance', docId), payload, { merge: true });
+    return docId;
+  } catch (error) {
+    handleFirestoreError(error, 'write', `attendance/${docId}`);
+    throw error;
+  }
+};
+
+export const updateStudentDiscounts = async (
+  studentId: string,
+  discounts: { [groupId: string]: number }
+) => {
+  try {
+    await updateDoc(doc(db, 'students', studentId), { discounts });
+  } catch (error) {
+    handleFirestoreError(error, 'update', `students/${studentId}`);
+    throw error;
+  }
+};
+
+export const updateStudentInitialFee = async (
+  studentId: string,
+  groupId: string,
+  amount: number | null,
+  month: string
+) => {
+  try {
+    const studentRef = doc(db, 'students', studentId);
+    const snap = await getDoc(studentRef);
+    const currentData = snap.exists() ? snap.data() : {};
+
+    const initialFees = { ...(currentData.initialFees || {}) };
+    const initialFeeMonths = { ...(currentData.initialFeeMonths || {}) };
+
+    if (amount === null || amount === undefined || isNaN(amount) || amount === 0) {
+      delete initialFees[groupId];
+      delete initialFeeMonths[groupId];
+    } else {
+      initialFees[groupId] = amount;
+      initialFeeMonths[groupId] = month;
+    }
+
+    const payload = cleanForFirestore({
+      initialFees,
+      initialFeeMonths,
+      initialFee: amount ?? null,
+      initialFeeMonth: month,
+      joinMonth: currentData.joinMonth || month,
+    });
+
+    await updateDoc(studentRef, payload);
+  } catch (error) {
+    handleFirestoreError(error, 'update', `students/${studentId}`);
+    throw error;
+  }
+};
+
+export const subscribeToStudentPayments = (
+  studentId: string,
+  callback: (data: Payment[]) => void
+) => {
+  const q = query(
+    collection(db, 'payments'),
+    where('studentId', '==', studentId)
+  );
+  return onSnapshot(
+    q,
+    (snapshot) => {
+      const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as Payment));
+      callback(data);
+    },
+    (error) => {
+      handleFirestoreError(error, 'list', 'payments');
+    }
+  );
 };

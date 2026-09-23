@@ -4,7 +4,7 @@ import { X, Users } from 'lucide-react';
 interface AddGroupModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddGroup: (group: { name: string; days: string; time: string }) => void;
+  onAddGroup: (group: { name: string; days: string; time: string; monthlyFee: number }) => void;
 }
 
 const WEEK_DAYS = [
@@ -22,6 +22,7 @@ export function AddGroupModal({ isOpen, onClose, onAddGroup }: AddGroupModalProp
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
+  const [monthlyFee, setMonthlyFee] = useState<number | ''>('');
 
   if (!isOpen) return null;
 
@@ -31,12 +32,14 @@ export function AddGroupModal({ isOpen, onClose, onAddGroup }: AddGroupModalProp
       onAddGroup({
         name: name.trim(),
         days: selectedDays.join(', '),
-        time: `${startTime} - ${endTime}`
+        time: `${startTime} - ${endTime}`,
+        monthlyFee: monthlyFee === '' ? 0 : Number(monthlyFee),
       });
       setName('');
       setSelectedDays([]);
       setStartTime('');
       setEndTime('');
+      setMonthlyFee('');
       onClose();
     }
   };
@@ -76,7 +79,32 @@ export function AddGroupModal({ isOpen, onClose, onAddGroup }: AddGroupModalProp
           </div>
           
           <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Guruh kunlari</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">Guruh kunlari</label>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setSelectedDays(['Dush', 'Chor', 'Juma'])}
+                  className="px-2 py-0.5 text-[11px] font-semibold rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100"
+                >
+                  Toq (Du-Ch-Ju)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDays(['Sesh', 'Pay', 'Shan'])}
+                  className="px-2 py-0.5 text-[11px] font-semibold rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100"
+                >
+                  Juft (Se-Pa-Sh)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDays(['Dush', 'Sesh', 'Chor', 'Pay', 'Juma', 'Shan'])}
+                  className="px-2 py-0.5 text-[11px] font-semibold rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100"
+                >
+                  Har kuni
+                </button>
+              </div>
+            </div>
             <div className="flex flex-wrap gap-2">
               {WEEK_DAYS.map(day => (
                 <button
@@ -117,6 +145,24 @@ export function AddGroupModal({ isOpen, onClose, onAddGroup }: AddGroupModalProp
                 className="block w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
               />
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              Oylik to'lov (so'm)
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="1000"
+              value={monthlyFee}
+              onChange={(e) => setMonthlyFee(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
+              className="block w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              placeholder="Masalan: 350000 (ixtiyoriy, default 0)"
+            />
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Guruhdagi har bir o'quvchi uchun standart oylik to'lov miqdori
+            </p>
           </div>
 
           <button

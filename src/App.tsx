@@ -13,7 +13,9 @@ import { StudentRatingView } from "./components/StudentRatingView";
 import { TeacherRatingView } from "./components/TeacherRatingView";
 import { AddStudentModal } from "./components/AddStudentModal";
 import { AddGroupModal } from "./components/AddGroupModal";
-import { GradingResult } from "./types";
+import { PaymentsView } from "./components/PaymentsView";
+import { AttendanceView } from "./components/AttendanceView";
+import { GradingResult, Payment, AttendanceRecord } from "./types";
 import { Calculator, Loader2, Moon, Sun, UserPlus, Users, FilePlus, Link, Check, Copy, X, Bell } from "lucide-react";
 import { saveResult, subscribeToHistory, subscribeToCollection, saveToCollection } from "./lib/db";
 import { doc, deleteDoc, getDocs, query, where, collection, updateDoc } from "firebase/firestore";
@@ -62,6 +64,8 @@ function MainApp() {
   const [groupDetails, setGroupDetails] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [selectedTaskForGrading, setSelectedTaskForGrading] = useState<any>(null);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window !== "undefined") {
@@ -121,6 +125,12 @@ function MainApp() {
     const unsubscribeTeachers = subscribeToCollection("teachers", (newTeachers) => {
       setTeachers(newTeachers);
     });
+    const unsubscribePayments = subscribeToCollection("payments", (newPayments) => {
+      setPayments(newPayments);
+    });
+    const unsubscribeAttendance = subscribeToCollection("attendance", (newAttendance) => {
+      setAttendance(newAttendance);
+    });
     const unsubscribeNotifications = subscribeToCollection("notifications", (newNotifications) => {
       // Show only last 7 days notifications
       const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
@@ -132,6 +142,8 @@ function MainApp() {
       unsubscribeGroups();
       unsubscribeTasks();
       unsubscribeTeachers();
+      unsubscribePayments();
+      unsubscribeAttendance();
       unsubscribeNotifications();
     };
   }, [currentUser]);
@@ -144,6 +156,8 @@ function MainApp() {
   const teacherGroups = teacherGroupDetails.map(g => g.name);
   const teacherStudents = role === 'teacher' ? students.filter(s => s.teacherUsername === currentUser) : students;
   const teacherTasks = role === 'teacher' ? tasks.filter(t => t.teacherUsername === currentUser) : tasks;
+  const teacherPayments = role === 'teacher' ? payments.filter(p => p.teacherUsername === currentUser) : payments;
+  const teacherAttendance = role === 'teacher' ? attendance.filter(a => a.teacherUsername === currentUser) : attendance;
   
   const userDisplayName = role === 'student' 
     ? (() => {
@@ -380,7 +394,7 @@ function MainApp() {
       />
       
       <div className="flex-1 p-4 md:p-8 overflow-y-auto h-full md:h-screen">
-        <div className="mx-auto max-w-3xl relative pt-14">
+        <div className="mx-auto max-w-5xl xl:max-w-6xl relative pt-14">
           <div className="absolute left-0 top-0 flex items-center gap-2 z-10">
             <img src="/logo.png" alt="ALMATH Logo" className="h-9 w-9 rounded-xl shadow-sm object-cover" />
             <span className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">ALMATH</span>
@@ -519,7 +533,13 @@ function MainApp() {
         {activeView === 'home' && role !== 'student' && role !== 'admin' && (
           <div className="space-y-8">
             <HomeView role={role} username={userDisplayName} />
-            <DashboardStats groupDetails={teacherGroupDetails} students={teacherStudents} tasks={teacherTasks} />
+            <DashboardStats 
+              groupDetails={teacherGroupDetails} 
+              students={teacherStudents} 
+              tasks={teacherTasks} 
+              payments={teacherPayments}
+              attendance={teacherAttendance}
+            />
           </div>
         )}
         {activeView === 'home' && role === 'student' && (
@@ -860,12 +880,45 @@ function MainApp() {
             }}
           />
         )}
-        {activeView === 'student-stats' && role === 'student' && <StudentStatsView tasks={tasks} history={userHistory} studentInfo={students.find(s => s.username === currentUser)} />}
+        {activeView === 'student-stats' && role === 'student' && (
+          <StudentStatsView 
+            tasks={tasks} 
+            history={userHistory} 
+            studentInfo={currentStudentInfo || students.find(s => s.username === currentUser)} 
+            payments={payments.filter(p => p.studentUsername === currentUser || (currentStudentInfo && p.studentId === currentStudentInfo.id))}
+            attendance={attendance}
+          />
+        )}
         {activeView === 'teacher-rating' && role === 'teacher' && (
           <TeacherRatingView 
             students={teacherStudents} 
             history={userHistory} 
             groups={teacherGroups} 
+          />
+        )}
+        {activeView === 'teacher-payments' && role === 'teacher' && (
+          <PaymentsView
+            groups={teacherGroupDetails}
+            students={teacherStudents}
+            payments={teacherPayments}
+            teacherUsername={currentUser || ''}
+            onNavigateToGroups={() => setActiveView('all-groups')}
+          />
+        )}
+        {activeView === 'teacher-attendance' && role === 'teacher' && (
+          <AttendanceView
+            groups={teacherGroupDetails}
+            students={teacherStudents}
+            attendance={teacherAttendance}
+            teacherUsername={currentUser || ''}
+            onEditGroup={async (id, data) => {
+              try {
+                await updateDoc(doc(db, 'groups', id), data);
+              } catch(e) {
+                console.error(e);
+                alert("Guruhni yangilashda xatolik yuz berdi.");
+              }
+            }}
           />
         )}
         {activeView === 'student-rating' && role === 'student' && (
@@ -910,7 +963,20 @@ function MainApp() {
         onClose={() => setIsAddStudentModalOpen(false)}
         groups={teacherGroups}
         onAddStudent={async (student) => {
-          await saveToCollection("students", { ...student, teacherUsername: currentUser });
+          const currentM = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+          const matchedGroup = teacherGroupDetails.find(g => g.name === student.group);
+          const studentPayload: any = {
+            ...student,
+            teacherUsername: currentUser,
+            joinMonth: currentM,
+          };
+          if (student.initialFee !== undefined && matchedGroup) {
+            studentPayload.initialFees = { [matchedGroup.id]: student.initialFee };
+            studentPayload.initialFeeMonths = { [matchedGroup.id]: currentM };
+            studentPayload.initialFee = student.initialFee;
+            studentPayload.initialFeeMonth = currentM;
+          }
+          await saveToCollection("students", studentPayload);
           alert(`${student.firstName} muvaffaqiyatli qo'shildi!`);
         }}
       />
