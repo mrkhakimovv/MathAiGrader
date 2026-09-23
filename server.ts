@@ -42,6 +42,31 @@ async function startServer() {
     validate: { xForwardedForHeader: false }
   });
 
+  const SERVER_START_TIME = Date.now();
+
+  app.get("/api/version", (req, res) => {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    let buildHash = "";
+    try {
+      const distIndex = path.join(process.cwd(), "dist", "index.html");
+      if (fs.existsSync(distIndex)) {
+        buildHash = fs.statSync(distIndex).mtimeMs.toString();
+      } else {
+        const pkgPath = path.join(process.cwd(), "package.json");
+        buildHash = fs.statSync(pkgPath).mtimeMs.toString();
+      }
+    } catch {
+      buildHash = String(SERVER_START_TIME);
+    }
+
+    res.json({
+      version: "2.1.0",
+      serverStart: SERVER_START_TIME,
+      buildHash,
+      timestamp: Date.now()
+    });
+  });
+
   app.post("/api/upload", upload.single("file"), (req, res) => {
     if (!req.file) {
       return res.status(400).json({ error: "Fayl topilmadi" });

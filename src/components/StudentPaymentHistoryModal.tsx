@@ -1,18 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
   X, 
-  Wallet, 
   CheckCircle2, 
   XCircle, 
   AlertCircle, 
   Calendar, 
-  ArrowDownRight, 
   CreditCard, 
   Receipt, 
-  Sparkles, 
-  Clock, 
-  User, 
-  Layers,
   ChevronDown,
   ChevronUp,
   Filter
@@ -25,8 +19,6 @@ import {
   getStudentJoinMonth, 
   getStudentGroups, 
   getMonthlyDue, 
-  getPaidForMonth, 
-  getTotalDebt, 
   getPaymentMethodLabel 
 } from '../lib/finance';
 import { formatDateUZ } from '../lib/utils';
@@ -168,28 +160,6 @@ export function StudentPaymentHistoryModal({
     return result;
   }, [student, joinMonthKey, currentMonthKey, myGroups, studentPayments]);
 
-  // Overall financial totals
-  const overallStats = useMemo(() => {
-    let totalDueAll = 0;
-    let totalDebtAll = 0;
-
-    myGroups.forEach((g) => {
-      totalDebtAll += getTotalDebt(student, g, studentPayments, currentMonthKey);
-    });
-
-    monthlyHistory.forEach((m) => {
-      totalDueAll += m.due;
-    });
-
-    const totalPaidAll = studentPayments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-
-    return {
-      totalDueAll,
-      totalPaidAll,
-      totalDebtAll,
-    };
-  }, [myGroups, student, studentPayments, currentMonthKey, monthlyHistory]);
-
   // Filtered list
   const filteredMonths = useMemo(() => {
     if (filterStatus === 'all') return monthlyHistory;
@@ -250,77 +220,14 @@ export function StudentPaymentHistoryModal({
           </button>
         </div>
 
-        {/* Financial Summary KPI Cards */}
-        <div className="p-5 sm:p-6 pb-2 border-b border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            {/* Total Paid */}
-            <div className="p-4 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/40">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block mb-1">
-                Jami to'langan
-              </span>
-              <div className="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-300 tracking-tight">
-                {formatSom(overallStats.totalPaidAll)}
-              </div>
-              <span className="text-[11px] text-emerald-600/80 dark:text-emerald-400/80 font-medium">
-                {studentPayments.length} ta tranzaksiya
-              </span>
-            </div>
-
-            {/* Total Expected */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1">
-                Jami kutilgan to'lov
-              </span>
-              <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                {formatSom(overallStats.totalDueAll)}
-              </div>
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                {monthlyHistory.length} oy davomida
-              </span>
-            </div>
-
-            {/* Total Debt / Balance */}
-            <div className={`p-4 rounded-2xl border ${
-              overallStats.totalDebtAll > 0
-                ? 'bg-rose-50/70 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800/40'
-                : 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/40'
-            }`}>
-              <span className={`text-[11px] font-bold uppercase tracking-wider block mb-1 ${
-                overallStats.totalDebtAll > 0
-                  ? 'text-rose-700 dark:text-rose-400'
-                  : 'text-emerald-700 dark:text-emerald-400'
-              }`}>
-                {overallStats.totalDebtAll > 0 ? "Umumiy qarzdorlik" : "Hozirgi holat"}
-              </span>
-              <div className={`text-xl sm:text-2xl font-black tracking-tight ${
-                overallStats.totalDebtAll > 0
-                  ? 'text-rose-600 dark:text-rose-400'
-                  : 'text-emerald-600 dark:text-emerald-300'
-              }`}>
-                {overallStats.totalDebtAll > 0
-                  ? formatSom(overallStats.totalDebtAll)
-                  : overallStats.totalDebtAll < 0
-                  ? `+${formatSom(-overallStats.totalDebtAll)} (haqdor)`
-                  : "Qarzdorlik yo'q"}
-              </div>
-              <span className={`text-[11px] font-medium ${
-                overallStats.totalDebtAll > 0
-                  ? 'text-rose-600/80 dark:text-rose-400/80'
-                  : 'text-emerald-600/80 dark:text-emerald-400/80'
-              }`}>
-                {overallStats.totalDebtAll > 0 ? "To'lov amalga oshirilishi lozim" : "Barcha to'lovlar joyida"}
-              </span>
-            </div>
+        {/* Filter Bar */}
+        <div className="px-5 sm:px-6 py-3 border-b border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold">
+            <Filter className="w-3.5 h-3.5" />
+            <span>Oylar ro'yxati:</span>
           </div>
 
-          {/* Filter Bar */}
-          <div className="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-1.5 text-xs text-slate-500 font-semibold">
-              <Filter className="w-3.5 h-3.5" />
-              <span>Oylar ro'yxati:</span>
-            </div>
-
-            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
               <button
                 onClick={() => setFilterStatus('all')}
                 className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
@@ -353,7 +260,6 @@ export function StudentPaymentHistoryModal({
               </button>
             </div>
           </div>
-        </div>
 
         {/* Scrollable Monthly Breakdown List */}
         <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-3 divide-y divide-slate-100 dark:divide-slate-800/60">

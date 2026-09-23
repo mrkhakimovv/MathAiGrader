@@ -9,11 +9,13 @@ import {
   AlertCircle, 
   XCircle, 
   Sparkles,
-  History
+  History,
+  Calendar
 } from 'lucide-react';
 import { formatDateUZ } from '../lib/utils';
 import { Payment, AttendanceRecord } from '../types';
 import { StudentPaymentHistoryModal } from './StudentPaymentHistoryModal';
+import { StudentAttendanceCalendarModal } from './StudentAttendanceCalendarModal';
 import { 
   monthKey, 
   monthLabelUZ, 
@@ -44,6 +46,7 @@ export function HomeView({
 }: HomeViewProps) {
   const [news, setNews] = useState<any[]>([]);
   const [isPaymentHistoryOpen, setIsPaymentHistoryOpen] = useState(false);
+  const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
 
   useEffect(() => {
     const unsub = subscribeToCollection("news", setNews);
@@ -392,7 +395,17 @@ export function HomeView({
 
           {/* 2. Davomat foizi kartochkasi */}
           <div 
-            className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border-2 shadow-sm flex flex-col justify-between relative overflow-hidden transition-all animate-pulse-border-attendance"
+            onClick={() => setIsAttendanceModalOpen(true)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setIsAttendanceModalOpen(true);
+              }
+            }}
+            title="Davomat taqvimini ko'rish uchun bosing"
+            className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border-2 shadow-sm flex flex-col justify-between relative overflow-hidden transition-all animate-pulse-border-attendance cursor-pointer hover:shadow-md hover:scale-[1.01] active:scale-[0.99] group"
             style={{
               '--att-r': attendanceGlow.r,
               '--att-g': attendanceGlow.g,
@@ -500,11 +513,16 @@ export function HomeView({
                 )}
               </div>
 
-              {attendanceStats.plannedLessons > 0 && (
-                <span className="text-slate-400 text-[11px] font-medium hidden sm:inline">
-                  Rejada: {attendanceStats.plannedLessons} dars
+              <div className="flex items-center gap-2 shrink-0">
+                {attendanceStats.plannedLessons > 0 && (
+                  <span className="text-slate-400 text-[11px] font-medium hidden sm:inline">
+                    Rejada: {attendanceStats.plannedLessons} dars
+                  </span>
+                )}
+                <span className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-teal-600 dark:text-teal-400 group-hover:underline">
+                  <Calendar className="w-3 h-3" /> Taqvim
                 </span>
-              )}
+              </div>
             </div>
           </div>
         </div>
@@ -554,6 +572,17 @@ export function HomeView({
           student={currentStudent}
           groupDetails={groupDetails}
           payments={payments}
+        />
+      )}
+
+      {/* Davomat taqvimi tarixi modali */}
+      {currentStudent && (
+        <StudentAttendanceCalendarModal
+          isOpen={isAttendanceModalOpen}
+          onClose={() => setIsAttendanceModalOpen(false)}
+          student={currentStudent}
+          groups={groupDetails}
+          attendance={attendance}
         />
       )}
     </div>

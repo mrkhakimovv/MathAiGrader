@@ -1,10 +1,49 @@
 import React, { useState, useMemo } from 'react';
-import { BarChart2, Wallet, History } from 'lucide-react';
+import { BarChart2, Calendar, Receipt } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { collection, query, getDocs } from 'firebase/firestore';
+import { db } from '../lib/firebase';
 import { GradingResult, Payment, AttendanceRecord } from '../types';
 import { formatDateUZ } from '../lib/utils';
 import { formatSom } from '../lib/finance';
-import { StudentPaymentHistoryModal } from './StudentPaymentHistoryModal';
+import { StudentAttendanceCalendarModal } from './StudentAttendanceCalendarModal';
+import { StudentPaymentListModal } from './StudentPaymentListModal';
+
+/**
+ * Firestore'dagi barcha to'lovlar tarixini (sana, summa, usul)
+ * tartibli ro'yxat ko'rinishida chiqaruvchi funksiya.
+ */
+export async function fetchStudentPaymentHistory(studentId?: string, studentUsername?: string): Promise<Payment[]> {
+  try {
+    const q = query(collection(db, 'payments'));
+    const snapshot = await getDocs(q);
+    const docs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Payment));
+    
+    return docs
+      .filter((p) => {
+        const matchesId = studentId && p.studentId === studentId;
+        const matchesUsername =
+          studentUsername &&
+          p.studentUsername &&
+          p.studentUsername.toLowerCase() === studentUsername.toLowerCase();
+        return matchesId || matchesUsername;
+      })
+      .sort((a, b) => {
+        const timeA =
+          a.paidAt ||
+          (a.createdAt?.toMillis ? a.createdAt.toMillis() : a.createdAt?.seconds ? a.createdAt.seconds * 1000 : 0) ||
+          0;
+        const timeB =
+          b.paidAt ||
+          (b.createdAt?.toMillis ? b.createdAt.toMillis() : b.createdAt?.seconds ? b.createdAt.seconds * 1000 : 0) ||
+          0;
+        return timeB - timeA;
+      });
+  } catch (error) {
+    console.error("Firestore to'lovlar tarixini olishda xatolik:", error);
+    return [];
+  }
+}
 
 export interface StudentStatsViewProps {
   tasks: any[];
@@ -23,7 +62,8 @@ export function StudentStatsView({
   attendance = [],
   groupDetails = []
 }: StudentStatsViewProps) {
-  const [isPaymentHistoryOpen, setIsPaymentHistoryOpen] = useState(false);
+  const [isPaymentListModalOpen, setIsPaymentListModalOpen] = useState(false);
+  const [isAttendanceCalendarOpen, setIsAttendanceCalendarOpen] = useState(false);
 
   const uniqueHistoryMap = new Map();
   history.forEach(h => {
@@ -125,34 +165,55 @@ export function StudentStatsView({
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
-          <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Davomat ko'rsatkichi</h3>
-          <div className="text-2xl sm:text-3xl font-bold text-teal-600 dark:text-teal-400">{attendanceStats.rate}%</div>
-          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-            {attendanceStats.keldi} ta darsda qatnashgan
-          </p>
-        </div>
-
-        {/* 4. To'lov holati ko'rsatilgan qism (bosilganda to'lovlar tarixi oynasi ochiladi) */}
         <div 
-          onClick={() => setIsPaymentHistoryOpen(true)}
+          onClick={() => setIsAttendanceCalendarOpen(true)}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              setIsPaymentHistoryOpen(true);
+              setIsAttendanceCalendarOpen(true);
             }
           }}
-          title="O'quvchi ro'yxatdan o'tgan sanasidan boshlab barcha to'lovlar tarixini ko'rish uchun bosing"
+          title="Davomat taqvimini ko'rish uchun bosing"
           className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm cursor-pointer hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all group relative overflow-hidden"
         >
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Jami to'lovlar
+              Davomat ko'rsatkichi
+            </h3>
+            <span className="text-[11px] font-bold text-teal-600 dark:text-teal-400 flex items-center gap-1 group-hover:underline">
+              <Calendar className="w-3.5 h-3.5" />
+              <span>Taqvim</span>
+            </span>
+          </div>
+          <div className="text-2xl sm:text-3xl font-bold text-teal-600 dark:text-teal-400">{attendanceStats.rate}%</div>
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
+            <span>{attendanceStats.keldi} ta darsda qatnashgan</span>
+            <span className="text-teal-600 dark:text-teal-400 font-bold group-hover:translate-x-0.5 transition-transform">&rarr;</span>
+          </p>
+        </div>
+
+        {/* 4. To'lov holati ko'rsatilgan qism (bosilganda Firestore'dagi to'lovlar tarixi ro'yxati ochiladi) */}
+        <div 
+          onClick={() => setIsPaymentListModalOpen(true)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setIsPaymentListModalOpen(true);
+            }
+          }}
+          title="To'lov holati va Firestore'dagi barcha to'lovlar tarixini (sana, summa, usul) ko'rish uchun bosing"
+          className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm cursor-pointer hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all group relative overflow-hidden"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+              <span>To'lov holati</span>
             </h3>
             <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 group-hover:underline">
-              <History className="w-3.5 h-3.5" />
+              <Receipt className="w-3.5 h-3.5" />
               <span>Tarix</span>
             </span>
           </div>
@@ -160,7 +221,10 @@ export function StudentStatsView({
             {formatSom(totalPaidSum)}
           </div>
           <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
-            <span>{myPayments.length} ta to'lov amalga oshirilgan</span>
+            <span className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>{myPayments.length > 0 ? `${myPayments.length} ta to'lov qilingan` : "To'lov kutilmoqda"}</span>
+            </span>
             <span className="text-emerald-600 dark:text-emerald-400 font-bold group-hover:translate-x-0.5 transition-transform">&rarr;</span>
           </p>
         </div>
@@ -241,14 +305,24 @@ export function StudentStatsView({
         )}
       </div>
 
-      {/* O'quvchi ro'yxatdan o'tgan sanasidan boshlab to'lovlar tarixi modali */}
+      {/* Firestore'dagi barcha to'lovlar tarixi (sana, summa, usul) tartibli ro'yxat modali */}
       {studentInfo && (
-        <StudentPaymentHistoryModal
-          isOpen={isPaymentHistoryOpen}
-          onClose={() => setIsPaymentHistoryOpen(false)}
+        <StudentPaymentListModal
+          isOpen={isPaymentListModalOpen}
+          onClose={() => setIsPaymentListModalOpen(false)}
           student={studentInfo}
-          groupDetails={groupDetails}
-          payments={payments}
+          fallbackPayments={payments}
+        />
+      )}
+
+      {/* Davomat taqvimi tarixi modali */}
+      {studentInfo && (
+        <StudentAttendanceCalendarModal
+          isOpen={isAttendanceCalendarOpen}
+          onClose={() => setIsAttendanceCalendarOpen(false)}
+          student={studentInfo}
+          groups={groupDetails}
+          attendance={attendance}
         />
       )}
     </div>
