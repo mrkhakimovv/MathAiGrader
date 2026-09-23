@@ -10,6 +10,7 @@ import { Sidebar, ViewType } from "./components/Sidebar";
 import { AllStudentsView, CreateGroupView, CreateTaskView, AllGroupsView } from "./components/TeacherViews";
 import { StudentTasksView, StudentStatsView } from "./components/StudentViews";
 import { StudentRatingView } from "./components/StudentRatingView";
+import { StudentScheduleView } from "./components/StudentScheduleView";
 import { TeacherRatingView } from "./components/TeacherRatingView";
 import { AddStudentModal } from "./components/AddStudentModal";
 import { AddGroupModal } from "./components/AddGroupModal";
@@ -543,7 +544,15 @@ function MainApp() {
           </div>
         )}
         {activeView === 'home' && role === 'student' && (
-          <HomeView role={role} username={userDisplayName} />
+          <HomeView 
+            role={role} 
+            username={userDisplayName} 
+            studentInfo={currentStudentInfo || students.find(s => s.username === currentUser)}
+            students={students}
+            groupDetails={groupDetails}
+            payments={payments}
+            attendance={attendance}
+          />
         )}
 
         {activeView === 'grade-task' && (
@@ -885,7 +894,15 @@ function MainApp() {
             tasks={tasks} 
             history={userHistory} 
             studentInfo={currentStudentInfo || students.find(s => s.username === currentUser)} 
-            payments={payments.filter(p => p.studentUsername === currentUser || (currentStudentInfo && p.studentId === currentStudentInfo.id))}
+            payments={payments}
+            attendance={attendance}
+            groupDetails={groupDetails}
+          />
+        )}
+        {activeView === 'student-schedule' && role === 'student' && (
+          <StudentScheduleView 
+            studentInfo={currentStudentInfo || students.find(s => s.username === currentUser)}
+            groupDetails={groupDetails}
             attendance={attendance}
           />
         )}

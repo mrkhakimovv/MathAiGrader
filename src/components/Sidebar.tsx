@@ -13,7 +13,8 @@ import {
   Megaphone, 
   Coins, 
   Wallet, 
-  CalendarCheck 
+  CalendarCheck,
+  CalendarDays 
 } from 'lucide-react';
 import { getAvatarUrl } from '../lib/utils';
 
@@ -27,6 +28,7 @@ export type ViewType =
   | 'student-tasks' 
   | 'student-stats' 
   | 'student-rating' 
+  | 'student-schedule'
   | 'teacher-rating' 
   | 'teacher-payments' 
   | 'teacher-attendance' 
@@ -67,7 +69,8 @@ export function Sidebar({
       { id: 'home', label: "Bosh sahifa", icon: Home },
       { id: 'student-rating', label: "Reyting", icon: Trophy },
       { id: 'student-tasks', label: "Uyga vazifalar", icon: BookOpen, badge: uncompletedTasksCount },
-      { id: 'student-stats', label: "Statistika", icon: BarChart2 }
+      { id: 'student-stats', label: "Statistika", icon: BarChart2 },
+      { id: 'student-schedule', label: "Dars jadvali", icon: CalendarDays }
     );
   } else {
     // Teacher
