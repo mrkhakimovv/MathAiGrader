@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, UserPlus } from 'lucide-react';
+import { formatUzbekPhone } from '../lib/utils';
 
 interface AddStudentModalProps {
   isOpen: boolean;
@@ -11,11 +12,20 @@ interface AddStudentModalProps {
 export function AddStudentModal({ isOpen, onClose, groups, onAddStudent }: AddStudentModalProps) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState('+998 ');
   const [group, setGroup] = useState('');
   const [initialFee, setInitialFee] = useState<string>('');
 
   if (!isOpen) return null;
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (!val || val === '+' || val === '+9' || val === '+99' || val === '+998') {
+      setPhone('+998 ');
+      return;
+    }
+    setPhone(formatUzbekPhone(val));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,10 +92,22 @@ export function AddStudentModal({ isOpen, onClose, groups, onAddStudent }: AddSt
             <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Telefon raqam</label>
             <input
               type="tel"
+              inputMode="tel"
               required
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="block w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
+              onChange={handlePhoneChange}
+              onFocus={() => {
+                if (!phone || phone.trim() === '' || phone.trim() === '+998') {
+                  setPhone('+998 ');
+                }
+              }}
+              onBlur={() => {
+                if (phone.trim() === '+998' || phone.trim() === '+998 ') {
+                  setPhone('+998 ');
+                }
+              }}
+              maxLength={17}
+              className="block w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium tracking-wide"
               placeholder="+998 90 123 45 67"
             />
           </div>

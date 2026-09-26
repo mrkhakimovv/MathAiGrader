@@ -69,3 +69,38 @@ export function formatDateUZ(date: Date | string | number | null | undefined, in
   
   return result;
 }
+
+/**
+ * O'zbekiston telefon raqamini +998 XX XXX XX XX formatiga keltiradi
+ */
+export function formatUzbekPhone(value: string): string {
+  if (!value) return '';
+
+  // Faqat raqamlarni ajratib olish
+  let digits = value.replace(/\D/g, '');
+
+  // Agar 998 bilan boshlangan bo'lsa, uni olib tashlaymiz
+  if (digits.startsWith('998')) {
+    digits = digits.slice(3);
+  }
+
+  // Maksimal 9 ta raqam (operator kodi va raqam)
+  digits = digits.slice(0, 9);
+
+  let formatted = '+998';
+  if (digits.length > 0) {
+    formatted += ' ' + digits.substring(0, 2);
+  }
+  if (digits.length > 2) {
+    formatted += ' ' + digits.substring(2, 5);
+  }
+  if (digits.length > 5) {
+    formatted += ' ' + digits.substring(5, 7);
+  }
+  if (digits.length > 7) {
+    formatted += ' ' + digits.substring(7, 9);
+  }
+
+  return formatted;
+}
+

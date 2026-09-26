@@ -27,6 +27,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { getAvatarUrl, formatDateUZ } from "./lib/utils";
 import { DashboardStats } from "./components/DashboardStats";
 import { HomeView } from "./components/HomeView";
+import { TeamView } from "./components/TeamView";
 import { WelcomeScreen } from "./components/WelcomeScreen";
 import { getAccounts, migrateLegacyUser, getActiveAccountId, getAccount, setActiveAccountId, removeAccount, StoredAccount, upsertAccount, decodeSecret } from "./lib/accounts";
 import { AccountSwitcher } from "./components/AccountSwitcher";
@@ -944,6 +945,9 @@ function MainApp() {
             history={history} 
             studentInfo={students.find(s => s.username === currentUser)} 
           />
+        )}
+        {activeView === 'team' && (
+          <TeamView />
         )}
       </div>
       </div>

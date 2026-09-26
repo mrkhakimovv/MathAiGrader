@@ -14,7 +14,8 @@ import {
   Coins, 
   Wallet, 
   CalendarCheck,
-  CalendarDays 
+  CalendarDays,
+  Sparkles 
 } from 'lucide-react';
 import { getAvatarUrl } from '../lib/utils';
 
@@ -35,7 +36,8 @@ export type ViewType =
   | 'admin-create-teacher' 
   | 'admin-ads' 
   | 'admin-students' 
-  | 'admin-expenses';
+  | 'admin-expenses'
+  | 'team';
 
 interface SidebarProps {
   onProfileClick: () => void;
@@ -62,7 +64,8 @@ export function Sidebar({
       { id: 'admin-create-teacher', label: "O'qituvchi qo'shish", icon: UserPlus },
       { id: 'admin-ads', label: "Reklamalar", icon: Megaphone },
       { id: 'admin-students', label: "Barcha o'quvchilar", icon: Users },
-      { id: 'admin-expenses', label: "Xarajatlar", icon: Coins }
+      { id: 'admin-expenses', label: "Xarajatlar", icon: Coins },
+      { id: 'team', label: "Bizning jamoa", icon: Sparkles }
     );
   } else if (role === 'student') {
     navItems.push(
@@ -70,7 +73,8 @@ export function Sidebar({
       { id: 'student-rating', label: "Reyting", icon: Trophy },
       { id: 'student-tasks', label: "Uyga vazifalar", icon: BookOpen, badge: uncompletedTasksCount },
       { id: 'student-stats', label: "Statistika", icon: BarChart2 },
-      { id: 'student-schedule', label: "Dars jadvali", icon: CalendarDays }
+      { id: 'student-schedule', label: "Dars jadvali", icon: CalendarDays },
+      { id: 'team', label: "Bizning jamoa", icon: Users }
     );
   } else {
     // Teacher
@@ -82,7 +86,8 @@ export function Sidebar({
       { id: 'grade-task', label: "Tekshirish", icon: CheckSquare },
       { id: 'teacher-rating', label: "Reyting", icon: Trophy },
       { id: 'teacher-payments', label: "To'lovlar", icon: Wallet },
-      { id: 'teacher-attendance', label: "Davomat", icon: CalendarCheck }
+      { id: 'teacher-attendance', label: "Davomat", icon: CalendarCheck },
+      { id: 'team', label: "Bizning jamoa", icon: Sparkles }
     );
   }
 

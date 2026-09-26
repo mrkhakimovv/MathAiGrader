@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
-import { Calculator, Moon, Sun, ArrowRight, Star, Check, Trophy, Users, Search, BookOpen, GraduationCap, Award, Book, Youtube, Instagram, Send, ChevronLeft, ChevronRight, ChevronDown, Target, Zap, Shield, MessageCircle, Eye } from 'lucide-react';
+import { Calculator, Moon, Sun, ArrowRight, Star, Check, Trophy, Users, Search, BookOpen, GraduationCap, Award, Book, Youtube, Instagram, Send, ChevronLeft, ChevronRight, ChevronDown, Target, Zap, Shield, MessageCircle, Eye, Sparkles, Code, CheckCircle2, TrendingUp, Lightbulb } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { subscribeToCollection } from '../lib/db';
 import { Newspaper } from 'lucide-react';
@@ -493,6 +493,87 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
       </motion.section>
 
       <section id="biz-haqimizda" className="pt-24 pb-section-gap overflow-x-hidden border-t border-outline-variant/20 bg-background dark:bg-inverse-surface">
+        
+        {/* Yuqori Kirish Qismi */}
+        <div className="relative py-16 px-gutter max-w-container-max mx-auto">
+          <div className="text-center max-w-3xl mx-auto space-y-5">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary dark:text-primary-fixed-dim text-sm font-semibold tracking-wide border border-primary/20"
+            >
+              <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+              <span>Biz haqimizda</span>
+            </motion.div>
+            
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="text-3xl md:text-5xl font-black text-on-background dark:text-inverse-on-surface tracking-tight leading-tight"
+            >
+              Kelajak ta'limi va <span className="text-primary dark:text-primary-fixed-dim bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent">matematik tafakkur</span> maskani
+            </motion.h2>
+            
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-on-surface-variant dark:text-surface-variant font-body-lg text-base md:text-lg leading-relaxed"
+            >
+              Almath — bu shunchaki raqamli platforma emas. Bu matematikani chuqur mantiq, ilmiy tahlil va zavq bilan o'rganish, eng so'nggi pedagogik metodikalar hamda sun'iy intellekt texnologiyalarini birlashtirgan ilg'or ta'lim ekotizimidir.
+            </motion.p>
+          </div>
+
+          {/* Asosiy ko'rsatkichlar / Metrikalar */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-12 max-w-4xl mx-auto">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              className="p-5 rounded-2xl bg-surface-container-low dark:bg-surface-container-highest border border-outline-variant/30 text-center shadow-xs hover:shadow-md transition-shadow"
+            >
+              <div className="text-3xl md:text-4xl font-extrabold text-primary dark:text-primary-fixed-dim tracking-tight">50k+</div>
+              <div className="text-xs md:text-sm font-medium text-on-surface-variant dark:text-surface-variant mt-1">Faol o'quvchilar</div>
+            </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              className="p-5 rounded-2xl bg-surface-container-low dark:bg-surface-container-highest border border-outline-variant/30 text-center shadow-xs hover:shadow-md transition-shadow"
+            >
+              <div className="text-3xl md:text-4xl font-extrabold text-indigo-600 dark:text-indigo-400 tracking-tight">200+</div>
+              <div className="text-xs md:text-sm font-medium text-on-surface-variant dark:text-surface-variant mt-1">Kurs va testlar</div>
+            </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+              className="p-5 rounded-2xl bg-surface-container-low dark:bg-surface-container-highest border border-outline-variant/30 text-center shadow-xs hover:shadow-md transition-shadow"
+            >
+              <div className="text-3xl md:text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight">98%</div>
+              <div className="text-xs md:text-sm font-medium text-on-surface-variant dark:text-surface-variant mt-1">Muvaffaqiyat ko'rsatkichi</div>
+            </motion.div>
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.4 }}
+              className="p-5 rounded-2xl bg-surface-container-low dark:bg-surface-container-highest border border-outline-variant/30 text-center shadow-xs hover:shadow-md transition-shadow"
+            >
+              <div className="text-3xl md:text-4xl font-extrabold text-amber-600 dark:text-amber-400 tracking-tight">24/7</div>
+              <div className="text-xs md:text-sm font-medium text-on-surface-variant dark:text-surface-variant mt-1">Aqlli AI baholash</div>
+            </motion.div>
+          </div>
+        </div>
+
         {/* Bizning missiyamiz - Animated */}
         <motion.div 
           initial={{ opacity: 0 }}
@@ -583,10 +664,109 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
           </div>
         </motion.div>
 
+        {/* Growth Timeline - Rivojlanish Yo'limiz (Qayta tiklangan va mukammallashtirilgan qism) */}
+        <div className="py-section-gap bg-surface dark:bg-inverse-surface border-y border-outline-variant/20">
+          <div className="max-w-container-max mx-auto px-gutter">
+            <div className="flex flex-col md:flex-row gap-12 lg:gap-16 items-start">
+              <motion.div 
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="md:w-1/3 md:sticky md:top-32 space-y-6"
+              >
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary dark:text-primary-fixed-dim text-xs font-bold uppercase tracking-wider">
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span>Bosqichma-bosqich</span>
+                </div>
+                <h2 className="text-3xl md:text-4xl font-extrabold text-on-background dark:text-inverse-on-surface leading-tight">
+                  Rivojlanish <br className="hidden md:inline"/>yo'limiz
+                </h2>
+                <p className="text-on-surface-variant dark:text-surface-variant font-body-lg text-base leading-relaxed">
+                  G'oyadan bugungi to'liq avtomatlashtirilgan raqamli platformagacha bo'lgan masofani biz qat'iyat, izlanish va ta'limga bo'lgan cheksiz muhabbat bilan bosib o'tdik.
+                </p>
+                <div className="flex gap-4 pt-2">
+                  <div className="p-4 bg-primary-container/20 dark:bg-primary-container/10 border border-primary/20 rounded-2xl flex-1 text-center">
+                    <div className="text-primary dark:text-primary-fixed-dim font-black text-2xl md:text-3xl">50k+</div>
+                    <div className="text-on-surface-variant dark:text-surface-variant text-xs uppercase font-semibold mt-1">O'quvchilar</div>
+                  </div>
+                  <div className="p-4 bg-primary-container/20 dark:bg-primary-container/10 border border-primary/20 rounded-2xl flex-1 text-center">
+                    <div className="text-primary dark:text-primary-fixed-dim font-black text-2xl md:text-3xl">200+</div>
+                    <div className="text-on-surface-variant dark:text-surface-variant text-xs uppercase font-semibold mt-1">Kurslar</div>
+                  </div>
+                </div>
+              </motion.div>
 
+              <div className="md:w-2/3 space-y-10 relative">
+                {/* 2021 */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                  className="relative pl-10 md:pl-12 border-l-2 border-primary/40 pb-8"
+                >
+                  <div className="absolute -left-2.5 top-0 w-5 h-5 bg-primary dark:bg-primary-fixed-dim rounded-full outline outline-8 outline-primary/20 shadow-md"></div>
+                  <span className="text-primary dark:text-primary-fixed-dim font-bold text-sm tracking-wide uppercase">2021 — Poydevor</span>
+                  <h4 className="text-xl md:text-2xl font-bold mt-1.5 mb-3 text-on-background dark:text-inverse-on-surface">Birinchi qadamlar va innovatsion g'oya</h4>
+                  <p className="text-on-surface-variant dark:text-surface-variant font-body-md leading-relaxed">
+                    Kichik bir ustozlar jamoasining matematika ta'limini raqamlashtirish haqidagi orzusi va birinchi interaktiv darsliklar hamda mashg'ulotlarning yo'lga qo'yilishi.
+                  </p>
+                </motion.div>
 
-        
-        {/* Jamoamiz */}
+                {/* 2022 */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                  className="relative pl-10 md:pl-12 border-l-2 border-primary/30 pb-8"
+                >
+                  <div className="absolute -left-2 top-0 w-4 h-4 bg-primary/80 dark:bg-primary-fixed-dim rounded-full shadow-sm"></div>
+                  <span className="text-primary dark:text-primary-fixed-dim font-bold text-sm tracking-wide uppercase">2022 — Kengayish</span>
+                  <h4 className="text-xl md:text-2xl font-bold mt-1.5 mb-3 text-on-background dark:text-inverse-on-surface">Platformaning ilk versiyasi ishga tushishi</h4>
+                  <p className="text-on-surface-variant dark:text-surface-variant font-body-md leading-relaxed">
+                    Almath platformasi ilk talqini ishga tushirildi. Dastlabki 10,000 foydalanuvchi qamrab olindi va fundamental matematika bo'yicha maxsus sinov testlari platformaga yuklandi.
+                  </p>
+                </motion.div>
+
+                {/* 2023 */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  className="relative pl-10 md:pl-12 border-l-2 border-primary/20 pb-8"
+                >
+                  <div className="absolute -left-2 top-0 w-4 h-4 bg-primary/60 dark:bg-primary-fixed-dim rounded-full shadow-sm"></div>
+                  <span className="text-primary dark:text-primary-fixed-dim font-bold text-sm tracking-wide uppercase">2023 — E'tirof</span>
+                  <h4 className="text-xl md:text-2xl font-bold mt-1.5 mb-3 text-on-background dark:text-inverse-on-surface">Olimpiada va sertifikatlarda yetakchilik</h4>
+                  <p className="text-on-surface-variant dark:text-surface-variant font-body-md leading-relaxed">
+                    O'quvchilarimiz Milliy sertifikat va xalqaro olimpiadalarda rekord darajada A va A+ natijalarni qayd etishdi. O'quv markazlari bilan integratsiya kengaytirildi.
+                  </p>
+                </motion.div>
+
+                {/* 2024 - Bugun */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                  className="relative pl-10 md:pl-12 border-l-2 border-emerald-500/30"
+                >
+                  <div className="absolute -left-2.5 top-0 w-5 h-5 bg-emerald-500 rounded-full outline outline-8 outline-emerald-500/20 shadow-md"></div>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold text-sm tracking-wide uppercase">2024 — Bugun</span>
+                  <h4 className="text-xl md:text-2xl font-bold mt-1.5 mb-3 text-on-background dark:text-inverse-on-surface">Sun'iy intellekt davri va global ekotizim</h4>
+                  <p className="text-on-surface-variant dark:text-surface-variant font-body-md leading-relaxed">
+                    Sun'iy intellekt yordamida o'quvchilar daftardagi qo'lyozma yechimlarini tahlil qiluvchi AI baholash, real vaqtda davomat va to'lovlar tahlili hamda shaxsiylashtirilgan o'qitish tizimi to'liq joriy qilindi.
+                  </p>
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Jamoamiz - Batafsil Ta'rif va xodim1.png hamda xodim2.png rasmlari bilan */}
         <div className="py-section-gap bg-surface-container-low dark:bg-surface-container-highest relative overflow-hidden">
           <div className="max-w-container-max mx-auto px-gutter relative z-10">
             <motion.div 
@@ -594,80 +774,192 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
-              className="text-center mb-16"
+              className="text-center mb-16 space-y-4"
             >
-              <h2 className="font-headline-md md:font-headline-lg text-headline-md md:text-headline-lg mb-4 text-on-background dark:text-inverse-on-surface">Bizning jamoamiz</h2>
-              <p className="text-on-surface-variant dark:text-surface-variant font-body-lg text-body-lg max-w-2xl mx-auto">Muvaffaqiyatimiz ortida turgan tajribali ustozlar va texnologiya ixlosmandlari bilan tanishing.</p>
+              <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-primary/10 text-primary dark:text-primary-fixed-dim text-xs font-bold uppercase tracking-wider">
+                <Users className="w-3.5 h-3.5" />
+                <span>Asoschilar va Yetakchilar</span>
+              </div>
+              <h2 className="text-3xl md:text-5xl font-extrabold text-on-background dark:text-inverse-on-surface tracking-tight">
+                Bizning jamoamiz
+              </h2>
+              <p className="text-on-surface-variant dark:text-surface-variant font-body-lg text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
+                Muvaffaqiyatimiz poydevorida turgan tajribali ustozlar, metodistlar va ilg'or axborot texnologiyalari muhandislari bilan batafsil tanishing.
+              </p>
             </motion.div>
             
-            <div className="grid sm:grid-cols-2 gap-10 max-w-4xl mx-auto">
-              {/* Team Member 1 */}
+            <div className="grid md:grid-cols-2 gap-8 lg:gap-12 max-w-5xl mx-auto">
+              {/* Xodim 1: Panji Soatov */}
               <motion.div 
-                initial={{ opacity: 0, x: -30 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: 0.2 }}
-                className="group relative bg-surface-container-lowest dark:bg-surface-container-low rounded-[2rem] overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 border border-outline-variant/30 hover:border-primary/50"
+                className="group relative bg-surface-container-lowest dark:bg-surface-container-low rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-outline-variant/30 hover:border-primary/50 flex flex-col"
               >
-                <div className="h-80 overflow-hidden relative">
-                  <div className="absolute inset-0 bg-primary/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" alt="Panji Soatov" src="/xodim1.jpg"/>
-                </div>
-                <div className="p-8 relative">
-                  <div className="absolute -top-6 right-8 w-12 h-12 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-lg transform group-hover:-translate-y-2 transition-transform duration-500">
-                    <span className="material-symbols-outlined">star</span>
+                {/* Rasm va Vizual Qism */}
+                <div className="h-80 sm:h-96 overflow-hidden relative bg-slate-100 dark:bg-slate-800">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10 opacity-70 group-hover:opacity-60 transition-opacity duration-500"></div>
+                  <img 
+                    className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out" 
+                    alt="Panji Soatov" 
+                    src="/xodim1.png"
+                    onError={(e) => {
+                      // Fallback agar png yuklanmasa jpg ga o'tish
+                      (e.target as HTMLImageElement).src = '/xodim1.jpg';
+                    }}
+                  />
+                  {/* Nishon / Badge */}
+                  <div className="absolute top-4 left-4 z-20 bg-primary/90 text-on-primary backdrop-blur-md px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-md">
+                    <Star className="w-3.5 h-3.5 fill-current" />
+                    <span>Asoschi & CEO</span>
                   </div>
-                  <h4 className="font-headline-lg text-2xl mb-2 text-on-background dark:text-inverse-on-surface group-hover:text-primary transition-colors font-bold">Panji Soatov</h4>
-                  <p className="text-primary dark:text-primary-fixed-dim font-label-md text-label-md mb-6 uppercase tracking-wider">Asoschi va CEO</p>
-                  <p className="text-on-surface-variant font-body-md mb-6">Ta'lim sohasida 8 yillik tajribaga ega. Almath platformasining g'oya muallifi va boshqaruvchisi.</p>
-                  <div className="flex justify-between items-center mt-auto">
-                    <div className="flex gap-3">
-                      <a className="group/btn w-11 h-11 rounded-full bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-[#0088cc] dark:hover:bg-[#0088cc] hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-outline-variant/20 hover:border-transparent" href="https://t.me/panji_soatov" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
-                        <i className="bi bi-telegram text-xl group-hover/btn:scale-110 group-hover/btn:-rotate-6 transition-transform duration-300"></i>
+                  <div className="absolute bottom-4 left-6 right-6 z-20 text-white">
+                    <h4 className="text-2xl md:text-3xl font-black tracking-tight drop-shadow-sm">Panji Soatov</h4>
+                    <p className="text-indigo-200 text-sm font-semibold mt-0.5">Asoschi va Bosh Ijrochi Direktor (CEO)</p>
+                  </div>
+                </div>
+
+                {/* Batafsil Ta'rif Matni */}
+                <div className="p-6 md:p-8 flex-1 flex flex-col justify-between space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-xs font-bold text-primary dark:text-primary-fixed-dim bg-primary/10 dark:bg-primary-container/20 w-fit px-3 py-1 rounded-lg">
+                      <GraduationCap className="w-4 h-4" />
+                      <span>8+ yillik pedagogik va metodik tajriba</span>
+                    </div>
+
+                    <p className="text-on-surface-variant dark:text-surface-variant text-sm md:text-base leading-relaxed">
+                      Almath ta'lim platformasining g'oya muallifi va boshqaruvchisi. Nufuzli ta'lim dargohlarida 8 yildan ziyod faoliyat yuritib, yuzlab o'quvchilarni Prezident va ixtisoslashtirilgan maktablar, xalqaro hamda respublika matematika olimpiadalari, shuningdek Milliy Sertifikat (A+) imtihonlariga muvaffaqiyatli tayyorlagan.
+                    </p>
+
+                    <p className="text-on-surface-variant dark:text-surface-variant text-sm md:text-base leading-relaxed">
+                      Murakkab matematik qonuniyatlarni sodda, ko'rgazmali va mantiqiy usulda tushuntirish bo'yicha maxsus mualliflik metodikasi yaratuvchisi. O'quvchilarda nafaqat formulalarni yodlash, balki chuqur mantiqiy tafakkur va mustaqil yechim topish qobiliyatini tarbiyalashni oliy maqsad deb biladi.
+                    </p>
+
+                    {/* Mutaxassislik yorliqlari */}
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-surface-container dark:bg-surface-container-highest text-on-surface">Oliy matematika</span>
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-surface-container dark:bg-surface-container-highest text-on-surface">Olimpiada masalalari</span>
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-surface-container dark:bg-surface-container-highest text-on-surface">Milliy sertifikat (A+)</span>
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-surface-container dark:bg-surface-container-highest text-on-surface">Ta'lim menejmenti</span>
+                    </div>
+                  </div>
+
+                  {/* Ijtimoiy havolalar va Ko'rishlar soni */}
+                  <div className="pt-4 border-t border-outline-variant/30 flex justify-between items-center mt-auto">
+                    <div className="flex gap-2.5">
+                      <a 
+                        className="group/btn w-10 h-10 rounded-xl bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-[#0088cc] dark:hover:bg-[#0088cc] hover:text-white dark:hover:text-white transition-all duration-300 shadow-xs hover:shadow-md border border-outline-variant/20 hover:border-transparent" 
+                        href="https://t.me/panji_soatov" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        aria-label="Telegram: @panji_soatov"
+                        title="Telegram orqali bog'lanish"
+                      >
+                        <i className="bi bi-telegram text-lg group-hover/btn:scale-110 group-hover/btn:-rotate-6 transition-transform duration-300"></i>
                       </a>
-                      <a className="group/btn w-11 h-11 rounded-full bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-outline-variant/20 hover:border-transparent" href="https://instagram.com/soatov_matematika" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                        <i className="bi bi-instagram text-xl group-hover/btn:scale-110 transition-transform duration-300"></i>
+                      <a 
+                        className="group/btn w-10 h-10 rounded-xl bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white dark:hover:text-white transition-all duration-300 shadow-xs hover:shadow-md border border-outline-variant/20 hover:border-transparent" 
+                        href="https://instagram.com/soatov_matematika" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        aria-label="Instagram: @soatov_matematika"
+                        title="Instagram sahifasini kuzatish"
+                      >
+                        <i className="bi bi-instagram text-lg group-hover/btn:scale-110 transition-transform duration-300"></i>
                       </a>
                     </div>
-                    <div className="flex items-center gap-1.5 text-on-surface-variant dark:text-surface-variant text-sm font-medium">
-                      <Eye className="w-4 h-4" />
-                      <span>{panjiViews}</span>
+                    <div className="flex items-center gap-1.5 text-on-surface-variant dark:text-surface-variant text-xs font-semibold bg-surface-container/60 px-3 py-1.5 rounded-full border border-outline-variant/20">
+                      <Eye className="w-3.5 h-3.5 text-primary" />
+                      <span>{panjiViews} ko'rildi</span>
                     </div>
                   </div>
                 </div>
               </motion.div>
 
-              {/* Team Member 2 */}
+              {/* Xodim 2: Quvonchbek Hakimov */}
               <motion.div 
-                initial={{ opacity: 0, x: 30 }}
-                whileInView={{ opacity: 1, x: 0 }}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="group relative bg-surface-container-lowest dark:bg-surface-container-low rounded-[2rem] overflow-hidden shadow-md hover:shadow-2xl transition-all duration-500 border border-outline-variant/30 hover:border-secondary/50"
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="group relative bg-surface-container-lowest dark:bg-surface-container-low rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 border border-outline-variant/30 hover:border-indigo-500/50 flex flex-col"
               >
-                <div className="h-80 overflow-hidden relative">
-                  <div className="absolute inset-0 bg-secondary/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                  <img className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" alt="Quvonchbek Hakimov" src="/xodim2.jpg"/>
-                </div>
-                <div className="p-8 relative">
-                  <div className="absolute -top-6 right-8 w-12 h-12 bg-secondary text-on-secondary rounded-full flex items-center justify-center shadow-lg transform group-hover:-translate-y-2 transition-transform duration-500">
-                    <span className="material-symbols-outlined">code</span>
+                {/* Rasm va Vizual Qism */}
+                <div className="h-80 sm:h-96 overflow-hidden relative bg-slate-100 dark:bg-slate-800">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10 opacity-70 group-hover:opacity-60 transition-opacity duration-500"></div>
+                  <img 
+                    className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700 ease-out" 
+                    alt="Quvonchbek Hakimov" 
+                    src="/xodim2.png"
+                    onError={(e) => {
+                      // Fallback agar png yuklanmasa jpg ga o'tish
+                      (e.target as HTMLImageElement).src = '/xodim2.jpg';
+                    }}
+                  />
+                  {/* Nishon / Badge */}
+                  <div className="absolute top-4 left-4 z-20 bg-indigo-600/90 text-white backdrop-blur-md px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-md">
+                    <Code className="w-3.5 h-3.5" />
+                    <span>CTO & Tizim me'mori</span>
                   </div>
-                  <h4 className="font-headline-lg text-2xl mb-2 text-on-background dark:text-inverse-on-surface group-hover:text-secondary transition-colors font-bold">Quvonchbek Hakimov</h4>
-                  <p className="text-secondary dark:text-secondary-fixed-dim font-label-md text-label-md mb-6 uppercase tracking-wider">Texnik rahbar (CTO)</p>
-                  <p className="text-on-surface-variant font-body-md mb-6">Ta'lim sohasida 4 yillik tajribaga ega ustoz. Sun'iy intellekt va zamonaviy web texnologiyalar bo'yicha mutaxassis. Tizim arxitekturasi muallifi.</p>
-                  <div className="flex justify-between items-center mt-auto">
-                    <div className="flex gap-3">
-                      <a className="group/btn w-11 h-11 rounded-full bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-[#0088cc] dark:hover:bg-[#0088cc] hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-outline-variant/20 hover:border-transparent" href="https://t.me/quvonchbek_hakimov" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
-                        <i className="bi bi-telegram text-xl group-hover/btn:scale-110 group-hover/btn:-rotate-6 transition-transform duration-300"></i>
+                  <div className="absolute bottom-4 left-6 right-6 z-20 text-white">
+                    <h4 className="text-2xl md:text-3xl font-black tracking-tight drop-shadow-sm">Quvonchbek Hakimov</h4>
+                    <p className="text-indigo-200 text-sm font-semibold mt-0.5">Texnik Rahbar (CTO) | Bosh Tizim Arxitektori</p>
+                  </div>
+                </div>
+
+                {/* Batafsil Ta'rif Matni */}
+                <div className="p-6 md:p-8 flex-1 flex flex-col justify-between space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 w-fit px-3 py-1 rounded-lg">
+                      <Zap className="w-4 h-4" />
+                      <span>4+ yillik IT, Sun'iy Intellekt va ta'lim tajribasi</span>
+                    </div>
+
+                    <p className="text-on-surface-variant dark:text-surface-variant text-sm md:text-base leading-relaxed">
+                      Sun'iy intellekt (AI), zamonaviy bulutli arxitektura va raqamli ta'lim tizimlari bo'yicha yetakchi IT mutaxassisi hamda 4 yillik tajribaga ega matematika o'qituvchisi. Almath platformasining to'liq texnologik infratuzilmasi bosh me'mori.
+                    </p>
+
+                    <p className="text-on-surface-variant dark:text-surface-variant text-sm md:text-base leading-relaxed">
+                      Platformada qo'lyozma vazifalar va testlarni avtomatlashtirilgan sun'iy intellekt yordamida tekshirish (AI Grader), real vaqtda davomat nazorati, to'lovlar tahlili va ko'p foydalanuvchili hisoblar tizimini noldan ishlab chiqqan. Zamonaviy IT imkoniyatlari orqali ta'limni har bir o'quvchi uchun qulay va shaffof qilish ustida ishlaydi.
+                    </p>
+
+                    {/* Mutaxassislik yorliqlari */}
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-surface-container dark:bg-surface-container-highest text-on-surface">Sun'iy Intellekt (AI Grader)</span>
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-surface-container dark:bg-surface-container-highest text-on-surface">Full-Stack Arxitektura</span>
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-surface-container dark:bg-surface-container-highest text-on-surface">Bulutli Infratuzilma</span>
+                      <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-surface-container dark:bg-surface-container-highest text-on-surface">UI/UX Muhandisligi</span>
+                    </div>
+                  </div>
+
+                  {/* Ijtimoiy havolalar va Ko'rishlar soni */}
+                  <div className="pt-4 border-t border-outline-variant/30 flex justify-between items-center mt-auto">
+                    <div className="flex gap-2.5">
+                      <a 
+                        className="group/btn w-10 h-10 rounded-xl bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-[#0088cc] dark:hover:bg-[#0088cc] hover:text-white dark:hover:text-white transition-all duration-300 shadow-xs hover:shadow-md border border-outline-variant/20 hover:border-transparent" 
+                        href="https://t.me/quvonchbek_hakimov" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        aria-label="Telegram: @quvonchbek_hakimov"
+                        title="Telegram orqali bog'lanish"
+                      >
+                        <i className="bi bi-telegram text-lg group-hover/btn:scale-110 group-hover/btn:-rotate-6 transition-transform duration-300"></i>
                       </a>
-                      <a className="group/btn w-11 h-11 rounded-full bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white dark:hover:text-white transition-all duration-300 shadow-sm hover:shadow-md border border-outline-variant/20 hover:border-transparent" href="https://instagram.com/hakimov_matematika" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                        <i className="bi bi-instagram text-xl group-hover/btn:scale-110 transition-transform duration-300"></i>
+                      <a 
+                        className="group/btn w-10 h-10 rounded-xl bg-surface-container-highest dark:bg-surface-container flex items-center justify-center text-on-surface-variant dark:text-surface-variant hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:text-white dark:hover:text-white transition-all duration-300 shadow-xs hover:shadow-md border border-outline-variant/20 hover:border-transparent" 
+                        href="https://instagram.com/hakimov_matematika" 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        aria-label="Instagram: @hakimov_matematika"
+                        title="Instagram sahifasini kuzatish"
+                      >
+                        <i className="bi bi-instagram text-lg group-hover/btn:scale-110 transition-transform duration-300"></i>
                       </a>
                     </div>
-                    <div className="flex items-center gap-1.5 text-on-surface-variant dark:text-surface-variant text-sm font-medium">
-                      <Eye className="w-4 h-4" />
-                      <span>{quvonchbekViews}</span>
+                    <div className="flex items-center gap-1.5 text-on-surface-variant dark:text-surface-variant text-xs font-semibold bg-surface-container/60 px-3 py-1.5 rounded-full border border-outline-variant/20">
+                      <Eye className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>{quvonchbekViews} ko'rildi</span>
                     </div>
                   </div>
                 </div>
@@ -677,6 +969,39 @@ export function WelcomeScreen({ onLoginClick, isDarkMode, toggleDarkMode }: Welc
           <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
           <div className="absolute -top-24 -left-24 w-96 h-96 bg-tertiary/5 rounded-full blur-3xl pointer-events-none"></div>
         </div>
+
+        {/* Zamonaviy CTA Section (Chaqiruv Bo'limi) */}
+        <div className="py-section-gap px-gutter bg-background dark:bg-inverse-surface">
+          <div className="max-w-container-max mx-auto bg-gradient-to-br from-indigo-700 via-primary to-indigo-900 rounded-[2.5rem] p-10 md:p-16 relative overflow-hidden text-center shadow-2xl">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent pointer-events-none"></div>
+            <div className="relative z-10 max-w-2xl mx-auto space-y-6">
+              <span className="inline-block px-4 py-1.5 bg-white/15 text-white rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-xs">
+                Birga yuksalaylik
+              </span>
+              <h2 className="text-3xl md:text-5xl font-black text-white leading-tight">
+                Siz ham jamoamizning bir qismiga aylaning
+              </h2>
+              <p className="text-indigo-100 font-body-lg text-base md:text-lg leading-relaxed">
+                Biz bilan birga kelajak ta'limini yarating, matematik tafakkurni rivojlantiring va o'z orzuingizdagi natijalarga erishing.
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
+                <button 
+                  onClick={onLoginClick}
+                  className="bg-white text-indigo-700 font-bold px-8 py-4 rounded-2xl text-base shadow-lg hover:scale-105 active:scale-95 transition-all cursor-pointer"
+                >
+                  Hozir boshlang
+                </button>
+                <a 
+                  href="#aloqa"
+                  className="bg-white/10 hover:bg-white/20 border-2 border-white/30 text-white font-bold px-8 py-4 rounded-2xl text-base transition-all inline-flex items-center justify-center cursor-pointer"
+                >
+                  Biz bilan bog'lanish
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </section>
       <section id="aloqa" className="pt-24 pb-section-gap bg-background dark:bg-inverse-surface border-t border-outline-variant/20">
         <div className="px-gutter max-w-container-max mx-auto">

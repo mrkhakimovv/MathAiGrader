@@ -3,13 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Loader2, GraduationCap, CheckCircle2, XCircle } from 'lucide-react';
 import { db } from '../lib/firebase';
 import { collection, addDoc, getDocs, query, where, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
+import { formatUzbekPhone } from '../lib/utils';
 
 export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: (user: any) => void }) {
   const { groupId, teacherId } = useParams();
   const navigate = useNavigate();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState('+998 ');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -154,6 +155,16 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
     }
   };
 
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    if (!val || val === '+' || val === '+9' || val === '+99' || val === '+998') {
+      setPhone('+998 ');
+      return;
+    }
+    const formatted = formatUzbekPhone(val);
+    setPhone(formatted);
+  };
+
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.toLowerCase();
     // Allow only english alphabet characters, numbers, dot, and underscore
@@ -163,7 +174,9 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firstName.trim() || !lastName.trim() || !phone.trim() || !username.trim() || !password.trim()) {
+    const cleanPhone = phone.trim();
+    const isPhoneValid = cleanPhone && cleanPhone !== '+998' && cleanPhone !== '+998 ';
+    if (!firstName.trim() || !lastName.trim() || !isPhoneValid || !username.trim() || !password.trim()) {
       setError("Iltimos, barcha maydonlarni to'ldiring.");
       return;
     }
@@ -222,7 +235,7 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
       const studentData: any = {
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        phone: phone.trim(),
+        phone: cleanPhone,
         username: username.trim(),
         password: password.trim(),
         role: 'student',
@@ -337,15 +350,32 @@ export function StudentRegistration({ onRegisterSuccess }: { onRegisterSuccess: 
             <label htmlFor="phone" className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
               Telefon raqam
             </label>
-            <input
-              id="phone"
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-slate-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
-              placeholder="+998 90 123 45 67"
-              disabled={isLoading}
-            />
+            <div className="relative">
+              <input
+                id="phone"
+                type="tel"
+                inputMode="tel"
+                value={phone}
+                onChange={handlePhoneChange}
+                onFocus={() => {
+                  if (!phone || phone.trim() === '' || phone.trim() === '+998') {
+                    setPhone('+998 ');
+                  }
+                }}
+                onBlur={() => {
+                  if (phone.trim() === '+998' || phone.trim() === '+998 ') {
+                    setPhone('+998 ');
+                  }
+                }}
+                maxLength={17}
+                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 text-slate-900 dark:text-white focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-medium tracking-wide"
+                placeholder="+998 90 123 45 67"
+                disabled={isLoading}
+              />
+            </div>
+            <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+              Format: <span className="font-mono text-slate-600 dark:text-slate-300">+998 90 123 45 67</span>
+            </p>
           </div>
 
           <div>
