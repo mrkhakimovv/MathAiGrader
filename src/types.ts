@@ -73,3 +73,104 @@ export interface Student {
   joinMonth?: string;
   createdAt?: any;
 }
+
+// ==========================================
+// MILLIY SERTIFIKAT TIPLARI
+// ==========================================
+
+export interface CertSubAnswer {
+  label: 'a' | 'b';
+  correctAnswerText: string;
+}
+
+export interface CertQuestion {
+  id: string;
+  text: string; // LaTeX ('full' rejimda)
+  imageUrl?: string;
+  options: string[];
+  correctOptionIndex: number; // -1 = belgilanmagan
+  isOpenEnded?: boolean;
+  subAnswers?: [CertSubAnswer, CertSubAnswer];
+}
+
+export interface CertTest {
+  id: string;
+  teacherUsername: string;
+  title: string;
+  mode: 'full' | 'fast' | 'special';
+  questions: CertQuestion[]; // 45 ta savol
+  isEnded?: boolean;
+  isClosed?: boolean;
+  status?: 'active' | 'completed';
+  endedAt?: string | null;
+  createdAt: string; // ISO
+}
+
+export interface CertExam {
+  id: string;
+  teacherUsername: string;
+  testId: string;
+  title: string;
+  subject: string;
+  groupIds: string[];
+  groupNames: string[];
+  date: string; // 'YYYY-MM-DD'
+  startTime: string; // 'HH:mm'
+  duration: number; // daqiqa
+  status: 'active' | 'ended';
+  finalizedAt?: string;
+  raschReport?: any; // RaschReport
+  syntheticEnabled: boolean;
+  syntheticCount: number;
+  allowedRetakes?: string[]; // studentId lar
+  createdAt: string;
+}
+
+export interface CertResult {
+  id?: string;
+  examId: string;
+  testId: string;
+  teacherUsername: string;
+  studentId: string;
+  studentUsername: string;
+  studentName: string;
+  score: number; // to'g'ri birliklar soni
+  total: number; // 55
+  raschItems: number[]; // 55 ta birlik (0/1)
+  answers: Record<string, any>;
+  timeSpent: number; // soniya
+  attempts: number;
+  submittedAt: string; // ISO
+}
+
+export interface CertSpecialBrowserInfo {
+  browser: string;
+  os: string;
+  deviceType: string;
+  userAgent: string;
+  language: string;
+  screen: string;
+  viewport: string;
+  referrer: string;
+}
+
+export interface CertSpecialResult {
+  id?: string;
+  testId: string;
+  teacherUsername: string;
+  testTitle: string;
+  studentName: string;
+  score: number;
+  total: number;
+  ball: number;
+  grade: string;
+  theta: number;
+  percentile: number;
+  rank: number;
+  items: number[];
+  answers: Record<string, any>;
+  platform: 'web';
+  browserInfo: CertSpecialBrowserInfo;
+  submittedAt: string; // ISO
+}
+
