@@ -8,6 +8,7 @@ import { LoginScreen } from "./components/qollanma/LoginScreen";
 import { AdminCreateTeacherView, AdminAdsView, AdminStudentsView, AdminExpensesView } from "./components/AdminViews";
 import { Sidebar, ViewType } from "./components/Sidebar";
 import { AllStudentsView, CreateGroupView, CreateTaskView, AllGroupsView } from "./components/TeacherViews";
+import { NationalCertificateView } from "./components/NationalCertificateView";
 import { StudentTasksView, StudentStatsView } from "./components/StudentViews";
 import { StudentRatingView } from "./components/StudentRatingView";
 import { StudentScheduleView } from "./components/StudentScheduleView";
@@ -701,6 +702,9 @@ function MainApp() {
               }
             }} 
           />
+        )}
+        {activeView === 'national-certificate' && (
+          <NationalCertificateView />
         )}
         {activeView === 'create-group' && <CreateGroupView />}
         {activeView === 'create-task' && <CreateTaskView groups={teacherGroups} isSubmitting={isTaskSubmitting} uploadProgress={taskUploadProgress} onCreateTask={async (task) => {

@@ -15,12 +15,14 @@ import {
   Wallet, 
   CalendarCheck,
   CalendarDays,
-  Sparkles 
+  Sparkles,
+  Award
 } from 'lucide-react';
 
 export type ViewType = 
   | 'home' 
   | 'all-students' 
+  | 'national-certificate'
   | 'create-group' 
   | 'create-task' 
   | 'all-groups' 
@@ -80,6 +82,7 @@ export function Sidebar({
     navItems.push(
       { id: 'home', label: "Bosh sahifa", icon: Home },
       { id: 'all-students', label: "O'quvchilar", icon: Users },
+      { id: 'national-certificate', label: "Milliy sertifikat", icon: Award },
       { id: 'create-task', label: "Vazifa yaratish", icon: FilePlus },
       { id: 'all-groups', label: "Guruhlar", icon: Library },
       { id: 'grade-task', label: "Tekshirish", icon: CheckSquare },
