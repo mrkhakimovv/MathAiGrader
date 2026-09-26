@@ -17,7 +17,6 @@ import {
   CalendarDays,
   Sparkles 
 } from 'lucide-react';
-import { getAvatarUrl } from '../lib/utils';
 
 export type ViewType = 
   | 'home' 
@@ -145,15 +144,9 @@ export function Sidebar({
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-indigo-100 hover:text-white hover:bg-white/10 transition-all cursor-pointer text-left group"
           title="Mening profilim"
         >
-          {userAvatar ? (
-            <div className="h-9 w-9 rounded-full overflow-hidden border-2 border-white/60 shrink-0 shadow-xs">
-              <img src={getAvatarUrl(userAvatar)} alt="Profile" className="w-full h-full object-cover bg-indigo-50" />
-            </div>
-          ) : (
-            <div className="h-9 w-9 rounded-full bg-white/15 flex items-center justify-center text-white shrink-0 group-hover:bg-white/25 transition-colors">
-              <User className="h-5 w-5" />
-            </div>
-          )}
+          <div className="h-9 w-9 rounded-full bg-white/15 flex items-center justify-center text-white shrink-0 group-hover:bg-white/25 transition-colors">
+            <User className="h-5 w-5" />
+          </div>
           <div className="flex flex-col text-left truncate flex-1">
             <span className="text-white text-sm font-bold truncate">Profil</span>
             <span className="text-indigo-200 text-xs truncate">Sozlamalar va hisob</span>
@@ -192,13 +185,7 @@ export function Sidebar({
           className="flex flex-col items-center justify-center py-1 px-1 rounded-lg text-indigo-200 hover:text-white transition-all min-w-[44px] cursor-pointer"
           title="Profil"
         >
-          {userAvatar ? (
-            <div className="h-5 w-5 rounded-full overflow-hidden border border-white">
-              <img src={getAvatarUrl(userAvatar)} alt="Profile" className="w-full h-full object-cover bg-indigo-50" />
-            </div>
-          ) : (
-            <User className="h-5 w-5" />
-          )}
+          <User className="h-5 w-5" />
           <span className="text-[9px] leading-tight mt-0.5">Profil</span>
         </button>
       </div>

@@ -11,25 +11,45 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['logo.png'],
+        includeAssets: ['logo.png', 'hero.png'],
         workbox: {
-          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024 // 5MB
+          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
+          cleanupOutdatedCaches: true,
+          clientsClaim: true,
+          skipWaiting: true,
+        },
+        devOptions: {
+          enabled: false,
         },
         manifest: {
-          name: 'ALMATH',
+          id: '/',
+          start_url: '/',
+          scope: '/',
+          name: 'ALMATH | Innovatsion matematika platformasi',
           short_name: 'ALMATH',
-          description: 'Matematika vazifalarini AI orqali tekshirish',
-          theme_color: '#ffffff',
+          description: "Matematika vazifalarini sun'iy intellekt orqali tekshirish va tahlil qilish platformasi",
+          display: 'standalone',
+          orientation: 'portrait-primary',
+          theme_color: '#4f46e5',
+          background_color: '#ffffff',
           icons: [
             {
-              src: 'logo.png',
+              src: '/logo.png',
               sizes: '192x192',
-              type: 'image/png'
+              type: 'image/png',
+              purpose: 'any'
             },
             {
-              src: 'logo.png',
+              src: '/logo.png',
               sizes: '512x512',
-              type: 'image/png'
+              type: 'image/png',
+              purpose: 'any'
+            },
+            {
+              src: '/logo.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable'
             }
           ]
         }

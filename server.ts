@@ -124,6 +124,23 @@ async function startServer() {
     }
   });
 
+  app.use((req, res, next) => {
+    const p = req.path;
+    if (
+      p === "/" || 
+      p === "/index.html" || 
+      p.endsWith(".webmanifest") || 
+      p.endsWith("manifest.json") || 
+      p.endsWith("sw.js") || 
+      p.startsWith("/api/version")
+    ) {
+      res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+      res.set("Pragma", "no-cache");
+      res.set("Expires", "0");
+    }
+    next();
+  });
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },

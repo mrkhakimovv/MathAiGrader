@@ -24,7 +24,7 @@ import { db, storage } from "./lib/firebase";
 import { ref, uploadBytes, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 import { QRCodeSVG } from 'qrcode.react';
-import { getAvatarUrl, formatDateUZ } from "./lib/utils";
+import { formatDateUZ } from "./lib/utils";
 import { DashboardStats } from "./components/DashboardStats";
 import { HomeView } from "./components/HomeView";
 import { TeamView } from "./components/TeamView";
@@ -533,16 +533,16 @@ function MainApp() {
         {activeView === 'admin-expenses' && role === 'admin' && <AdminExpensesView history={history} />}
 
         {activeView === 'home' && role !== 'student' && role !== 'admin' && (
-          <div className="space-y-8">
-            <HomeView role={role} username={userDisplayName} />
-            <DashboardStats 
-              groupDetails={teacherGroupDetails} 
-              students={teacherStudents} 
-              tasks={teacherTasks} 
-              payments={teacherPayments}
-              attendance={teacherAttendance}
-            />
-          </div>
+          <DashboardStats 
+            groupDetails={teacherGroupDetails} 
+            students={teacherStudents} 
+            tasks={teacherTasks} 
+            payments={teacherPayments}
+            attendance={teacherAttendance}
+            history={userHistory}
+            teacherName={userDisplayName}
+            onNavigate={setActiveView}
+          />
         )}
         {activeView === 'home' && role === 'student' && (
           <HomeView 

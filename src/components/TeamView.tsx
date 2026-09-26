@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   Star, 
@@ -12,39 +12,158 @@ import {
   TrendingUp, 
   Send, 
   ExternalLink,
-  Heart,
+  ThumbsUp,
   MessageCircle,
   Eye,
   Layers,
   Brain,
   Lightbulb
 } from 'lucide-react';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { db, auth } from '../lib/firebase';
+
+const getClientId = (): string => {
+  if (typeof window === 'undefined') return 'guest';
+  const authUid = auth.currentUser?.uid;
+  if (authUid) return authUid;
+  let id = localStorage.getItem('almath_device_like_id');
+  if (!id) {
+    id = 'dev_' + Math.random().toString(36).substring(2, 10) + '_' + Date.now();
+    localStorage.setItem('almath_device_like_id', id);
+  }
+  return id;
+};
 
 export function TeamView() {
-  const [panjiLikes, setPanjiLikes] = useState(() => {
-    return parseInt(localStorage.getItem('almath_panji_likes') || '142', 10);
-  });
-  const [quvonchbekLikes, setQuvonchbekLikes] = useState(() => {
-    return parseInt(localStorage.getItem('almath_quvonchbek_likes') || '168', 10);
-  });
-  const [hasLikedPanji, setHasLikedPanji] = useState(false);
-  const [hasLikedQuvonchbek, setHasLikedQuvonchbek] = useState(false);
+  const [panjiLikes, setPanjiLikes] = useState<number>(0);
+  const [quvonchbekLikes, setQuvonchbekLikes] = useState<number>(0);
+  const [hasLikedPanji, setHasLikedPanji] = useState<boolean>(false);
+  const [hasLikedQuvonchbek, setHasLikedQuvonchbek] = useState<boolean>(false);
 
-  const handleLikePanji = () => {
-    if (!hasLikedPanji) {
-      const next = panjiLikes + 1;
-      setPanjiLikes(next);
+  useEffect(() => {
+    // Eski soxta/qo'lda kiritilgan raqamlarni tozalash (0 dan boshlanishi uchun)
+    try {
+      localStorage.removeItem('almath_panji_likes');
+      localStorage.removeItem('almath_quvonchbek_likes');
+    } catch {
+      // ignore
+    }
+
+    const clientId = getClientId();
+
+    // 1. Panji Soatov likes listener (0 dan boshlanadi va har bir like real-time hisoblanadi)
+    const panjiRef = doc(db, 'team_likes', 'panji');
+    const unsubPanji = onSnapshot(panjiRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        const users: string[] = Array.isArray(data.users) ? data.users : [];
+        setPanjiLikes(users.length);
+        setHasLikedPanji(users.includes(clientId));
+      } else {
+        setPanjiLikes(0);
+        setHasLikedPanji(false);
+      }
+    }, (error) => {
+      console.warn("Panji likes Firestore error:", error);
+    });
+
+    // 2. Quvonchbek Hakimov likes listener (0 dan boshlanadi va har bir like real-time hisoblanadi)
+    const quvonchbekRef = doc(db, 'team_likes', 'quvonchbek');
+    const unsubQuvonchbek = onSnapshot(quvonchbekRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        const users: string[] = Array.isArray(data.users) ? data.users : [];
+        setQuvonchbekLikes(users.length);
+        setHasLikedQuvonchbek(users.includes(clientId));
+      } else {
+        setQuvonchbekLikes(0);
+        setHasLikedQuvonchbek(false);
+      }
+    }, (error) => {
+      console.warn("Quvonchbek likes Firestore error:", error);
+    });
+
+    return () => {
+      unsubPanji();
+      unsubQuvonchbek();
+    };
+  }, []);
+
+  const handleLikePanji = async () => {
+    const clientId = getClientId();
+    const panjiRef = doc(db, 'team_likes', 'panji');
+
+    if (hasLikedPanji) {
+      // Like'ni qaytarib olish (-1)
+      setHasLikedPanji(false);
+      setPanjiLikes((prev) => Math.max(0, prev - 1));
+      try {
+        const snap = await getDoc(panjiRef);
+        if (snap.exists()) {
+          const currentUsers: string[] = snap.data().users || [];
+          const updated = currentUsers.filter(u => u !== clientId);
+          await setDoc(panjiRef, { count: updated.length, users: updated }, { merge: true });
+        }
+      } catch (err) {
+        console.error("Error unliking Panji:", err);
+      }
+    } else {
+      // Yangi like qo'shish (+1)
       setHasLikedPanji(true);
-      localStorage.setItem('almath_panji_likes', next.toString());
+      setPanjiLikes((prev) => prev + 1);
+      try {
+        const snap = await getDoc(panjiRef);
+        if (snap.exists()) {
+          const currentUsers: string[] = snap.data().users || [];
+          if (!currentUsers.includes(clientId)) {
+            const updated = [...currentUsers, clientId];
+            await setDoc(panjiRef, { count: updated.length, users: updated }, { merge: true });
+          }
+        } else {
+          await setDoc(panjiRef, { count: 1, users: [clientId] });
+        }
+      } catch (err) {
+        console.error("Error liking Panji:", err);
+      }
     }
   };
 
-  const handleLikeQuvonchbek = () => {
-    if (!hasLikedQuvonchbek) {
-      const next = quvonchbekLikes + 1;
-      setQuvonchbekLikes(next);
+  const handleLikeQuvonchbek = async () => {
+    const clientId = getClientId();
+    const quvonchbekRef = doc(db, 'team_likes', 'quvonchbek');
+
+    if (hasLikedQuvonchbek) {
+      // Like'ni qaytarib olish (-1)
+      setHasLikedQuvonchbek(false);
+      setQuvonchbekLikes((prev) => Math.max(0, prev - 1));
+      try {
+        const snap = await getDoc(quvonchbekRef);
+        if (snap.exists()) {
+          const currentUsers: string[] = snap.data().users || [];
+          const updated = currentUsers.filter(u => u !== clientId);
+          await setDoc(quvonchbekRef, { count: updated.length, users: updated }, { merge: true });
+        }
+      } catch (err) {
+        console.error("Error unliking Quvonchbek:", err);
+      }
+    } else {
+      // Yangi like qo'shish (+1)
       setHasLikedQuvonchbek(true);
-      localStorage.setItem('almath_quvonchbek_likes', next.toString());
+      setQuvonchbekLikes((prev) => prev + 1);
+      try {
+        const snap = await getDoc(quvonchbekRef);
+        if (snap.exists()) {
+          const currentUsers: string[] = snap.data().users || [];
+          if (!currentUsers.includes(clientId)) {
+            const updated = [...currentUsers, clientId];
+            await setDoc(quvonchbekRef, { count: updated.length, users: updated }, { merge: true });
+          }
+        } else {
+          await setDoc(quvonchbekRef, { count: 1, users: [clientId] });
+        }
+      } catch (err) {
+        console.error("Error liking Quvonchbek:", err);
+      }
     }
   };
 
@@ -84,8 +203,8 @@ export function TeamView() {
               <div className="text-xs text-indigo-200">AI Tekshiruv aniqligi</div>
             </div>
             <div className="bg-white/10 backdrop-blur-xs rounded-xl p-3 border border-white/15">
-              <div className="text-xl sm:text-2xl font-black">8+ Yil</div>
-              <div className="text-xs text-indigo-200">Metodik tajriba</div>
+              <div className="text-xl sm:text-2xl font-black">10+ Yil</div>
+              <div className="text-xs text-indigo-200">Ta'lim tajribasi</div>
             </div>
           </div>
         </div>
@@ -115,24 +234,8 @@ export function TeamView() {
             </div>
 
             <div className="absolute bottom-4 left-5 right-5 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Panji Soatov</h2>
-                  <p className="text-indigo-200 text-sm font-medium mt-0.5">Asoschi va Bosh Ijrochi Direktor (CEO)</p>
-                </div>
-                <button
-                  onClick={handleLikePanji}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                    hasLikedPanji
-                      ? 'bg-rose-500 text-white shadow-md'
-                      : 'bg-white/20 hover:bg-white/30 text-white backdrop-blur-md'
-                  }`}
-                  title="Tashakkur bildirish"
-                >
-                  <Heart className={`w-3.5 h-3.5 ${hasLikedPanji ? 'fill-current' : ''}`} />
-                  <span>{panjiLikes}</span>
-                </button>
-              </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Panji Soatov</h2>
+              <p className="text-indigo-200 text-sm font-medium mt-0.5">Asoschi va Bosh Ijrochi Direktor (CEO)</p>
             </div>
           </div>
 
@@ -141,15 +244,15 @@ export function TeamView() {
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 text-xs font-semibold border border-indigo-100 dark:border-indigo-900/50">
                 <GraduationCap className="w-4 h-4" />
-                <span>8+ yillik pedagogik va metodik faoliyat</span>
+                <span>Pedagogik tajriba va ta'lim boshqaruvi</span>
               </div>
 
               <div className="space-y-3 text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
                 <p>
-                  <strong>Panji Soatov</strong> — Almath innovatsion matematika platformasining asoschisi va rahbari. Nufuzli ta'lim dargohlarida 8 yildan ziyod faoliyat yuritib, yuzlab o'quvchilarni Prezident va ixtisoslashtirilgan maktablar, Respublika hamda xalqaro matematika olimpiadalari, shuningdek Milliy Sertifikat (A+) imtihonlariga muvaffaqiyatli tayyorlagan.
+                  <strong>Panji Soatov</strong> — Almath innovatsion matematika platformasining asoschisi va rahbari. Yuzlab o'quvchilarni Prezident va ixtisoslashtirilgan maktablar, Respublika hamda xalqaro matematika olimpiadalari, shuningdek Milliy Sertifikat (A+) imtihonlariga muvaffaqiyatli tayyorlagan.
                 </p>
                 <p>
-                  Murakkab matematik teoremalar va tushunchalarni sodda, ko'rgazmali va mantiqiy usulda tushuntirish bo'yicha maxsus mualliflik metodikasi muallifi. Har bir o'quvchida mustaqil fikrlash va tahlil qilish salohiyatini yuksaltirishga intiladi.
+                  Murakkab matematik teoremalar va tushunchalarni sodda, ko'rgazmali va mantiqiy usulda tushuntirish metodikasi ustasi. Har bir o'quvchida mustaqil fikrlash va tahlil qilish salohiyatini yuksaltirishga intiladi.
                 </p>
               </div>
 
@@ -167,7 +270,7 @@ export function TeamView() {
                     Milliy sertifikat (A+)
                   </span>
                   <span className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium border border-slate-200 dark:border-slate-700">
-                    Mualliflik metodikasi
+                    Ta'lim menejmenti
                   </span>
                 </div>
               </div>
@@ -185,8 +288,8 @@ export function TeamView() {
               </div>
             </div>
 
-            {/* Contacts & Social */}
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            {/* Contacts & Social & Like */}
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
               <div className="flex items-center gap-2">
                 <a
                   href="https://t.me/panji_soatov"
@@ -206,10 +309,25 @@ export function TeamView() {
                 >
                   <ExternalLink className="w-4 h-4" />
                 </a>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 hidden sm:inline ml-1">
+                  @panji_soatov
+                </span>
               </div>
-              <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-                @panji_soatov
-              </span>
+
+              {/* Like / Tashakkur tugmasi 👍 */}
+              <button
+                type="button"
+                onClick={handleLikePanji}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer border active:scale-95 ${
+                  hasLikedPanji
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/25'
+                    : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                }`}
+                title="Tashakkur bildirish"
+              >
+                <ThumbsUp className={`w-4 h-4 ${hasLikedPanji ? 'fill-current' : ''}`} />
+                <span>{panjiLikes}</span>
+              </button>
             </div>
           </div>
         </div>
@@ -239,24 +357,8 @@ export function TeamView() {
             </div>
 
             <div className="absolute bottom-4 left-5 right-5 text-white">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Quvonchbek Hakimov</h2>
-                  <p className="text-indigo-200 text-sm font-medium mt-0.5">Bosh tizim arxitektori va CTO</p>
-                </div>
-                <button
-                  onClick={handleLikeQuvonchbek}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                    hasLikedQuvonchbek
-                      ? 'bg-rose-500 text-white shadow-md'
-                      : 'bg-white/20 hover:bg-white/30 text-white backdrop-blur-md'
-                  }`}
-                  title="Tashakkur bildirish"
-                >
-                  <Heart className={`w-3.5 h-3.5 ${hasLikedQuvonchbek ? 'fill-current' : ''}`} />
-                  <span>{quvonchbekLikes}</span>
-                </button>
-              </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Quvonchbek Hakimov</h2>
+              <p className="text-indigo-200 text-sm font-medium mt-0.5">Bosh tizim arxitektori va CTO</p>
             </div>
           </div>
 
@@ -309,8 +411,8 @@ export function TeamView() {
               </div>
             </div>
 
-            {/* Contacts & Social */}
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            {/* Contacts & Social & Like */}
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
               <div className="flex items-center gap-2">
                 <a
                   href="https://t.me/quvonchbek_hakimov"
@@ -330,10 +432,25 @@ export function TeamView() {
                 >
                   <ExternalLink className="w-4 h-4" />
                 </a>
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 hidden sm:inline ml-1">
+                  @hakimov_matematika
+                </span>
               </div>
-              <span className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">
-                @hakimov_matematika
-              </span>
+
+              {/* Like / Tashakkur tugmasi 👍 */}
+              <button
+                type="button"
+                onClick={handleLikeQuvonchbek}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-xs cursor-pointer border active:scale-95 ${
+                  hasLikedQuvonchbek
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-500/25'
+                    : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                }`}
+                title="Tashakkur bildirish"
+              >
+                <ThumbsUp className={`w-4 h-4 ${hasLikedQuvonchbek ? 'fill-current' : ''}`} />
+                <span>{quvonchbekLikes}</span>
+              </button>
             </div>
           </div>
         </div>

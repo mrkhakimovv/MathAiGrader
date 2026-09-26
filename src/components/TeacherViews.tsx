@@ -8,7 +8,7 @@ import { Users, User, UserPlus, FilePlus, Library, Trash2, X, Copy, Check, Exter
 import { GradingResult } from '../types';
 import * as XLSX from 'xlsx';
 import { EditGroupModal } from './EditGroupModal';
-import { getAvatarUrl, formatDateUZ } from '../lib/utils';
+import { formatDateUZ } from '../lib/utils';
 import { db } from '../lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 
@@ -173,12 +173,10 @@ export function AllStudentsView({ students, onDeleteStudent, history = [], group
                     {hasGroup ? 'FAOL' : 'GURUHSIZ'}
                   </span>
                   {/* Avatar */}
-                  <div className="h-16 w-16 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                    <img 
-                      src={getAvatarUrl(student.avatar, student.id || student.firstName)} 
-                      alt="avatar" 
-                      className="h-full w-full object-cover"
-                    />
+                  <div className="h-16 w-16 rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-50 to-indigo-100/70 dark:from-slate-800 dark:to-indigo-950/40 border border-indigo-100/80 dark:border-slate-700/80 flex items-center justify-center shrink-0 shadow-2xs">
+                    <span className="text-xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight">
+                      {student.firstName ? `${student.firstName[0]}${student.lastName ? student.lastName[0] : ''}`.toUpperCase() : (student.name ? student.name[0].toUpperCase() : <User className="w-7 h-7 text-indigo-500" />)}
+                    </span>
                   </div>
                 </div>
                 
@@ -1262,12 +1260,8 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                             }`}>
                               #{idx + 1}
                             </div>
-                            <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 overflow-hidden">
-                              {student.avatar ? (
-                                <img src={getAvatarUrl(student.avatar)} alt="Avatar" className="w-full h-full object-cover bg-slate-100 dark:bg-slate-800" />
-                              ) : (
-                                <User className="h-5 w-5 text-slate-500 dark:text-slate-400" />
-                              )}
+                            <div className="h-10 w-10 rounded-full bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-400 font-bold text-sm">
+                              {student.firstName ? `${student.firstName[0]}${student.lastName ? student.lastName[0] : ''}`.toUpperCase() : <User className="h-5 w-5" />}
                             </div>
                             <div>
                               <p className="font-bold text-slate-900 dark:text-white">{student.firstName} {student.lastName}</p>
@@ -1572,12 +1566,8 @@ export function AllGroupsView({ groups, onDeleteGroup, students = [], history = 
                                   }`}>
                                     {item.isSubmitted ? idx + 1 : '-'}
                                   </div>
-                                  <div className="h-10 w-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 overflow-hidden">
-                                    {student.avatar ? (
-                                      <img src={getAvatarUrl(student.avatar)} alt="Avatar" className="w-full h-full object-cover bg-slate-100 dark:bg-slate-800" />
-                                    ) : (
-                                      <User className="h-5 w-5 text-slate-500 dark:text-slate-400" />
-                                    )}
+                                  <div className="h-10 w-10 rounded-full bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center shrink-0 border border-indigo-100 dark:border-indigo-900/50 text-indigo-600 dark:text-indigo-400 font-bold text-sm">
+                                    {student.firstName ? `${student.firstName[0]}${student.lastName ? student.lastName[0] : ''}`.toUpperCase() : <User className="h-5 w-5" />}
                                   </div>
                                   <div>
                                     <p className={`font-semibold ${item.isSubmitted ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300'}`}>

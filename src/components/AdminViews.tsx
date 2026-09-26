@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UserPlus, Users, Trash2, Key, Megaphone, Plus, Coins, TrendingUp, Filter, Calendar, ArrowDownUp, Bell, Brain, Wallet, Zap } from 'lucide-react';
-import { getAvatarUrl, formatDateUZ } from '../lib/utils';
+import { formatDateUZ } from '../lib/utils';
 import { getExpensesResetAt, resetExpensesHistory } from '../lib/db';
 
 interface AdminCreateTeacherViewProps {
@@ -395,12 +395,8 @@ export function AdminStudentsView({ students }: AdminStudentsViewProps) {
                   <tr key={student.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
-                          {student.avatar ? (
-                            <img src={getAvatarUrl(student.avatar)} alt="Avatar" className="h-full w-full object-cover" />
-                          ) : (
-                            <span className="font-bold text-slate-400 text-xs">{(student.firstName || student.username).charAt(0).toUpperCase()}</span>
-                          )}
+                        <div className="h-8 w-8 rounded-full bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-center overflow-hidden shrink-0">
+                          <span className="font-bold text-indigo-600 dark:text-indigo-400 text-xs">{(student.firstName || student.username).charAt(0).toUpperCase()}</span>
                         </div>
                         <div className="font-semibold text-slate-900 dark:text-white">
                           {student.firstName} {student.lastName}
@@ -713,7 +709,9 @@ export function AdminExpensesView({ history }: AdminExpensesViewProps) {
                   <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="px-6 py-3.5">
                       <div className="flex items-center gap-3">
-                        <img src={getAvatarUrl(r.student)} alt="" className="h-8 w-8 rounded-full object-cover shrink-0 bg-slate-100 dark:bg-slate-800" />
+                        <div className="h-8 w-8 rounded-full bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-xs shrink-0">
+                          {r.student ? r.student.charAt(0).toUpperCase() : 'U'}
+                        </div>
                         <span className="font-semibold text-slate-900 dark:text-white truncate">{r.student}</span>
                       </div>
                     </td>

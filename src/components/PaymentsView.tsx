@@ -53,7 +53,7 @@ import {
   getPaymentMethodLabel 
 } from '../lib/finance';
 import { addPayment, deletePayment, updateStudentDiscounts, updateStudentInitialFee } from '../lib/db';
-import { getAvatarUrl, formatDateUZ } from '../lib/utils';
+import { formatDateUZ } from '../lib/utils';
 
 interface PaymentsViewProps {
   groups: any[];
@@ -1039,12 +1039,8 @@ export function PaymentsView({
                           onClick={() => handleOpenHistory(row.student, row.group)}
                           className="flex items-center gap-3 text-left group"
                         >
-                          <div className="w-10 h-10 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0 bg-indigo-50 dark:bg-indigo-950/50">
-                            <img
-                              src={getAvatarUrl(row.student.avatar)}
-                              alt="Avatar"
-                              className="w-full h-full object-cover"
-                            />
+                          <div className="w-10 h-10 rounded-full overflow-hidden border border-indigo-100 dark:border-indigo-900/50 shrink-0 bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-sm">
+                            {row.student.firstName ? `${row.student.firstName[0]}${row.student.lastName ? row.student.lastName[0] : ''}`.toUpperCase() : (row.student.username ? row.student.username[0].toUpperCase() : 'O')}
                           </div>
                           <div>
                             <div className="font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors flex items-center gap-1.5">
@@ -1340,12 +1336,8 @@ export function PaymentsView({
               </button>
 
               <div className="flex items-center gap-3 mb-5">
-                <div className="w-12 h-12 rounded-full overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0">
-                  <img
-                    src={getAvatarUrl(historyTarget.student.avatar)}
-                    alt="Avatar"
-                    className="w-full h-full object-cover"
-                  />
+                <div className="w-12 h-12 rounded-full overflow-hidden border border-indigo-100 dark:border-indigo-900/50 shrink-0 bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-base">
+                  {historyTarget.student.firstName ? `${historyTarget.student.firstName[0]}${historyTarget.student.lastName ? historyTarget.student.lastName[0] : ''}`.toUpperCase() : (historyTarget.student.username ? historyTarget.student.username[0].toUpperCase() : 'O')}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-slate-900 dark:text-white">

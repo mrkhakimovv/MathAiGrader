@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Check, Loader2, Plus, Trash2, Users2 } from 'lucide-react';
-import { getAvatarUrl } from '../lib/utils';
 import {
   StoredAccount,
   MAX_ACCOUNTS,
@@ -30,17 +29,9 @@ function AccountAvatar({ account, size = 'md' }: { account: StoredAccount; size?
     <div
       className={`${box} shrink-0 rounded-full overflow-hidden border-2 ${ring} bg-indigo-50 dark:bg-slate-800 flex items-center justify-center`}
     >
-      {account.avatar ? (
-        <img
-          src={getAvatarUrl(account.avatar)}
-          alt={accountDisplayName(account)}
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        <span className="text-sm font-bold text-indigo-600 dark:text-indigo-300 uppercase">
-          {accountDisplayName(account).charAt(0)}
-        </span>
-      )}
+      <span className="text-sm font-bold text-indigo-600 dark:text-indigo-300 uppercase">
+        {accountDisplayName(account).charAt(0)}
+      </span>
     </div>
   );
 }

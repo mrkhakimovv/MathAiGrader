@@ -1,6 +1,6 @@
 /**
  * Application Update & Cache Management Utility
- * Dasturni yangilash va keshni boshqarish moduli
+ * Dasturni yangilash, keshni tozalash va PWA yangilanishlarini qabul qilish moduli
  */
 
 const STORAGE_KEY_BUILD_HASH = 'almath_loaded_build_hash';
@@ -10,7 +10,7 @@ export interface UpdateCheckResult {
   hasUpdate: boolean;
   currentVersion?: string;
   latestVersion?: string;
-  reason?: 'service_worker' | 'build_hash' | 'script_tags' | 'server_start';
+  reason?: 'service_worker' | 'build_hash' | 'script_tags' | 'server_start' | 'manifest';
   message: string;
 }
 
@@ -24,6 +24,16 @@ function getLoadedAssetHrefs(): string[] {
     .map((l) => l.getAttribute('href') || '')
     .filter(Boolean);
   return [...scripts, ...links];
+}
+
+/**
+ * PWA o'rnatilganligini (standalone rejimini) tekshirish
+ */
+export function isPWAInstalled(): boolean {
+  if (typeof window === 'undefined') return false;
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+  const isIOSStandalone = (window.navigator as any).standalone === true;
+  return isStandalone || isIOSStandalone;
 }
 
 /**
@@ -43,7 +53,7 @@ export async function initAppVersionTracking(): Promise<void> {
         sessionStorage.setItem(STORAGE_KEY_BUILD_HASH, String(data.buildHash));
       }
     }
-  } catch (e) {
+  } catch {
     // offline yoki tarmoq xatosi bo'lsa e'tiborsiz qoldiramiz
   }
 }
@@ -65,7 +75,6 @@ export async function checkForAppUpdates(): Promise<UpdateCheckResult> {
     try {
       const registrations = await navigator.serviceWorker.getRegistrations();
       for (const reg of registrations) {
-        // Yangi service worker borligini serverdan so'rash
         await reg.update();
         if (reg.waiting || reg.installing) {
           return {
@@ -116,12 +125,10 @@ export async function checkForAppUpdates(): Promise<UpdateCheckResult> {
       const htmlText = await htmlRes.text();
       const currentAssets = getLoadedAssetHrefs();
 
-      // Kelgan HTML dagi src va href larni qidirish
       const scriptMatches = Array.from(htmlText.matchAll(/src=["'](\/assets\/[^"']+)["']/g)).map(m => m[1]);
       const cssMatches = Array.from(htmlText.matchAll(/href=["'](\/assets\/[^"']+)["']/g)).map(m => m[1]);
       const newAssets = [...scriptMatches, ...cssMatches];
 
-      // Agar serverdagi yangi HTML dagi assetlar hozirgi sahifadagilardan farq qilsa:
       if (newAssets.length > 0 && currentAssets.length > 0) {
         const hasDifferentAsset = newAssets.some(newAsset => !currentAssets.includes(newAsset));
         if (hasDifferentAsset) {
@@ -139,47 +146,119 @@ export async function checkForAppUpdates(): Promise<UpdateCheckResult> {
 
   return {
     hasUpdate: false,
-    message: "Dastur allaqachon eng so'nggi versiyada!",
+    message: "Dastur barcha yangilanishlarni qabul qilishga tayyor!",
   };
 }
 
 /**
- * Brauzer keshini tozalab, service workerni yangilab,
- * sahifani to'liq yangidan (hard reload) yuklash
+ * Dasturni to'liq yangilash:
+ * - Barcha Service Worker va PWA keshlarini tozalash
+ * - Yangi Web App Manifest, logo va nom sozlamalarini qayta yuklash
+ * - Yangi build paketlarini qabul qilish
+ * - Sahifani to'liq hard reload qilish
  */
-export async function applyUpdateAndReload(): Promise<void> {
+export async function applyUpdateAndReload(onProgress?: (msg: string) => void): Promise<void> {
+  const now = Date.now();
+
   try {
-    // 1. Service worker waiting postMessage & unregister
+    onProgress?.("Kesh va PWA xotirasi tozalanmoqda...");
+
+    // 1. Service Workerlarni tekshirish, skipWaiting va tozalash
     if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      for (const reg of registrations) {
-        if (reg.waiting) {
-          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const reg of registrations) {
+          if (reg.waiting) {
+            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+          }
+          if (reg.installing) {
+            reg.installing.postMessage({ type: 'SKIP_WAITING' });
+          }
+          try {
+            await reg.update();
+          } catch {
+            // ignore
+          }
+          try {
+            await reg.unregister();
+          } catch {
+            // ignore
+          }
         }
-        try {
-          await reg.unregister();
-        } catch {
-          // ignore
-        }
+      } catch (swErr) {
+        console.warn("SW cleanup notice:", swErr);
       }
     }
 
-    // 2. Barcha CacheStorage keshlarini tozalash
+    // 2. CacheStorage (barcha offline va asset keshlarini to'liq o'chirish)
     if (typeof window !== 'undefined' && 'caches' in window) {
-      const keys = await window.caches.keys();
-      await Promise.all(keys.map((key) => window.caches.delete(key)));
+      try {
+        const keys = await window.caches.keys();
+        await Promise.all(keys.map((key) => window.caches.delete(key)));
+      } catch (cacheErr) {
+        console.warn("CacheStorage delete notice:", cacheErr);
+      }
     }
 
-    // 3. Yangi build hashni sessiyadan o'chirish
+    onProgress?.("Yangi dastur nomi, logo va barcha imkoniyatlar yuklanmoqda...");
+
+    // 3. Manifest va logoni majburiy yangilab olish (PWA va brauzer uchun)
+    try {
+      const manifestRes = await fetch(`/manifest.webmanifest?_pwa_upd=${now}`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+      }).catch(() => null);
+
+      if (manifestRes && manifestRes.ok) {
+        const manifestData = await manifestRes.json().catch(() => null);
+        if (manifestData?.name && typeof document !== 'undefined') {
+          document.title = manifestData.name;
+        }
+      }
+    } catch {
+      // ignore
+    }
+
+    // Logoni majburiy keshdan tozalab yangilash
+    try {
+      await fetch(`/logo.png?_logo_upd=${now}`, {
+        cache: 'reload',
+        headers: { 'Cache-Control': 'no-cache, no-store' }
+      }).catch(() => null);
+
+      // DOM dagi faviconga va logoga yangi cache-buster qo'yish
+      if (typeof document !== 'undefined') {
+        const icons = document.querySelectorAll<HTMLLinkElement>('link[rel*="icon"]');
+        icons.forEach(icon => {
+          icon.href = `/logo.png?v=${now}`;
+        });
+      }
+    } catch {
+      // ignore
+    }
+
+    // 4. Session va Local xotiradagi eski versiya identifikatorlarini tozalash
     if (typeof sessionStorage !== 'undefined') {
       sessionStorage.removeItem(STORAGE_KEY_BUILD_HASH);
     }
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(STORAGE_KEY_BUILD_HASH);
+      localStorage.setItem('almath_last_force_update', String(now));
+    }
+
+    onProgress?.("Dastur to'liq yangilandi! Qayta ishga tushirilmoqda...");
   } catch (err) {
-    console.error("Xatolik keshni tozalashda:", err);
+    console.error("Xatolik dasturni to'liq yangilashda:", err);
   }
 
-  // 4. Cache-busting parametri bilan to'liq qayta yuklash
-  const url = new URL(window.location.href);
-  url.searchParams.set('v', Date.now().toString());
-  window.location.href = url.toString();
+  // 5. Cache-busting parametri bilan to'liq qayta yuklash (hard reload)
+  setTimeout(() => {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('_v', now.toString());
+      window.location.replace(url.toString());
+    } catch {
+      window.location.reload();
+    }
+  }, 500);
 }
