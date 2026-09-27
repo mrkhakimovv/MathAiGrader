@@ -37,6 +37,7 @@ export const SpecialTestTake: React.FC = () => {
   const [candidateName, setCandidateName] = useState('');
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [finalResult, setFinalResult] = useState<CertSpecialResult | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
     if (!testId) return;
@@ -45,7 +46,9 @@ export const SpecialTestTake: React.FC = () => {
       try {
         setLoading(true);
         const snap = await getDoc(doc(db, 'cert_tests', testId));
-        if (!snap.exists()) {
+        // Ochiq havola faqat "Maxsus" rejimdagi testlar uchun ishlaydi.
+        // Guruh imtihonlariga biriktirilgan testlar bu yo'l bilan ochilmasligi kerak.
+        if (!snap.exists() || snap.data()?.mode !== 'special') {
           setTest(null);
         } else {
           setTest({ id: snap.id, ...snap.data() } as CertTest);
@@ -335,47 +338,82 @@ export const SpecialTestTake: React.FC = () => {
   // STEP 2: ANSWER SHEET TAKING
   const questions = test.questions || [];
 
+  const answeredCount = questions.reduce((acc, q) => {
+    if (q.isOpenEnded) {
+      const a = Boolean(answers[`${q.id}_0`]?.trim());
+      const b = Boolean(answers[`${q.id}_1`]?.trim());
+      return acc + (a || b ? 1 : 0);
+    }
+    return acc + (answers[q.id] !== undefined ? 1 : 0);
+  }, 0);
+
+  const progressPct = Math.round((answeredCount / 45) * 100);
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-900 dark:text-slate-100">
       {/* Sticky Header */}
-      <div className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-4 sm:px-8 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4 shadow-xs">
-        <div>
-          <span className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400">
-            Nomzod: {candidateName}
-          </span>
-          <h2 className="text-sm sm:text-base font-bold truncate max-w-md">
+      <div className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-3 sm:px-8 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 sm:gap-4 shadow-xs">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 truncate">
+              {candidateName}
+            </span>
+            <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
+            <span className="hidden sm:inline-block text-xs font-bold text-emerald-600 dark:text-emerald-400">
+              {answeredCount} / 45 savol belgilandi ({progressPct}%)
+            </span>
+          </div>
+          <h2 className="text-xs sm:text-base font-bold truncate">
             {test.title}
           </h2>
         </div>
 
-        <button
-          onClick={handleSubmit}
-          disabled={step === 'submitting'}
-          className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
-        >
-          {step === 'submitting' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-          <span>{step === 'submitting' ? "Hisoblanmoqda..." : "Yuborish va Natijani ko'rish"}</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="sm:hidden text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+            {answeredCount}/45
+          </span>
+          <button
+            onClick={() => {
+              if (answeredCount < 45) {
+                setShowConfirmModal(true);
+              } else {
+                handleSubmit();
+              }
+            }}
+            disabled={step === 'submitting'}
+            className="px-3 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+          >
+            {step === 'submitting' ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            <span className="hidden sm:inline">{step === 'submitting' ? "Hisoblanmoqda..." : "Natijani ko'rish"}</span>
+            <span className="sm:hidden">{step === 'submitting' ? "Kuting..." : "Natija"}</span>
+          </button>
+        </div>
       </div>
 
       {/* Answer Sheet Grid */}
       <div className="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* 1-35 Closed */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 space-y-4 shadow-xs">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">
-              1–35-savollar: Test kalitlari
-            </h3>
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-4 sm:p-6 space-y-4 shadow-xs">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">
+                1–35-savollar: Test kalitlari
+              </h3>
+              <span className="text-[11px] font-bold text-slate-400">
+                1–32 (A–D) • 33–35 (A–F)
+              </span>
+            </div>
+
             <div className="space-y-2">
               {questions.slice(0, 35).map((q, idx) => {
                 const opts = q.options?.length ? q.options : (idx >= 32 ? ['A','B','C','D','E','F'] : ['A','B','C','D']);
                 return (
                   <div 
                     key={q.id}
-                    className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2"
+                    className="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-1.5 sm:gap-2"
                   >
-                    <span className="w-8 font-mono font-bold text-xs text-slate-600 dark:text-slate-400">{idx + 1}.</span>
-                    <div className="flex items-center gap-1.5">
+                    <span className="w-6 sm:w-8 font-mono font-bold text-xs text-slate-600 dark:text-slate-400 shrink-0">{idx + 1}.</span>
+                    <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap justify-end">
                       {opts.map((_, optIdx) => {
                         const letter = String.fromCharCode(65 + optIdx);
                         const isSelected = answers[q.id] === optIdx;
@@ -384,7 +422,7 @@ export const SpecialTestTake: React.FC = () => {
                             key={optIdx}
                             type="button"
                             onClick={() => setAnswers({ ...answers, [q.id]: optIdx })}
-                            className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center justify-center ${
                               isSelected
                                 ? 'bg-indigo-600 text-white shadow-xs scale-105'
                                 : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-400'
@@ -403,9 +441,15 @@ export const SpecialTestTake: React.FC = () => {
 
           {/* 36-45 Open */}
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 space-y-4 shadow-xs">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">
-              36–45-savollar: Ochiq formulalar (a va b)
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">
+                36–45-savollar: Ochiq formulalar (a va b)
+              </h3>
+              <span className="text-[11px] font-bold text-indigo-500">
+                2 birlikdan
+              </span>
+            </div>
+
             <div className="space-y-3.5">
               {questions.slice(35, 45).map((q, localIdx) => {
                 const qIdx = 35 + localIdx;
@@ -441,12 +485,20 @@ export const SpecialTestTake: React.FC = () => {
 
         {/* Bottom Submit Banner */}
         <div className="p-6 rounded-3xl bg-indigo-600 text-white text-center space-y-3 shadow-xl shadow-indigo-600/20">
-          <h3 className="text-lg font-bold">Barcha javoblarni to'ldirdingizmi?</h3>
+          <h3 className="text-lg font-bold">
+            {answeredCount === 45 ? "Barcha 45 ta savol to'ldirildi!" : `${answeredCount} / 45 ta savolga javob berildi`}
+          </h3>
           <p className="text-xs text-indigo-100 max-w-md mx-auto">
             Tugmani bosishingiz bilan javoblaringiz tekshirilib, Rasch modeli (T-ball) bo'yicha darhol sertifikat darajangiz chiqariladi.
           </p>
           <button
-            onClick={handleSubmit}
+            onClick={() => {
+              if (answeredCount < 45) {
+                setShowConfirmModal(true);
+              } else {
+                handleSubmit();
+              }
+            }}
             disabled={step === 'submitting'}
             className="px-8 py-3.5 rounded-2xl bg-white text-indigo-700 hover:bg-indigo-50 font-black text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
           >
@@ -454,6 +506,45 @@ export const SpecialTestTake: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Confirmation Modal for incomplete answers */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 max-w-sm w-full rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-6 text-center space-y-4 animate-scaleUp">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                Barcha savollar to'ldirilmadi
+              </h3>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Siz 45 ta savoldan <strong>{answeredCount}</strong> tasiga javob berdingiz ({45 - answeredCount} ta qoldi). Shunda ham topshirishni xohlaysizmi?
+              </p>
+            </div>
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowConfirmModal(false)}
+                className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer"
+              >
+                Davom etish
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowConfirmModal(false);
+                  handleSubmit();
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md cursor-pointer"
+              >
+                Ha, yuborish
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+

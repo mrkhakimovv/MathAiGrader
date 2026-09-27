@@ -36,10 +36,25 @@ export const CertExamTake: React.FC<CertExamTakeProps> = ({
   const [loadingTest, setLoadingTest] = useState(true);
   const [activeQIndex, setActiveQIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
+  // Taymer ichidan chaqiriladigan avtomatik topshirish ENG SO'NGGI javoblarni
+  // ko'rishi uchun ular ref'da ham saqlanadi (aks holda eskirgan — bo'sh — javoblar yuboriladi).
+  const answersRef = useRef<Record<string, any>>({});
+  answersRef.current = answers;
+  const submittingRef = useRef(false);
+  const setAnswer = (key: string, value: any) => {
+    setAnswers(prev => ({ ...prev, [key]: value }));
+  };
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [showConfirmFinish, setShowConfirmFinish] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  // Unmount bo'lganda virtual klaviaturani yopish
+  useEffect(() => {
+    return () => {
+      window.mathVirtualKeyboard?.hide();
+    };
+  }, []);
 
   const storageKey = `cert_progress_${exam.id}_${student.id}`;
 
@@ -132,7 +147,8 @@ export const CertExamTake: React.FC<CertExamTakeProps> = ({
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          handleSubmitAnswers();
+          // Vaqt tugadi — eng so'nggi javoblar bilan avtomatik topshiriladi
+          setTimeout(() => submitRef.current(), 0);
           return 0;
         }
         return prev - 1;
@@ -143,7 +159,9 @@ export const CertExamTake: React.FC<CertExamTakeProps> = ({
   }, [loadingTest, isFinished]);
 
   const handleSubmitAnswers = async () => {
-    if (isSubmitting || isFinished || !test) return;
+    if (submittingRef.current || isFinished || !test) return;
+    submittingRef.current = true;
+    const answers = answersRef.current;
 
     try {
       setIsSubmitting(true);
@@ -190,11 +208,15 @@ export const CertExamTake: React.FC<CertExamTakeProps> = ({
       setShowConfirmFinish(false);
     } catch (err) {
       console.error("Error submitting cert exam:", err);
-      alert("Natijani yuborishda xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.");
+      submittingRef.current = false; // qayta urinishga ruxsat
+      alert("Natijani yuborishda xatolik yuz berdi. Internetni tekshirib, \"Yakunlash\" tugmasini qayta bosing. Javoblaringiz saqlanib turibdi.");
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const submitRef = useRef(handleSubmitAnswers);
+  submitRef.current = handleSubmitAnswers;
 
   const formatTimer = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -252,48 +274,58 @@ export const CertExamTake: React.FC<CertExamTakeProps> = ({
   // Helpers to check if question answered
   const isAnswered = (q: CertQuestion) => {
     if (q.isOpenEnded) {
-      return Boolean(answers[`${q.id}_0`] || answers[`${q.id}_1`]);
+      return Boolean(answers[`${q.id}_0`]?.trim() || answers[`${q.id}_1`]?.trim());
     }
     return answers[q.id] !== undefined;
   };
 
+  const answeredCount = questions.reduce((acc, q) => acc + (isAnswered(q) ? 1 : 0), 0);
+
   return (
     <div className="fixed inset-0 z-[60] bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-900 dark:text-slate-100 select-none animate-fadeIn">
       {/* Top Header */}
-      <div className="p-3 sm:px-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-4 shrink-0 shadow-xs">
-        <div className="flex items-center gap-2 truncate">
-          <span className="px-2.5 py-0.5 rounded-lg text-xs font-black bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 shrink-0">
-            {test.mode === 'fast' ? "Tezkor Varaqa" : "Rasmiy Sinov"}
+      <div className="p-3 sm:px-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 sm:gap-4 shrink-0 shadow-xs">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <span className="px-2 py-0.5 rounded-lg text-[11px] sm:text-xs font-black bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 shrink-0">
+            {test.mode === 'fast' ? "Tezkor" : "Rasmiy"}
           </span>
-          <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">
+          <h2 className="text-xs sm:text-base font-bold text-slate-900 dark:text-white truncate">
             {exam.title}
           </h2>
+          <span className="hidden lg:inline-block px-2.5 py-0.5 rounded-lg text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 shrink-0">
+            {answeredCount} / 45 topshirildi
+          </span>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
-          <div className={`flex items-center gap-1.5 px-3 sm:px-4 py-1.5 sm:py-2 rounded-2xl border font-mono font-black text-sm sm:text-base transition-colors ${
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          <span className="lg:hidden text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+            {answeredCount}/45
+          </span>
+          <div className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-xl sm:rounded-2xl border font-mono font-black text-xs sm:text-base transition-colors ${
             isLast5Min 
               ? 'bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950 dark:text-rose-300 animate-pulse'
               : 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300'
           }`}>
-            <Clock className="w-4 h-4 shrink-0" />
+            <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
             <span>{formatTimer(timeLeft)}</span>
           </div>
 
           <button
             onClick={() => setShowConfirmFinish(true)}
             disabled={isSubmitting}
-            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+            className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-xs transition-all active:scale-95 cursor-pointer disabled:opacity-50 flex items-center gap-1"
           >
-            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            <span>Yakunlash</span>
+            {isSubmitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5 shrink-0" />}
+            <span className="hidden sm:inline">Yakunlash</span>
+            <span className="sm:hidden">Topshirish</span>
           </button>
 
           <button
             onClick={() => setMobileNavOpen(!mobileNavOpen)}
-            className="md:hidden p-2 rounded-xl border border-slate-200 dark:border-slate-800 cursor-pointer"
+            className="md:hidden p-1.5 sm:p-2 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 cursor-pointer"
+            title="Savollar ro'yxati"
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
       </div>
@@ -321,10 +353,10 @@ export const CertExamTake: React.FC<CertExamTakeProps> = ({
                       return (
                         <div 
                           key={q.id}
-                          className="p-2 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2"
+                          className="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-1.5 sm:gap-2"
                         >
-                          <span className="w-7 font-mono font-bold text-xs text-slate-600 dark:text-slate-400">{idx + 1}.</span>
-                          <div className="flex items-center gap-1.5">
+                          <span className="w-6 sm:w-7 font-mono font-bold text-xs text-slate-600 dark:text-slate-400 shrink-0">{idx + 1}.</span>
+                          <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap justify-end">
                             {opts.map((_, optIdx) => {
                               const letter = String.fromCharCode(65 + optIdx);
                               const isSelected = answers[q.id] === optIdx;
@@ -332,8 +364,8 @@ export const CertExamTake: React.FC<CertExamTakeProps> = ({
                                 <button
                                   key={optIdx}
                                   type="button"
-                                  onClick={() => setAnswers({ ...answers, [q.id]: optIdx })}
-                                  className={`w-8 h-8 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                  onClick={() => setAnswer(q.id, optIdx)}
+                                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center justify-center ${
                                     isSelected
                                       ? 'bg-indigo-600 text-white shadow-xs scale-105'
                                       : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-400'
@@ -366,7 +398,7 @@ export const CertExamTake: React.FC<CertExamTakeProps> = ({
                               <span className="text-[10px] font-bold text-slate-500">a) qism:</span>
                               <MathAnswerField
                                 value={answers[`${q.id}_0`] || ''}
-                                onChange={(val) => setAnswers({ ...answers, [`${q.id}_0`]: val })}
+                                onChange={(val) => setAnswer(`${q.id}_0`, val)}
                                 placeholder="Javobni kiriting..."
                               />
                             </div>
@@ -374,7 +406,7 @@ export const CertExamTake: React.FC<CertExamTakeProps> = ({
                               <span className="text-[10px] font-bold text-slate-500">b) qism:</span>
                               <MathAnswerField
                                 value={answers[`${q.id}_1`] || ''}
-                                onChange={(val) => setAnswers({ ...answers, [`${q.id}_1`]: val })}
+                                onChange={(val) => setAnswer(`${q.id}_1`, val)}
                                 placeholder="Javobni kiriting..."
                               />
                             </div>
@@ -426,7 +458,7 @@ export const CertExamTake: React.FC<CertExamTakeProps> = ({
                         <button
                           key={optIdx}
                           type="button"
-                          onClick={() => setAnswers({ ...answers, [currentQ.id]: optIdx })}
+                          onClick={() => setAnswer(currentQ.id, optIdx)}
                           className={`w-full p-4 rounded-2xl border text-left text-xs sm:text-sm font-semibold transition-all flex items-center gap-3 cursor-pointer ${
                             isSelected
                               ? 'bg-indigo-600 text-white border-indigo-600 shadow-md'
@@ -451,7 +483,7 @@ export const CertExamTake: React.FC<CertExamTakeProps> = ({
                       </label>
                       <MathAnswerField
                         value={answers[`${currentQ.id}_0`] || ''}
-                        onChange={(val) => setAnswers({ ...answers, [`${currentQ.id}_0`]: val })}
+                        onChange={(val) => setAnswer(`${currentQ.id}_0`, val)}
                         placeholder="Masalan: 3√7 / 7"
                       />
                     </div>
@@ -462,7 +494,7 @@ export const CertExamTake: React.FC<CertExamTakeProps> = ({
                       </label>
                       <MathAnswerField
                         value={answers[`${currentQ.id}_1`] || ''}
-                        onChange={(val) => setAnswers({ ...answers, [`${currentQ.id}_1`]: val })}
+                        onChange={(val) => setAnswer(`${currentQ.id}_1`, val)}
                         placeholder="Masalan: 24"
                       />
                     </div>
@@ -494,16 +526,27 @@ export const CertExamTake: React.FC<CertExamTakeProps> = ({
           )}
         </div>
 
+        {/* Backdrop for mobile drawer */}
+        {mobileNavOpen && (
+          <div 
+            onClick={() => setMobileNavOpen(false)}
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 md:hidden animate-fadeIn"
+          />
+        )}
+
         {/* Right 1-45 Navigator Drawer (Desktop & Mobile) */}
         <div className={`w-72 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 p-5 overflow-y-auto shrink-0 space-y-4 md:block ${
-          mobileNavOpen ? 'fixed inset-y-0 right-0 z-50 shadow-2xl block' : 'hidden md:block'
+          mobileNavOpen ? 'fixed inset-y-0 right-0 z-50 shadow-2xl block animate-slideLeft' : 'hidden md:block'
         }`}>
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">
               Savollar Xaritasi (1–45)
             </h3>
             {mobileNavOpen && (
-              <button onClick={() => setMobileNavOpen(false)} className="p-1 text-slate-400">
+              <button 
+                onClick={() => setMobileNavOpen(false)} 
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              >
                 <X className="w-5 h-5" />
               </button>
             )}
@@ -564,8 +607,8 @@ export const CertExamTake: React.FC<CertExamTakeProps> = ({
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
                 Imtihonni yakunlamoqchimisiz?
               </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Yakunlagandan so'ng javoblarni o'zgartirib bo'lmaydi.
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Siz 45 ta topshiriqdan <strong>{answeredCount}</strong> tasiga javob berdingiz ({45 - answeredCount} ta qoldi). Yakunlagandan so'ng javoblarni o'zgartirib bo'lmaydi.
               </p>
             </div>
 

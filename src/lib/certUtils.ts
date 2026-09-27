@@ -18,8 +18,8 @@ export function createDefaultCertQuestions(): CertQuestion[] {
   for (let i = 1; i <= 32; i++) {
     questions.push({
       id: `q${i}`,
-      text: `${i}-savol matni...`,
-      options: ['Variant A', 'Variant B', 'Variant C', 'Variant D'],
+      text: '',
+      options: ['', '', '', ''],
       correctOptionIndex: -1,
       isOpenEnded: false
     });
@@ -29,8 +29,8 @@ export function createDefaultCertQuestions(): CertQuestion[] {
   for (let i = 33; i <= 35; i++) {
     questions.push({
       id: `q${i}`,
-      text: `${i}-savol matni...`,
-      options: ['Variant A', 'Variant B', 'Variant C', 'Variant D', 'Variant E', 'Variant F'],
+      text: '',
+      options: ['', '', '', '', '', ''],
       correctOptionIndex: -1,
       isOpenEnded: false
     });
@@ -40,7 +40,7 @@ export function createDefaultCertQuestions(): CertQuestion[] {
   for (let i = 36; i <= 45; i++) {
     questions.push({
       id: `q${i}`,
-      text: `${i}-savol matni...`,
+      text: '',
       options: [],
       correctOptionIndex: -1,
       isOpenEnded: true,

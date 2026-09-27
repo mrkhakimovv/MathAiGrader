@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { CertExam, CertResult } from '../../types';
 import { db } from '../../lib/firebase';
 import { 
@@ -11,18 +12,8 @@ import {
   updateDoc, 
   arrayUnion 
 } from 'firebase/firestore';
-import { 
-  dedupeBestAttempts, 
-  computeRaschReport, 
-  computeRaschWithReference, 
-  RaschReport, 
-  RaschResult 
-} from '../../lib/rasch';
-import { 
-  itemDifficultiesFromMatrix, 
-  generateSyntheticMatrix, 
-  seedFromString 
-} from '../../lib/synthetic';
+import { RaschReport } from '../../lib/rasch';
+import { fetchExamResults, computeExamReportFromResults } from '../../lib/certExam';
 import { RaschStatsPanel } from './RaschStatsPanel';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -55,48 +46,25 @@ export const CertExamResults: React.FC<CertExamResultsProps> = ({ exam, onClose 
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [rawResults, setRawResults] = useState<CertResult[]>([]);
 
-  const fetchAndCompute = async () => {
+  // Jadvalda bir vaqtda ko'rsatiladigan qatorlar (10 000 ta sintetik qator sahifani qotirmasligi uchun)
+  const PAGE_SIZE = 200;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  /**
+   * Natijalarni JONLI hisoblaydi (imtihon faol bo'lsa ham).
+   * Sintetik o'quvchilar ekranda ko'rsatish uchun qaytariladi, lekin bazaga yozilmaydi.
+   * @returns faqat real o'quvchilardan iborat hisobot (muzlatish uchun) yoki null
+   */
+  const fetchAndCompute = async (): Promise<RaschReport | null> => {
     try {
       setLoading(true);
-      const resQuery = query(collection(db, 'cert_results'), where('examId', '==', exam.id));
-      const snap = await getDocs(resQuery);
-      const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as CertResult));
+      const list = await fetchExamResults(exam.id);
       setRawResults(list);
-
-      const valid = list.filter(r => r.raschItems && r.raschItems.length > 0);
-      const deduped = dedupeBestAttempts(valid);
-
-      if (deduped.length === 0) {
-        setReport(null);
-        setLoading(false);
-        return;
-      }
-
-      const targetLen = deduped[0].raschItems.length;
-      const matrix = deduped
-        .filter(r => r.raschItems.length === targetLen)
-        .map(r => ({
-          studentId: r.studentId,
-          studentName: r.studentName,
-          items: r.raschItems
-        }));
-
-      let computedReport: RaschReport;
-      if (exam.syntheticEnabled && exam.syntheticCount > 0) {
-        const difficulties = itemDifficultiesFromMatrix(matrix);
-        const synthetic = generateSyntheticMatrix(difficulties, {
-          count: exam.syntheticCount,
-          seed: seedFromString(exam.id)
-        });
-        // Pass true to include synthetic rows in the live results list
-        computedReport = computeRaschWithReference(matrix, synthetic, true);
-      } else {
-        computedReport = computeRaschReport(matrix);
-      }
-
-      setReport(computedReport);
+      setReport(computeExamReportFromResults(exam, list, true));
+      return computeExamReportFromResults(exam, list, false);
     } catch (err) {
       console.error("Error computing exam results:", err);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -105,6 +73,10 @@ export const CertExamResults: React.FC<CertExamResultsProps> = ({ exam, onClose 
   useEffect(() => {
     fetchAndCompute();
   }, [exam.id]);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [onlyReal, search]);
 
   const filteredResults = useMemo(() => {
     if (!report || !report.results) return [];
@@ -135,8 +107,13 @@ export const CertExamResults: React.FC<CertExamResultsProps> = ({ exam, onClose 
         allowedRetakes: arrayUnion(studentId)
       });
 
-      // 3. Re-fetch and re-calculate
-      await fetchAndCompute();
+      // 3. Qayta hisoblash; imtihon yakunlangan bo'lsa — muzlatilgan hisobotni ham yangilash
+      const realOnlyReport = await fetchAndCompute();
+      if (exam.status === 'ended') {
+        await updateDoc(doc(db, 'cert_exams', exam.id), {
+          raschReport: realOnlyReport ?? null
+        });
+      }
     } catch (err) {
       console.error("Error deleting student result:", err);
       alert("Natijani o'chirishda xatolik yuz berdi.");
@@ -214,7 +191,8 @@ export const CertExamResults: React.FC<CertExamResultsProps> = ({ exam, onClose 
 
       autoTable(docPdf, {
         startY: Math.min(startY, 450),
-        head: [["O'rin", "O'quvchi F.I.Sh", "To'g'ri", "θ", "Ball", "Daraja", "Foizli o'rin"]],
+        // jsPDF standart shriftida yunon harflari yo'q, shuning uchun "θ" o'rniga "Theta"
+        head: [["O'rin", "O'quvchi F.I.Sh", "To'g'ri", "Theta", "Ball", "Daraja", "Foizli o'rin"]],
         body: tableRows,
         styles: { fontSize: 9, cellPadding: 5 },
         headStyles: { fillColor: [79, 70, 229], textColor: [255, 255, 255], fontStyle: 'bold' },
@@ -230,8 +208,8 @@ export const CertExamResults: React.FC<CertExamResultsProps> = ({ exam, onClose 
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden animate-fadeIn">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] bg-slate-900/80 backdrop-blur-xs flex flex-col bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 overflow-hidden animate-fadeIn">
       {/* Top Bar */}
       <div className="p-4 sm:px-6 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4 shrink-0 shadow-xs">
         <div>
@@ -252,23 +230,25 @@ export const CertExamResults: React.FC<CertExamResultsProps> = ({ exam, onClose 
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-end">
           <button
             onClick={handleExportPdf}
             disabled={isExportingPdf || !report}
-            className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+            className="px-3 sm:px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
           >
             {isExportingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-            <span>PDF yuklab olish</span>
+            <span className="hidden sm:inline">PDF yuklab olish</span>
+            <span className="sm:hidden">PDF</span>
           </button>
 
           <button
             onClick={handleExportExcel}
             disabled={!report}
-            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+            className="px-3 sm:px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50"
           >
             <Download className="w-4 h-4" />
-            <span>Excel yuklab olish</span>
+            <span className="hidden sm:inline">Excel yuklab olish</span>
+            <span className="sm:hidden">Excel</span>
           </button>
 
           <button
@@ -351,20 +331,20 @@ export const CertExamResults: React.FC<CertExamResultsProps> = ({ exam, onClose 
               </div>
 
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                <table className="w-full min-w-[650px] text-left border-collapse text-xs sm:text-sm">
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-800 text-[11px] font-extrabold uppercase tracking-wider text-slate-400 bg-slate-50/50 dark:bg-slate-950/20">
-                      <th className="py-3.5 px-6">O'rin</th>
-                      <th className="py-3.5 px-6">O'quvchi F.I.Sh</th>
-                      <th className="py-3.5 px-6 text-center">To'g'ri (55 dan)</th>
-                      <th className="py-3.5 px-6 text-center">Qobiliyat (θ)</th>
-                      <th className="py-3.5 px-6 text-center">Rasch Balli</th>
-                      <th className="py-3.5 px-6 text-center">Daraja</th>
-                      <th className="py-3.5 px-6 text-right">Amal</th>
+                      <th className="py-3 sm:py-3.5 px-3 sm:px-6">O'rin</th>
+                      <th className="py-3 sm:py-3.5 px-3 sm:px-6">O'quvchi F.I.Sh</th>
+                      <th className="py-3 sm:py-3.5 px-3 sm:px-6 text-center">To'g'ri (55 dan)</th>
+                      <th className="py-3 sm:py-3.5 px-3 sm:px-6 text-center">Qobiliyat (θ)</th>
+                      <th className="py-3 sm:py-3.5 px-3 sm:px-6 text-center">Rasch Balli</th>
+                      <th className="py-3 sm:py-3.5 px-3 sm:px-6 text-center">Daraja</th>
+                      <th className="py-3 sm:py-3.5 px-3 sm:px-6 text-right">Amal</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
-                    {filteredResults.map((r, idx) => {
+                    {filteredResults.slice(0, visibleCount).map((r, idx) => {
                       const isSynthetic = r.synthetic;
                       const place = r.rank ?? idx + 1;
 
@@ -407,7 +387,7 @@ export const CertExamResults: React.FC<CertExamResultsProps> = ({ exam, onClose 
 
                           <td className="py-3.5 px-6 text-center font-mono font-black text-slate-900 dark:text-white text-base">
                             <span className={r.ball >= 70 ? 'text-emerald-600 dark:text-emerald-400' : ''}>
-                              {r.ball}
+                              {Number(r.ball).toFixed(1)}
                             </span>
                           </td>
 
@@ -441,11 +421,26 @@ export const CertExamResults: React.FC<CertExamResultsProps> = ({ exam, onClose 
                     })}
                   </tbody>
                 </table>
+                {filteredResults.length > visibleCount && (
+                  <div className="p-4 flex flex-col items-center gap-1 border-t border-slate-100 dark:border-slate-800">
+                    <button
+                      onClick={() => setVisibleCount(c => c + PAGE_SIZE * 5)}
+                      className="px-5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer transition-colors"
+                    >
+                      Yana ko'rsatish
+                    </button>
+                    <span className="text-[11px] text-slate-400">
+                      {visibleCount} / {filteredResults.length} ta qator ko'rsatilmoqda
+                      {!onlyReal && " • faqat real o'quvchilarni ko'rish uchun yuqoridagi filtrni yoqing"}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

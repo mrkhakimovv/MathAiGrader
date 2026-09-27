@@ -73,6 +73,7 @@ export function Sidebar({
       { id: 'home', label: "Bosh sahifa", icon: Home },
       { id: 'student-rating', label: "Reyting", icon: Trophy },
       { id: 'student-tasks', label: "Uyga vazifalar", icon: BookOpen, badge: uncompletedTasksCount },
+      { id: 'national-certificate', label: "Milliy sertifikat", icon: Award },
       { id: 'student-stats', label: "Statistika", icon: BarChart2 },
       { id: 'student-schedule', label: "Dars jadvali", icon: CalendarDays },
       { id: 'team', label: "Bizning jamoa", icon: Users }

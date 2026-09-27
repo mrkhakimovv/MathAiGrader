@@ -223,3 +223,73 @@
     @apply border-l-4 border-slate-200 dark:border-slate-700 pl-4 py-1 italic text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/50 my-4;
   }
 }
+/* ============================================================
+   Milliy Sertifikat moduli — modal va sahifa animatsiyalari
+   ============================================================ */
+@keyframes cert-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes cert-scale-up {
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-fadeIn {
+  animation: cert-fade-in 0.2s ease-out both;
+}
+.animate-scaleUp {
+  animation: cert-scale-up 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-fadeIn,
+  .animate-scaleUp {
+    animation: none;
+  }
+}
+
+/* ============================================================
+   MathLive Virtual Keyboard — Global Z-Index va Qatlam Sozlamalari
+   ============================================================ */
+:root {
+  --keyboard-zindex: 999999 !important;
+}
+
+body > .ML__keyboard,
+.ML__keyboard {
+  z-index: 999999 !important;
+  --_keyboard-zindex: 999999 !important;
+}
+
+.ML__keyboard.is-visible {
+  pointer-events: auto !important;
+}
+
+.ML__plate {
+  z-index: 999999 !important;
+}
+
+.ML__variant-panel,
+.ui-menu-container {
+  z-index: 1000000 !important;
+}
+
+/* Qorong'i mavzu uchun klaviatura ranglari */
+.dark .ML__keyboard,
+html.dark .ML__keyboard {
+  --_accent-color: var(--keyboard-accent-color, #6366f1);
+  --_background: var(--keyboard-background, #0f172a);
+  --_border: var(--keyboard-border, #1e293b);
+  --_toolbar-text: var(--keyboard-toolbar-text, #e2e8f0);
+  --_toolbar-background-hover: var(--keyboard-toolbar-background-hover, #1e293b);
+  --_horizontal-rule: var(--keyboard-horizontal-rule, 1px solid #1e293b);
+  --_keycap-background: var(--keycap-background, #1e293b);
+  --_keycap-background-hover: var(--keycap-background-hover, #334155);
+  --_keycap-border: var(--keycap-border, #334155);
+  --_keycap-border-bottom: var(--keycap-border-bottom, #1e293b);
+  --_keycap-text: var(--keycap-text, #f8fafc);
+  --_keycap-secondary-background: var(--keycap-secondary-background, #334155);
+  --_keycap-secondary-background-hover: var(--keycap-secondary-background-hover, #475569);
+  --_keycap-secondary-text: var(--keycap-secondary-text, #f1f5f9);
+  --_variant-panel-background: var(--variant-panel-background, #1e293b);
+  --_variant-keycap-text-active: var(--variant-keycap-text-active, #fff);
+}

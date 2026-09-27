@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { CertTest, CertSpecialResult } from '../../types';
 import { db } from '../../lib/firebase';
 import { 
@@ -97,10 +98,11 @@ export const SpecialTestResultsModal: React.FC<SpecialTestResultsModalProps> = (
       });
 
       const report = computeRaschWithReference(matrix, synthetic, false);
-      const batch = writeBatch(db);
-
-      report.results.forEach(res => {
-        if (res.studentId) {
+      // writeBatch bitta paketda 500 tagacha amal qabul qiladi — bo'lib yozamiz
+      const rows = report.results.filter(res => res.studentId);
+      for (let i = 0; i < rows.length; i += 450) {
+        const batch = writeBatch(db);
+        rows.slice(i, i + 450).forEach(res => {
           batch.update(doc(db, 'cert_special_results', res.studentId), {
             ball: res.ball,
             grade: res.grade,
@@ -109,10 +111,9 @@ export const SpecialTestResultsModal: React.FC<SpecialTestResultsModalProps> = (
             rank: res.rank ?? null,
             percentile: res.percentile ?? null
           });
-        }
-      });
-
-      await batch.commit();
+        });
+        await batch.commit();
+      }
       alert("Barcha natijalar Rasch modeli (10 000 tayanch o'quvchi) bilan muvaffaqiyatli qayta hisoblandi!");
     } catch (err) {
       console.error("Qayta hisoblashda xatolik:", err);
@@ -191,17 +192,17 @@ export const SpecialTestResultsModal: React.FC<SpecialTestResultsModalProps> = (
     ? Math.max(...results.map(r => r.ball || 0)) 
     : 0;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
       <div className="bg-white dark:bg-slate-900 w-full max-w-5xl rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col max-h-[92vh] overflow-hidden animate-scaleUp">
         {/* Header */}
-        <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4 bg-slate-50/50 dark:bg-slate-950/40 shrink-0">
+        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-slate-50/50 dark:bg-slate-950/40 shrink-0">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-lg text-xs font-black bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300">
-                Maxsus Test Natijalari
+              <span className="px-2.5 py-0.5 rounded-lg text-xs font-black bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300 shrink-0">
+                Maxsus Test
               </span>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white truncate max-w-md">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate max-w-xs sm:max-w-md">
                 {test.title}
               </h3>
             </div>
@@ -210,30 +211,31 @@ export const SpecialTestResultsModal: React.FC<SpecialTestResultsModalProps> = (
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
             <button
               onClick={onShare}
-              className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+              className="px-3 sm:px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
             >
-              <Copy className="w-4 h-4" />
+              <Copy className="w-4 h-4 shrink-0" />
               <span>Havola</span>
             </button>
 
             <button
               onClick={handleRecalculateRasch}
               disabled={isRecalculating || results.length === 0}
-              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+              className="px-3 sm:px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50"
             >
-              {isRecalculating ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4" />}
-              <span>Rasch'ni qayta hisoblash</span>
+              {isRecalculating ? <Loader2 className="w-4 h-4 animate-spin" /> : <RotateCcw className="w-4 h-4 shrink-0" />}
+              <span className="hidden sm:inline">Rasch'ni qayta hisoblash</span>
+              <span className="sm:hidden">Rasch</span>
             </button>
 
             <button
               onClick={handleExportExcel}
               disabled={results.length === 0}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+              className="px-3 sm:px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-4 h-4 shrink-0" />
               <span>Excel</span>
             </button>
 
@@ -301,40 +303,40 @@ export const SpecialTestResultsModal: React.FC<SpecialTestResultsModalProps> = (
                 return (
                   <div key={r.id || idx} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                     <div 
-                      className="p-4 flex items-center justify-between gap-4 cursor-pointer"
+                      className="p-3 sm:p-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 sm:gap-4 cursor-pointer"
                       onClick={() => setExpandedId(isExpanded ? null : (r.id || null))}
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="w-7 text-xs font-mono font-bold text-slate-400">
+                      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1">
+                        <span className="w-6 sm:w-7 text-xs font-mono font-bold text-slate-400 shrink-0">
                           {r.rank || idx + 1}
                         </span>
-                        <div>
-                          <div className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <span>{r.studentName}</span>
-                            {r.grade === 'A+' && <Trophy className="w-3.5 h-3.5 text-amber-500" />}
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5 truncate">
+                            <span className="truncate">{r.studentName}</span>
+                            {r.grade === 'A+' && <Trophy className="w-3.5 h-3.5 text-amber-500 shrink-0" />}
                           </div>
-                          <div className="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
-                            <span>{r.submittedAt ? new Date(r.submittedAt).toLocaleString('uz-UZ') : ''}</span>
+                          <div className="text-[10px] sm:text-[11px] text-slate-400 flex items-center gap-1.5 sm:gap-2 mt-0.5 truncate">
+                            <span>{r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('uz-UZ') : ''}</span>
                             <span>•</span>
                             <span>{r.browserInfo?.deviceType || 'Veb'}</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2.5 sm:gap-4 shrink-0">
                         <div className="text-right">
-                          <div className="text-base font-black text-slate-900 dark:text-white">
+                          <div className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
                             <span className={r.ball >= 70 ? 'text-emerald-600 dark:text-emerald-400' : ''}>
-                              {r.ball}
+                              {Number(r.ball).toFixed(1)}
                             </span>
-                            <span className="text-xs text-slate-400 font-normal"> ball</span>
+                            <span className="text-[10px] sm:text-xs text-slate-400 font-normal"> ball</span>
                           </div>
-                          <div className="text-[11px] text-slate-400">
-                            {r.score} / {r.total || 55} to'g'ri
+                          <div className="text-[10px] sm:text-[11px] text-slate-400">
+                            {r.score} / {r.total || 55}
                           </div>
                         </div>
 
-                        <span className={`px-2.5 py-1 rounded-xl text-xs font-black border ${
+                        <span className={`px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-xl text-xs font-black border ${
                           r.grade === 'A+' || r.grade === 'A'
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300'
                             : r.grade === 'B+' || r.grade === 'B'
@@ -347,11 +349,13 @@ export const SpecialTestResultsModal: React.FC<SpecialTestResultsModalProps> = (
                         </span>
 
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (r.id) handleDelete(r.id, r.studentName);
                           }}
                           className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
+                          title="O'chirish"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -387,6 +391,7 @@ export const SpecialTestResultsModal: React.FC<SpecialTestResultsModalProps> = (
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

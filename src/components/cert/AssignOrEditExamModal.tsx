@@ -1,18 +1,10 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CertTest, CertExam, Group } from '../../types';
 import { db } from '../../lib/firebase';
 import { collection, addDoc, updateDoc, doc, getDocs, query, where } from 'firebase/firestore';
 import { cleanForFirestore } from '../../lib/db';
-import { 
-  dedupeBestAttempts, 
-  computeRaschReport, 
-  computeRaschWithReference 
-} from '../../lib/rasch';
-import { 
-  itemDifficultiesFromMatrix, 
-  generateSyntheticMatrix, 
-  seedFromString 
-} from '../../lib/synthetic';
+import { refreshFrozenReport } from '../../lib/certExam';
 import { 
   X, 
   Calendar, 
@@ -112,7 +104,6 @@ export const AssignOrEditExamModal: React.FC<AssignOrEditExamModalProps> = ({
       };
 
       if (isEditing && examToEdit) {
-        examData.id = examToEdit.id;
         const synthChanged = 
           examToEdit.syntheticEnabled !== syntheticEnabled || 
           examToEdit.syntheticCount !== examData.syntheticCount;
@@ -121,39 +112,8 @@ export const AssignOrEditExamModal: React.FC<AssignOrEditExamModalProps> = ({
 
         // If exam was already ended and synthetic setting changed, recompute report automatically
         if (examToEdit.status === 'ended' && synthChanged) {
-          const resQuery = query(collection(db, 'cert_results'), where('examId', '==', examToEdit.id));
-          const snap = await getDocs(resQuery);
-          const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as any));
-          const valid = list.filter(r => r.raschItems && r.raschItems.length > 0);
-          const deduped = dedupeBestAttempts(valid);
-
-          if (deduped.length > 0) {
-            const targetLen = deduped[0].raschItems.length;
-            const matrix = deduped
-              .filter(r => r.raschItems.length === targetLen)
-              .map(r => ({
-                studentId: r.studentId,
-                studentName: r.studentName,
-                items: r.raschItems
-              }));
-
-            let report = null;
-            if (syntheticEnabled && examData.syntheticCount > 0) {
-              const difficulties = itemDifficultiesFromMatrix(matrix);
-              const synthetic = generateSyntheticMatrix(difficulties, {
-                count: examData.syntheticCount,
-                seed: seedFromString(examToEdit.id)
-              });
-              report = computeRaschWithReference(matrix, synthetic, false);
-            } else {
-              report = computeRaschReport(matrix);
-            }
-
-            await updateDoc(doc(db, 'cert_exams', examToEdit.id), {
-              raschReport: report
-            });
-            examData.raschReport = report;
-          }
+          // Yakunlangan imtihonda sintetik sozlama o'zgardi — hisobot yangi sozlama bilan qayta muzlatiladi
+          await refreshFrozenReport({ ...examToEdit, ...examData });
         }
 
         onSaved({ ...examToEdit, ...examData });
@@ -177,8 +137,8 @@ export const AssignOrEditExamModal: React.FC<AssignOrEditExamModalProps> = ({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
       <div className="bg-white dark:bg-slate-900 w-full max-w-xl rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-scaleUp">
         {/* Header */}
         <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -364,18 +324,18 @@ export const AssignOrEditExamModal: React.FC<AssignOrEditExamModalProps> = ({
           </div>
 
           {/* Footer buttons */}
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 cursor-pointer"
+              className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-center cursor-pointer"
             >
               Bekor qilish
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/20 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
               <span>{isEditing ? "O'zgarishlarni saqlash" : "Imtihonni yaratish"}</span>
@@ -383,6 +343,7 @@ export const AssignOrEditExamModal: React.FC<AssignOrEditExamModalProps> = ({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

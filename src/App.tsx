@@ -1,6 +1,6 @@
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { StudentRegistration } from "./components/StudentRegistration";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { Uploader } from "./components/Uploader";
 import { ResultCard } from "./components/ResultCard";
 import { ProfileModal } from "./components/qollanma/ProfileModal";
@@ -8,7 +8,26 @@ import { LoginScreen } from "./components/qollanma/LoginScreen";
 import { AdminCreateTeacherView, AdminAdsView, AdminStudentsView, AdminExpensesView } from "./components/AdminViews";
 import { Sidebar, ViewType } from "./components/Sidebar";
 import { AllStudentsView, CreateGroupView, CreateTaskView, AllGroupsView } from "./components/TeacherViews";
-import { NationalCertificateView } from "./components/NationalCertificateView";
+// Milliy sertifikat moduli faqat ochilganda yuklanadi (MathLive va Rasch hisoblash
+// kodi og'ir — ularni boshqa sahifalar uchun yuklab o'tirmaslik uchun).
+const TeacherCertificateView = lazy(() =>
+  import("./components/cert/TeacherCertificateView").then(m => ({ default: m.TeacherCertificateView }))
+);
+const StudentCertificateView = lazy(() =>
+  import("./components/cert/StudentCertificateView").then(m => ({ default: m.StudentCertificateView }))
+);
+const SpecialTestTake = lazy(() =>
+  import("./components/cert/SpecialTestTake").then(m => ({ default: m.SpecialTestTake }))
+);
+
+function CertLoading() {
+  return (
+    <div className="p-16 flex flex-col items-center justify-center gap-3 text-slate-500">
+      <Loader2 className="h-7 w-7 animate-spin text-indigo-600" />
+      <span className="text-sm font-medium">Milliy sertifikat bo'limi yuklanmoqda...</span>
+    </div>
+  );
+}
 import { StudentTasksView, StudentStatsView } from "./components/StudentViews";
 import { StudentRatingView } from "./components/StudentRatingView";
 import { StudentScheduleView } from "./components/StudentScheduleView";
@@ -703,8 +722,23 @@ function MainApp() {
             }} 
           />
         )}
-        {activeView === 'national-certificate' && (
-          <NationalCertificateView />
+        {activeView === 'national-certificate' && role === 'teacher' && currentUser && (
+          <Suspense fallback={<CertLoading />}>
+            <TeacherCertificateView
+              currentUser={currentUser}
+              groups={teacherGroupDetails}
+              students={teacherStudents}
+            />
+          </Suspense>
+        )}
+        {activeView === 'national-certificate' && role === 'student' && (
+          currentStudentInfo ? (
+            <Suspense fallback={<CertLoading />}>
+              <StudentCertificateView student={currentStudentInfo} groupDetails={groupDetails} />
+            </Suspense>
+          ) : (
+            <div className="p-10 text-center text-sm text-slate-500">O'quvchi ma'lumotlari yuklanmoqda...</div>
+          )
         )}
         {activeView === 'create-group' && <CreateGroupView />}
         {activeView === 'create-task' && <CreateTaskView groups={teacherGroups} isSubmitting={isTaskSubmitting} uploadProgress={taskUploadProgress} onCreateTask={async (task) => {
@@ -1098,6 +1132,15 @@ export default function App() {
     <Routes>
       <Route path="/register/:groupId" element={<StudentRegistration onRegisterSuccess={handleRegisterSuccess} />} />
       <Route path="/t/:teacherId" element={<StudentRegistration onRegisterSuccess={handleRegisterSuccess} />} />
+      {/* Milliy sertifikat — ochiq havolali maxsus test (login talab qilinmaydi) */}
+      <Route
+        path="/maxsus-test/:testId"
+        element={
+          <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><CertLoading /></div>}>
+            <SpecialTestTake />
+          </Suspense>
+        }
+      />
       <Route path="/*" element={<MainApp />} />
     </Routes>
   );

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CertTest } from '../../types';
 import { QRCodeSVG } from 'qrcode.react';
 import { X, Copy, Check, Send, ExternalLink, Share2 } from 'lucide-react';
@@ -35,8 +36,8 @@ export const SpecialTestShareModal: React.FC<SpecialTestShareModalProps> = ({ te
     window.open(tgUrl, '_blank');
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
       <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden animate-scaleUp">
         {/* Header */}
         <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -125,6 +126,7 @@ export const SpecialTestShareModal: React.FC<SpecialTestShareModalProps> = ({ te
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

@@ -41,15 +41,15 @@ export const RaschStatsPanel: React.FC<RaschStatsPanelProps> = ({ report, highli
               </p>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="px-5 py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-center min-w-[90px]">
-                <div className="text-xs text-indigo-200 font-medium">Ball (T-shkala)</div>
-                <div className="text-2xl sm:text-3xl font-black text-amber-300">{highlightResult.ball}</div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex lg:flex-wrap items-center gap-2 sm:gap-3">
+              <div className="p-3 sm:px-5 sm:py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-center min-w-0 sm:min-w-[90px]">
+                <div className="text-[11px] sm:text-xs text-indigo-200 font-medium truncate">Ball (T-shkala)</div>
+                <div className="text-xl sm:text-3xl font-black text-amber-300 mt-0.5">{highlightResult.ball}</div>
               </div>
 
-              <div className="px-5 py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-center min-w-[90px]">
-                <div className="text-xs text-indigo-200 font-medium">Daraja</div>
-                <div className={`text-2xl sm:text-3xl font-black ${
+              <div className="p-3 sm:px-5 sm:py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-center min-w-0 sm:min-w-[90px]">
+                <div className="text-[11px] sm:text-xs text-indigo-200 font-medium truncate">Daraja</div>
+                <div className={`text-xl sm:text-3xl font-black mt-0.5 ${
                   highlightResult.grade === 'A+' || highlightResult.grade === 'A' ? 'text-emerald-400' :
                   highlightResult.grade === 'B+' || highlightResult.grade === 'B' ? 'text-blue-400' :
                   highlightResult.grade === 'C+' || highlightResult.grade === 'C' ? 'text-amber-400' : 'text-rose-400'
@@ -58,19 +58,19 @@ export const RaschStatsPanel: React.FC<RaschStatsPanelProps> = ({ report, highli
                 </div>
               </div>
 
-              <div className="px-4 py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-center">
-                <div className="text-xs text-indigo-200 font-medium">To'g'ri javoblar</div>
-                <div className="text-xl sm:text-2xl font-black">{highlightResult.correct} / {stats.numItems || 55}</div>
+              <div className="p-3 sm:px-4 sm:py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-center min-w-0">
+                <div className="text-[11px] sm:text-xs text-indigo-200 font-medium truncate">To'g'ri javoblar</div>
+                <div className="text-lg sm:text-2xl font-black mt-0.5">{highlightResult.correct} / {stats.numItems || 55}</div>
               </div>
 
-              <div className="px-4 py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-center">
-                <div className="text-xs text-indigo-200 font-medium">Qobiliyat (θ)</div>
-                <div className="text-lg font-mono font-bold">{highlightResult.theta.toFixed(2)}</div>
+              <div className="p-3 sm:px-4 sm:py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-center min-w-0">
+                <div className="text-[11px] sm:text-xs text-indigo-200 font-medium truncate">Qobiliyat (θ)</div>
+                <div className="text-base sm:text-lg font-mono font-bold mt-0.5">{highlightResult.theta.toFixed(2)}</div>
               </div>
 
-              <div className="px-4 py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-center">
-                <div className="text-xs text-indigo-200 font-medium">O'rin</div>
-                <div className="text-lg font-black">{highlightResult.rank ?? '-'}-o'rin</div>
+              <div className="p-3 sm:px-4 sm:py-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 text-center min-w-0 col-span-2 sm:col-span-1">
+                <div className="text-[11px] sm:text-xs text-indigo-200 font-medium truncate">O'rin</div>
+                <div className="text-base sm:text-lg font-black mt-0.5">{highlightResult.rank ?? '-'}-o'rin</div>
               </div>
             </div>
           </div>
@@ -222,7 +222,7 @@ export const RaschStatsPanel: React.FC<RaschStatsPanelProps> = ({ report, highli
             </div>
           </div>
 
-          <div className="grid grid-cols-5 sm:grid-cols-11 gap-2">
+          <div className="grid grid-cols-5 sm:grid-cols-11 gap-1 sm:gap-2">
             {stats.itemDifficultyPct.map((pct, idx) => {
               const num = idx + 1;
               const bg = pct <= 33 
@@ -241,10 +241,10 @@ export const RaschStatsPanel: React.FC<RaschStatsPanelProps> = ({ report, highli
                 <div 
                   key={idx}
                   title={`${unitLabel}-birlik: ${pct.toFixed(1)}% xato (Logit: ${(stats.itemLogit?.[idx] ?? 0).toFixed(2)})`}
-                  className={`p-2 rounded-xl text-center font-bold text-xs flex flex-col justify-center items-center cursor-help transition-transform hover:scale-105 shadow-2xs ${bg}`}
+                  className={`p-1 sm:p-2 rounded-xl text-center font-bold text-xs flex flex-col justify-center items-center cursor-help transition-transform hover:scale-105 shadow-2xs ${bg}`}
                 >
-                  <span className="text-[11px] opacity-90">{unitLabel}</span>
-                  <span className="text-[11px] font-mono font-black">{pct.toFixed(0)}%</span>
+                  <span className="text-[10px] sm:text-[11px] opacity-90">{unitLabel}</span>
+                  <span className="text-[10px] sm:text-[11px] font-mono font-black">{pct.toFixed(0)}%</span>
                 </div>
               );
             })}
